@@ -1,72 +1,227 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:get/get.dart';
+import 'package:on_time/core/routes/app_pages.dart';
+import 'package:on_time/ui/screens/sign_up/sign_up_controller.dart';
 
-class SignUpScreen extends StatelessWidget {
+class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final _formKey = GlobalKey<FormBuilderState>();
+  final _nameFocusNode = FocusNode();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _nameFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     const imageSize = 286.0;
-    final formHeight = (height - imageSize) - 48;
-    return Scaffold(
-      backgroundColor: const Color(0xFF96D4E1),
-      body: Column(
-        children: [
-          Center(
-            child: Container(
-              margin: EdgeInsets.fromLTRB(0, 24, 0, 24),
-              width: imageSize,
-              height: imageSize,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage('assets/images/sign_up.png'),
-                    fit: BoxFit.fill),
-              ),
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.all(16.0),
-            width: double.infinity,
-            height: formHeight,
-            decoration: BoxDecoration(
-              color: Color(0xFFFFFFFF),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30.0),
-                topRight: Radius.circular(30.0),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Sign Up",
-                  style: TextStyle(
-                      color: Color(0xFF000000),
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  "Just a few quick things to get started",
-                  style: TextStyle(
-                      color: Color(0xFF000000),
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.normal),
-                ),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF4098AA).withOpacity(0.12),
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(30.0),
+    final formHeight = height - imageSize - 48;
+    return GetBuilder<SignUpController>(
+      builder: (controller) {
+        return Scaffold(
+          backgroundColor: const Color(0xFF96D4E1),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(0, 24, 0, 24),
+                      width: imageSize,
+                      height: imageSize,
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                            image: AssetImage('assets/images/sign_up.png'),
+                            fit: BoxFit.fill),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    width: double.infinity,
+                    height: formHeight,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30.0),
+                        topRight: Radius.circular(30.0),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Sign Up",
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 24.0,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        const Text(
+                          "Just a few quick things to get started",
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.normal),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4098AA).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                          child: FormBuilder(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                FormBuilderTextField(
+                                  name: 'name',
+                                  focusNode: _nameFocusNode,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    prefixIcon:
+                                        const Icon(Icons.person_2_rounded),
+                                    labelText: "Name",
+                                    hintText: "Enter your name",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16.0),
+                                FormBuilderTextField(
+                                  name: 'email',
+                                  focusNode: _emailFocusNode,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    prefixIcon: const Icon(Icons.email_rounded),
+                                    labelText: "Email",
+                                    hintText: "Enter your email",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  validator: FormBuilderValidators.compose([
+                                    FormBuilderValidators.required(),
+                                    FormBuilderValidators.email(),
+                                  ]),
+                                  keyboardType: TextInputType.emailAddress,
+                                ),
+                                const SizedBox(height: 16.0),
+                                FormBuilderTextField(
+                                  name: 'password',
+                                  focusNode: _passwordFocusNode,
+                                  obscureText: true,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    prefixIcon: const Icon(Icons.lock_rounded),
+                                    labelText: 'Password',
+                                    hintText: "Enter your password",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        controller.togglePasswordVisibility();
+                                      },
+                                      icon: Icon(
+                                        controller.isPasswordVisible.value
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
+                                      ),
+                                    ),
+                                  ),
+                                  validator: FormBuilderValidators.compose([
+                                    FormBuilderValidators.required(),
+                                    FormBuilderValidators.minLength(6),
+                                  ]),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24.0),
+                        Center(
+                          child: Material(
+                            borderRadius: BorderRadius.circular(24),
+                            child: SizedBox(
+                              width: 256,
+                              height: 38,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Get.toNamed(Routes.SIGN_IN);
+                                },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          const Color(0xFF4098AA)),
+                                ),
+                                child: const Text(
+                                  "Sign Up",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20.0,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Already have an account?",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Get.toNamed(Routes.SIGN_IN);
+                              },
+                              child: const Text(
+                                " Sign In",
+                                style: TextStyle(
+                                    color: Color(0xFF4952F3),
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

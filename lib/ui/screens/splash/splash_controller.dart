@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:on_time/core/routes/app_pages.dart';
 
 class SplashController extends GetxController {
@@ -10,7 +9,6 @@ class SplashController extends GetxController {
     print("SplashController onInit");
     Future.delayed(Duration(seconds: 2), () {
       isInitialized.value = true;
-
       navigateToGreeting();
     });
 
