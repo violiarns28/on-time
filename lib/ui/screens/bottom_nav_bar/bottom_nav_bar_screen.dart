@@ -15,10 +15,10 @@ class BottomNavBarScreen extends GetView<BottomNavBarController> {
       return Scaffold(
         body: IndexedStack(
           index: controller.selectedIndex.value,
-          children: const [
-            HomeScreen(),
+          children: [
+            const HomeScreen(),
             AttendanceScreen(),
-            ProfileScreen(),
+            const ProfileScreen(),
           ],
         ),
         bottomNavigationBar: CurvedNavigationBar(

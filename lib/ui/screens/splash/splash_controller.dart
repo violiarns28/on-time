@@ -7,7 +7,7 @@ class SplashController extends GetxController {
   @override
   void onInit() {
     print("SplashController onInit");
-    Future.delayed(Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () {
       isInitialized.value = true;
       navigateToGreeting();
     });

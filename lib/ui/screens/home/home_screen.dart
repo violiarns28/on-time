@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 23,
                             backgroundImage: NetworkImage(
-                              'INSERT_YOUR_URL_HERE',
+                              '',
                             ),
                           ),
                         ),
@@ -263,6 +263,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 10),
+                    // LocationContainer(controller: controller),
                   ],
                 ),
               ),

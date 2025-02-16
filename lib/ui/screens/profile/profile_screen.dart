@@ -51,7 +51,8 @@ class ProfileScreen extends GetView<ProfileController> {
                       color: const Color(0xFFE8F2F4),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           "Device ID : UP1A.231005.007",
@@ -61,9 +62,13 @@ class ProfileScreen extends GetView<ProfileController> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.copy_rounded),
+                        Center(
+                          child: IconButton(
+                            onPressed: () {},
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.copy_rounded),
+                          ),
                         ),
                       ],
                     ),
@@ -80,9 +85,9 @@ class ProfileScreen extends GetView<ProfileController> {
                         ),
                       ),
                       onPressed: () {},
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text(
                             "Edit Profile",
                             style: TextStyle(
@@ -113,9 +118,9 @@ class ProfileScreen extends GetView<ProfileController> {
                         ),
                       ),
                       onPressed: () {},
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text(
                             "Change Password",
                             style: TextStyle(
@@ -148,9 +153,9 @@ class ProfileScreen extends GetView<ProfileController> {
                       onPressed: () {
                         Get.toNamed(Routes.SIGN_IN);
                       },
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text(
                             "Logout",
                             style: TextStyle(
@@ -173,7 +178,7 @@ class ProfileScreen extends GetView<ProfileController> {
               ),
             ),
           ),
-          Positioned(
+          const Positioned(
             top: 50,
             left: 0,
             right: 0,

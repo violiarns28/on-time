@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
+import 'package:on_time/ui/screens/attendance/attendance_controller.dart';
 import 'package:on_time/ui/screens/bottom_nav_bar/bottom_nav_bar_controller.dart';
 import 'package:on_time/ui/screens/home/home_controller.dart';
+import 'package:on_time/ui/screens/profile/profile_controller.dart';
 
 class BottomNavBarBinding extends Bindings {
   @override
@@ -19,18 +21,18 @@ class BottomNavBarBinding extends Bindings {
           // locationService,
           ),
     );
-    // Get.lazyPut<AttendanceController>(
-    //   () => AttendanceController(
-    //     attendanceRepo,
-    //     locationService,
-    //     generalRepo,
-    //   ),
-    // );
-    // Get.lazyPut<ProfileController>(
-    //   () => ProfileController(
-    //     Get.find<AuthRepoImpl>(),
-    //     localService,
-    //   ),
-    // );
+    Get.lazyPut<AttendanceController>(
+      () => AttendanceController(
+          // attendanceRepo,
+          // locationService,
+          // generalRepo,
+          ),
+    );
+    Get.lazyPut<ProfileController>(
+      () => ProfileController(
+          // Get.find<AuthRepoImpl>(),
+          // localService,
+          ),
+    );
   }
 }

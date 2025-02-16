@@ -1,124 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:on_time/core/routes/app_pages.dart';
+import 'package:on_time/ui/screens/greeting/greeting_controller.dart';
 
-class GreetingScreen extends StatelessWidget {
+class GreetingScreen extends GetView<GreetingController> {
   const GreetingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final formHeight = height - 422;
     return Scaffold(
-      body: Center(
-        child: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage('assets/images/greeting.png'),
-                fit: BoxFit.fill),
+      backgroundColor: const Color(0xFF96D4E1),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image(
+            image: const AssetImage('assets/images/greeting.png'),
+            height: formHeight,
           ),
-          child: Column(
-            children: [
-              Container(
-                width: 430.0,
-                height: 266.0,
-                decoration: BoxDecoration(
-                  color: Color(0xFF96D4E0),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(190.0),
-                    bottomRight: Radius.circular(190.0),
-                  ),
-                ),
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF4098AA).withOpacity(0.3),
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Welcome to",
+                    const Text(
+                      'Your productive day starts now!',
                       style: TextStyle(
-                          color: Color(0xFF036579),
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Container(
-                      width: 180.0,
-                      height: 40.0,
-                      decoration: const BoxDecoration(
-                        image: DecorationImage(
-                            image: AssetImage('assets/images/title.png'),
-                            fit: BoxFit.fill),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      "Precision Attendance, Anytime Access",
+                    const SizedBox(height: 8),
+                    const Text(
+                      'The ultimate attendance tracking solution ensures accurate time logs and safeguards data with advanced security.',
                       style: TextStyle(
-                          color: Color(0xFF036579),
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w600),
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Get.toNamed(Routes.SIGN_IN);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4098AA),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Text(
+                          'Get Started',
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 88),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Material(
-                      borderRadius: BorderRadius.circular(24),
-                      child: SizedBox(
-                        width: 256,
-                        height: 38,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Get.toNamed(Routes.SIGN_UP);
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                const Color(0xFF29B6D3)),
-                          ),
-                          child: const Text(
-                            "Sign Up",
-                            style: TextStyle(
-                                color: Color(0xFFFFFFFF),
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 36.0),
-                  Center(
-                    child: Material(
-                      borderRadius: BorderRadius.circular(24),
-                      child: SizedBox(
-                        width: 256,
-                        height: 38,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Get.toNamed(Routes.SIGN_IN);
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                const Color(0xFFFFFFFF)),
-                          ),
-                          child: const Text(
-                            "Sign In",
-                            style: TextStyle(
-                                color: Color(0xFF0B98C7),
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

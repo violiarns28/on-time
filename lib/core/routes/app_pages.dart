@@ -28,7 +28,7 @@ class AppPages {
   static final routes = [
     GetPage(
       name: "/",
-      page: () => RootScreen(),
+      page: () => const RootScreen(),
       binding: RootBinding(),
       participatesInRootNavigator: true,
       preventDuplicates: true,
@@ -65,7 +65,7 @@ class AppPages {
         ),
         GetPage(
           name: _Paths.ATTENDANCE,
-          page: () => const AttendanceScreen(),
+          page: () =>  AttendanceScreen(),
           binding: AttendanceBinding(),
         ),
         GetPage(
