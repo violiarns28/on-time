@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
+import 'package:on_time/ui/screens/edit_profile/edit_profile_screen.dart';
 import 'package:on_time/ui/screens/profile/profile_controller.dart';
+import 'package:random_avatar/random_avatar.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
   const ProfileScreen({super.key});
@@ -20,7 +22,7 @@ class ProfileScreen extends GetView<ProfileController> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 64, 16, 64),
+              padding: const EdgeInsets.fromLTRB(24, 64, 24, 64),
               width: double.infinity,
               height: formHeight,
               decoration: const BoxDecoration(
@@ -34,24 +36,24 @@ class ProfileScreen extends GetView<ProfileController> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
-                    "Violia Ruana",
+                    "Violia",
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18.0,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8.0),
+                  const SizedBox(height: 16.0),
                   Container(
-                    width: 316,
+                    width: double.infinity,
                     height: 48,
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.fromLTRB(24, 0, 8, 0),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.0),
                       color: const Color(0xFFE8F2F4),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
@@ -62,29 +64,33 @@ class ProfileScreen extends GetView<ProfileController> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Center(
-                          child: IconButton(
-                            onPressed: () {},
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            icon: const Icon(Icons.copy_rounded),
-                          ),
+                        IconButton(
+                          onPressed: () {},
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.copy_rounded),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
-                    width: 316,
+                    width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFCEE4EB),
+                        backgroundColor: const Color(0xFFE8F2F4),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const EditProfileScreen()),
+                        );
+                      },
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -108,40 +114,7 @@ class ProfileScreen extends GetView<ProfileController> {
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
-                    width: 316,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFCEE4EB),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                      ),
-                      onPressed: () {},
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Change Password",
-                            style: TextStyle(
-                              color: Color(0xFF4098AA),
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.navigate_next_rounded,
-                            size: 35,
-                            color: Color(0xFF4098AA),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: 316,
+                    width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -178,17 +151,28 @@ class ProfileScreen extends GetView<ProfileController> {
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             top: 50,
             left: 0,
             right: 0,
-            child: CircleAvatar(
-              radius: 60,
-              backgroundColor: Colors.white,
-              child: CircleAvatar(
-                radius: 55,
-                backgroundImage: NetworkImage(
-                  'INSERT_YOUR_URL_HERE',
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(130, 0, 130, 0),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: const Color(0xFF4098AA),
+                    width: 4,
+                  ),
+                ),
+                child: SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: RandomAvatar('saytoonz',
+                      fit: BoxFit.cover,
+                      trBackground: true,
+                      height: 60,
+                      width: 60),
                 ),
               ),
             ),

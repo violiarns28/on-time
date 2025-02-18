@@ -3,8 +3,12 @@ import 'package:on_time/ui/screens/attendance/attendance_binding.dart';
 import 'package:on_time/ui/screens/attendance/attendance_screen.dart';
 import 'package:on_time/ui/screens/bottom_nav_bar/bottom_nav_bar_binding.dart';
 import 'package:on_time/ui/screens/bottom_nav_bar/bottom_nav_bar_screen.dart';
+import 'package:on_time/ui/screens/edit_profile/edit_profile_binding.dart';
+import 'package:on_time/ui/screens/edit_profile/edit_profile_screen.dart';
 import 'package:on_time/ui/screens/greeting/greeting_binding.dart';
 import 'package:on_time/ui/screens/greeting/greeting_screen.dart';
+import 'package:on_time/ui/screens/history_detail/history_detail_binding.dart';
+import 'package:on_time/ui/screens/history_detail/history_detail_screen.dart';
 import 'package:on_time/ui/screens/home/home_binding.dart';
 import 'package:on_time/ui/screens/home/home_screen.dart';
 import 'package:on_time/ui/screens/profile/profile_binding.dart';
@@ -23,7 +27,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.BOTTOM_NAV_BAR;
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
     GetPage(
@@ -65,13 +69,23 @@ class AppPages {
         ),
         GetPage(
           name: _Paths.ATTENDANCE,
-          page: () =>  AttendanceScreen(),
+          page: () => AttendanceScreen(),
           binding: AttendanceBinding(),
+        ),
+        GetPage(
+          name: _Paths.HISTORY_DETAIL,
+          page: () => const HistoryDetailScreen(),
+          binding: HistoryDetailBinding(),
         ),
         GetPage(
           name: _Paths.PROFILE,
           page: () => const ProfileScreen(),
           binding: ProfileBinding(),
+        ),
+        GetPage(
+          name: _Paths.EDIT_PROFILE,
+          page: () => const EditProfileScreen(),
+          binding: EditProfileBinding(),
         ),
       ],
     )

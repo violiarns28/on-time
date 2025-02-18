@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:random_avatar/random_avatar.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -6,62 +7,70 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
-    final formHeight = height - 213;
+    final formHeight = height - 205;
     return Scaffold(
       backgroundColor: const Color(0xFF96D4E1),
       body: Stack(
         children: [
           Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 48, 16, 48),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 25,
-                          backgroundColor: Colors.white,
-                          child: CircleAvatar(
-                            radius: 23,
-                            backgroundImage: NetworkImage(
-                              '',
-                            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 48, 16, 48),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(
+                            color: const Color(0xFF4098AA),
+                            width: 2.5,
                           ),
                         ),
-                        SizedBox(width: 16.0),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Hello,",
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            Text(
-                              "Violia!",
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 20.0,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                          ],
+                        child: SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: RandomAvatar('saytoonz',
+                              fit: BoxFit.cover,
+                              trBackground: true,
+                              height: 50,
+                              width: 50),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 8.0),
-                    Text(
-                      "Monday, February 3th 2025",
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ],
+                      ),
+                      const SizedBox(width: 8.0),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Hello, Violia!",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.w600),
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.calendar_month_rounded, size: 20.0),
+                              SizedBox(width: 4.0),
+                              Text(
+                                "Monday, February 17th 2025",
+                                // "Wednesday, September 17th 2025",
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Center(
@@ -231,12 +240,12 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           Positioned(
-            top: 120.0,
+            top: 110.0,
             left: 0,
             right: 0,
             child: Center(
               child: Container(
-                width: 297,
+                width: 300,
                 height: height / 11.4,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -252,18 +261,37 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 child: const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.fromLTRB(15, 16, 5, 0),
+                      padding: EdgeInsets.all(8.0),
                       child: Icon(
                         Icons.location_on,
                         color: Colors.white,
                         size: 35,
                       ),
                     ),
-                    SizedBox(width: 10),
-                    // LocationContainer(controller: controller),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Location",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          "Ketintang, Surabaya",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

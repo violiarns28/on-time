@@ -9,7 +9,9 @@ abstract class Routes {
   static const HOME = _Paths.HOME;
   static const BOTTOM_NAV_BAR = _Paths.BOTTOM_NAV_BAR;
   static const ATTENDANCE = _Paths.ATTENDANCE;
+  static const HISTORY_DETAIL = _Paths.HISTORY_DETAIL;
   static const PROFILE = _Paths.PROFILE;
+  static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
 }
 
 abstract class _Paths {
@@ -21,5 +23,7 @@ abstract class _Paths {
   static const HOME = '/home';
   static const BOTTOM_NAV_BAR = '/bottom-nav-bar';
   static const ATTENDANCE = '/attendance';
+  static const HISTORY_DETAIL = '/history-detail';
   static const PROFILE = '/profile';
+  static const EDIT_PROFILE = '/edit-profile';
 }

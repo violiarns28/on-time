@@ -46,6 +46,9 @@ dependencies:
   logger: ^2.5.0
   location: ^7.0.1
   geocoding: ^3.0.0
+  random_avatar: ^0.0.8
+  awesome_snackbar_content: ^0.1.5
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

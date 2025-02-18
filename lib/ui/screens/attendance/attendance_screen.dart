@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:on_time/ui/screens/history_detail/history_detail_screen.dart';
 
 class AttendanceScreen extends StatelessWidget {
   AttendanceScreen({super.key});
   late GoogleMapController mapController;
-  final LatLng _center = const LatLng(-6.2088, 106.8456);
+  final LatLng _center = const LatLng(-7.341591059504343, 112.736106577182336);
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -13,7 +14,7 @@ class AttendanceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
-    final formHeight = height - 350;
+    final formHeight = height - 339;
 
     return Scaffold(
       backgroundColor: const Color(0xFF96D4E1),
@@ -25,6 +26,12 @@ class AttendanceScreen extends StatelessWidget {
               target: _center,
               zoom: 11.0,
             ),
+            markers: {
+              const Marker(
+                markerId: MarkerId('currentLocation'),
+                position: LatLng(-7.341591059504343, 112.73610657718233),
+              ),
+            },
           ),
           Column(
             children: [
@@ -41,7 +48,7 @@ class AttendanceScreen extends StatelessWidget {
                   children: [
                     Container(
                       margin: const EdgeInsets.only(top: 189),
-                      padding: const EdgeInsets.fromLTRB(16, 56, 16, 0),
+                      padding: const EdgeInsets.fromLTRB(16, 56, 16, 24),
                       width: double.infinity,
                       height: formHeight,
                       color: Colors.white,
@@ -82,6 +89,7 @@ class AttendanceScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const Text(
                                 "History",
@@ -91,28 +99,41 @@ class AttendanceScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  const Text(
-                                    "All",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.normal,
+                              TextButton(
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const HistoryDetailScreen()),
+                                  );
+                                },
+                                child: const Row(
+                                  children: [
+                                    Text(
+                                      "See all",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.normal,
+                                      ),
                                     ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(
-                                        Icons.arrow_forward_ios_rounded),
-                                    iconSize: 16,
-                                  ),
-                                ],
+                                    SizedBox(width: 8),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
                           Expanded(
                             child: SingleChildScrollView(
                               child: Column(
@@ -121,14 +142,27 @@ class AttendanceScreen extends StatelessWidget {
                                     "Genesis Block",
                                     "0",
                                     "f493431dc19e2b21a774165387b579ff43a4e27560d5898e4704aef2ada7335e",
-                                    height: 130,
                                   ),
                                   const SizedBox(height: 16),
                                   _buildHistoryItem(
                                     "Violia Ruana",
                                     "f493431dc19e2b21a774165387b579ff43a4e27560d5898e4704aef2ada7335e",
                                     "0000077ce29e9d9e946726497599436614bc53a446cde5b2f9e5ba8aeda46cbd",
-                                    height: 190,
+                                    showClockIn: true,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _buildHistoryItem(
+                                    "Violia Ruana",
+                                    "1122399bh04n9j9f99u4u934unf9kmavd83b940bvu0e9b02183vwqvds12j0de7",
+                                    "0000077ce29e9d9e946726497599436614bc53a446cde5b2f9e5ba8aeda46cbd",
+                                    showClockOut: true,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _buildHistoryItem(
+                                    "Moana",
+                                    "0000077ce29e9d9e946726497599436614bc53a446cde5b2f9e5ba8aeda46cbd",
+                                    "1122399bh04n9j9f99u4u934unf9kmavd83b940bvu0e9b02183vwqvds12j0de7",
+                                    showClockIn: true,
                                   ),
                                 ],
                               ),
@@ -148,7 +182,7 @@ class AttendanceScreen extends StatelessWidget {
             right: 0,
             child: Center(
               child: Container(
-                width: 297,
+                width: 300,
                 height: height / 11.4,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -164,18 +198,37 @@ class AttendanceScreen extends StatelessWidget {
                   ),
                 ),
                 child: const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.fromLTRB(15, 16, 5, 0),
+                      padding: EdgeInsets.all(8.0),
                       child: Icon(
                         Icons.location_on,
                         color: Colors.white,
                         size: 35,
                       ),
                     ),
-                    SizedBox(width: 10),
-                    // LocationContainer(controller: controller),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Location",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          "Ketintang, Surabaya",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -228,11 +281,15 @@ class AttendanceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryItem(String name, String prevHash, String blockchainHash,
-      {double height = 130}) {
+  Widget _buildHistoryItem(
+    String name,
+    String prevHash,
+    String blockchainHash, {
+    bool showClockIn = false,
+    bool showClockOut = false,
+  }) {
     return Container(
       padding: const EdgeInsets.all(8.0),
-      height: height,
       decoration: BoxDecoration(
         color: const Color(0xFFE8F2F4),
         borderRadius: BorderRadius.circular(16.0),
@@ -241,6 +298,7 @@ class AttendanceScreen extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               "Name : $name",
@@ -268,24 +326,43 @@ class AttendanceScreen extends StatelessWidget {
                 fontWeight: FontWeight.normal,
               ),
             ),
-            if (height == 190) ...[
+            if (showClockIn) ...[
               const SizedBox(height: 8),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFB9E5CA),
-                    borderRadius: BorderRadius.circular(16.0),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFB9E5CA),
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: const Center(
+                  child: Text(
+                    "CLOCK IN : 07-11-2024 at 07:49 WIB",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  child: const Center(
-                    child: Text(
-                      "CLOCK IN : 07-11-2024 at 07:49 WIB",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w500,
-                      ),
+                ),
+              ),
+            ],
+            if (showClockOut) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEB5B7),
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: const Center(
+                  child: Text(
+                    "CLOCK OUT : 07-11-2024 at 17:49 WIB",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),

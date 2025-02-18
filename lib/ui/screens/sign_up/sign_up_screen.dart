@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:form_builder_validators/form_builder_validators.dart';
+
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
 import 'package:on_time/ui/screens/sign_up/sign_up_controller.dart';
@@ -13,17 +12,32 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final _formKey = GlobalKey<FormBuilderState>();
-  final _nameFocusNode = FocusNode();
-  final _emailFocusNode = FocusNode();
-  final _passwordFocusNode = FocusNode();
+  final FocusNode _nameFocusNode = FocusNode();
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
+
+  bool _isPasswordVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameFocusNode.addListener(() => setState(() {}));
+    _emailFocusNode.addListener(() => setState(() {}));
+
+    _passwordFocusNode.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
     _nameFocusNode.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
+
     super.dispose();
+  }
+
+  Color _getFocusColor(FocusNode focusNode) {
+    return focusNode.hasFocus ? const Color(0xFF4098AA) : Colors.black;
   }
 
   @override
@@ -87,75 +101,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             color: const Color(0xFF4098AA).withOpacity(0.12),
                             borderRadius: BorderRadius.circular(30.0),
                           ),
-                          child: FormBuilder(
-                            key: _formKey,
+                          child: Form(
                             child: Column(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                FormBuilderTextField(
-                                  name: 'name',
+                                _buildTextField(
                                   focusNode: _nameFocusNode,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    prefixIcon:
-                                        const Icon(Icons.person_2_rounded),
-                                    labelText: "Name",
-                                    hintText: "Enter your name",
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
+                                  label: "Name",
+                                  hint: "Enter your name",
+                                  icon: Icons.person_2_rounded,
                                 ),
                                 const SizedBox(height: 16.0),
-                                FormBuilderTextField(
-                                  name: 'email',
+                                _buildTextField(
                                   focusNode: _emailFocusNode,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    prefixIcon: const Icon(Icons.email_rounded),
-                                    labelText: "Email",
-                                    hintText: "Enter your email",
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                  validator: FormBuilderValidators.compose([
-                                    FormBuilderValidators.required(),
-                                    FormBuilderValidators.email(),
-                                  ]),
-                                  keyboardType: TextInputType.emailAddress,
+                                  label: "Email",
+                                  hint: "Enter your email",
+                                  icon: Icons.mail_rounded,
                                 ),
                                 const SizedBox(height: 16.0),
-                                FormBuilderTextField(
-                                  name: 'password',
+                                _buildTextField(
                                   focusNode: _passwordFocusNode,
-                                  obscureText: true,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    prefixIcon: const Icon(Icons.lock_rounded),
-                                    labelText: 'Password',
-                                    hintText: "Enter your password",
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    suffixIcon: IconButton(
-                                      onPressed: () {
-                                        controller.togglePasswordVisibility();
-                                      },
-                                      icon: Icon(
-                                        controller.isPasswordVisible.value
-                                            ? Icons.visibility
-                                            : Icons.visibility_off,
-                                      ),
-                                    ),
-                                  ),
-                                  validator: FormBuilderValidators.compose([
-                                    FormBuilderValidators.required(),
-                                    FormBuilderValidators.minLength(6),
-                                  ]),
+                                  label: "Password",
+                                  hint: "Enter your password",
+                                  icon: Icons.lock_rounded,
+                                  isPassword: true,
+                                  isPasswordVisible: _isPasswordVisible,
+                                  toggleVisibility: () {
+                                    setState(() {
+                                      _isPasswordVisible = !_isPasswordVisible;
+                                    });
+                                  },
                                 ),
                               ],
                             ),
@@ -166,8 +140,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           child: Material(
                             borderRadius: BorderRadius.circular(24),
                             child: SizedBox(
-                              width: 256,
-                              height: 38,
+                              width: 200,
+                              height: 42,
                               child: ElevatedButton(
                                 onPressed: () {
                                   Get.toNamed(Routes.SIGN_IN);
@@ -181,7 +155,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   "Sign Up",
                                   style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 20.0,
+                                      fontSize: 18.0,
                                       fontWeight: FontWeight.w600),
                                 ),
                               ),
@@ -222,6 +196,71 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTextField({
+    required FocusNode focusNode,
+    required String label,
+    required String hint,
+    required IconData icon,
+    bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? toggleVisibility,
+  }) {
+    return TextFormField(
+      focusNode: focusNode,
+      obscureText: isPassword ? !isPasswordVisible : false,
+      keyboardType:
+          isPassword ? TextInputType.visiblePassword : TextInputType.text,
+      decoration: InputDecoration(
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.0),
+          borderSide: const BorderSide(color: Color(0xFF4098AA), width: 2.0),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16.0),
+          borderSide: const BorderSide(color: Colors.grey),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        prefixIcon: Container(
+          width: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: _getFocusColor(focusNode),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                height: 24,
+                width: 1,
+                color: _getFocusColor(focusNode),
+              ),
+            ],
+          ),
+        ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 60),
+        labelText: label,
+        labelStyle: TextStyle(
+          color: _getFocusColor(focusNode),
+          fontWeight: FontWeight.w500,
+        ),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.grey),
+        suffixIcon: isPassword
+            ? IconButton(
+                onPressed: toggleVisibility,
+                icon: Icon(
+                  isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: _getFocusColor(focusNode),
+                ),
+              )
+            : null,
+      ),
     );
   }
 }

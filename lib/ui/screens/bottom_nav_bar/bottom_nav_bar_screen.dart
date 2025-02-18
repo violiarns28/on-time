@@ -25,18 +25,21 @@ class BottomNavBarScreen extends GetView<BottomNavBarController> {
           items: [
             Icon(
               Icons.home_filled,
+              size: 30,
               color: controller.selectedIndex.value == 0
                   ? Colors.white
                   : Colors.black,
             ),
             Icon(
               Icons.alarm_on_rounded,
+              size: 30,
               color: controller.selectedIndex.value == 1
                   ? Colors.white
                   : Colors.black,
             ),
             Icon(
               Icons.person_2_rounded,
+              size: 30,
               color: controller.selectedIndex.value == 2
                   ? Colors.white
                   : Colors.black,
@@ -47,7 +50,7 @@ class BottomNavBarScreen extends GetView<BottomNavBarController> {
           onTap: controller.changePage,
           color: const Color(0xFFBFE6EE).withOpacity(0.7),
           buttonBackgroundColor: const Color(0xFF4098AA),
-          height: 65,
+          height: 54,
           animationDuration: const Duration(milliseconds: 200),
           animationCurve: Curves.easeInOut,
         ),
