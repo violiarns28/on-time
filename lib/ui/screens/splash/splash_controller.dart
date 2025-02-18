@@ -19,6 +19,4 @@ class SplashController extends GetxController {
       Get.toNamed(Routes.GREETING);
     }
   }
-
-
 }

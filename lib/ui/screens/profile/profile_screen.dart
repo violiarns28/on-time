@@ -130,7 +130,7 @@ class ProfileScreen extends GetView<ProfileController> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Logout",
+                            "Sign Out",
                             style: TextStyle(
                               color: Color(0xFF9A0C0C),
                               fontSize: 16.0,

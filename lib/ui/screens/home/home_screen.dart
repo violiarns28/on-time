@@ -59,7 +59,6 @@ class HomeScreen extends StatelessWidget {
                               SizedBox(width: 4.0),
                               Text(
                                 "Monday, February 17th 2025",
-                                // "Wednesday, September 17th 2025",
                                 style: TextStyle(
                                     color: Colors.black,
                                     fontSize: 16.0,
@@ -240,7 +239,7 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           Positioned(
-            top: 110.0,
+            top: 115.0,
             left: 0,
             right: 0,
             child: Center(

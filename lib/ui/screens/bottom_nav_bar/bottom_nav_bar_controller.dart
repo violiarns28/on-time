@@ -1,12 +1,10 @@
-import 'package:get/get.dart'; 
+import 'package:get/get.dart';
 
 class BottomNavBarController extends GetxController {
-  final selectedIndex =
-      0.obs; 
+  final selectedIndex = 0.obs;
 
   void changePage(int index) {
-    selectedIndex.value = index; 
-    update(); 
+    selectedIndex.value = index;
+    update();
   }
-
 }
