@@ -9,21 +9,22 @@ export const JWTSchema = t.Object({
   iat: t.Number(),
 });
 
-export const LoginSchema = t.Object({
-  email: t.String(),
-  password: t.String(),
-  device_id: t.String(),
-});
+export const LoginSchema = t.Pick(CreateUserSchema, [
+  'email',
+  'password',
+  'deviceId',
+]);
 export const LoginResponseSchema = t.Object({
   user: t.Omit(SelectUserSchema, ['password']),
   token: t.String(),
 });
 
-export const RegisterSchema = t
-  .Omit(CreateUserSchema, ['id', 'createdAt', 'updatedAt'])
-  .extend({
-    device_id: t.String(),
-  });
+export const RegisterSchema = t.Omit(CreateUserSchema, [
+  'id',
+  'createdAt',
+  'updatedAt',
+]);
+
 export const RegisterResponseSchema = LoginResponseSchema;
 
 export const AuthHeaderSchema = t.Object({

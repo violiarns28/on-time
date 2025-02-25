@@ -12,6 +12,7 @@ import { OkResponseSchema } from '@/schemas/response';
 import { SelectUserSchema } from '@/schemas/user';
 import { table } from '@/tables';
 import { sanitize } from '@/utils';
+import { password as pw } from 'bun';
 import Elysia from 'elysia';
 
 export const AuthRouter = new Elysia()
@@ -21,7 +22,7 @@ export const AuthRouter = new Elysia()
   .post(
     '/login',
     async ({ body, db, generateJWT }) => {
-      const { email, password, device_id } = body;
+      const { email, password, deviceId } = body;
       const findUser = await db.query.user.findFirst({
         where: (fields, operators) => operators.eq(fields.email, email),
       });
@@ -33,13 +34,13 @@ export const AuthRouter = new Elysia()
         throw new BadRequestError('This account doesnt support password login');
       }
 
-      const valid = await Bun.password.verify(
-        password,
-        findUser.password,
-        'bcrypt',
-      );
+      const valid = await pw.verify(password, findUser.password, 'bcrypt');
       if (!valid) {
-        throw new BadRequestError('Invalid password');
+        throw new BadRequestError('Invalid credentials');
+      }
+
+      if (findUser.deviceId !== deviceId) {
+        throw new BadRequestError('Invalid device');
       }
 
       const token = await generateJWT(findUser);
@@ -74,7 +75,7 @@ export const AuthRouter = new Elysia()
           throw new BadRequestError('Password must be at least 8 characters');
         }
 
-        const password = await Bun.password.hash(body.password, 'bcrypt');
+        const password = await pw.hash(body.password, 'bcrypt');
         const newUserId = await trx
           .insert(table.user)
           .values({ ...body, password })

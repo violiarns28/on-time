@@ -4,7 +4,7 @@ import { OkResponseSchema } from '@/schemas/response';
 import { SelectUserSchema, UpdateUserSchema } from '@/schemas/user';
 import { table } from '@/tables';
 import { eq } from 'drizzle-orm';
-import Elysia, { t } from 'elysia';
+import Elysia from 'elysia';
 
 export const ProfileRouter = new Elysia()
   .prefix('all', '/profile')
@@ -29,12 +29,12 @@ export const ProfileRouter = new Elysia()
     '/me',
     async ({ body, db, getUser }) =>
       await db.transaction(async (trx) => {
-        console.log('BODY');
+        console.log('body', body);
         const user = await getUser();
         if (body.email) user.email = body.email;
         if (body.name) user.name = body.name;
         if (body.password) user.password = body.password;
-        if (body.device_id) user.device_id = body.device_id;
+        if (body.deviceId) user.deviceId = body.deviceId;
 
         await trx
           .update(table.user)
