@@ -6,7 +6,6 @@ import {
   timestamp,
   varchar,
 } from 'drizzle-orm/mysql-core';
-import { CommonModifier } from './common';
 
 export const blockchainLedgerTable = mysqlTable('blockchain_ledger', {
   id: serial('id').primaryKey(),
@@ -16,5 +15,4 @@ export const blockchainLedgerTable = mysqlTable('blockchain_ledger', {
   previousHash: varchar('previous_hash', { length: 64 }).notNull(),
   hash: varchar('hash', { length: 64 }).notNull(),
   nonce: int('nonce').notNull(),
-  ...CommonModifier,
 });

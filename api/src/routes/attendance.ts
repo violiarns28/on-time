@@ -1,13 +1,20 @@
 import { AuthWithUserMiddleware } from '@/core/middleware/auth';
-import { DatabaseService } from '@/core/services/db';
+import { BlockchainService } from '@/core/services/blockchain';
+import { DatabaseService, drizzleClient } from '@/core/services/db';
 import {
   CreateAttendanceSchema,
   SelectAttendanceSchema,
 } from '@/schemas/attendance';
+import { SelectBlockchainLedgerSchema } from '@/schemas/blockchain';
 import { OkResponseSchema } from '@/schemas/response';
 import { table } from '@/tables';
 import { eq } from 'drizzle-orm';
 import Elysia, { t } from 'elysia';
+
+const blockchainService = BlockchainService.getInstance();
+blockchainService.initializeBlockchain(drizzleClient);
+const blockchain = blockchainService.getBlockchain();
+await blockchain.loadChainFromDb();
 
 export const AttendanceRouter = new Elysia()
   .prefix('all', '/attendances')
@@ -15,28 +22,26 @@ export const AttendanceRouter = new Elysia()
   .use(AuthWithUserMiddleware)
   .get(
     '',
-    async ({ db }) => {
-      const attendances = await db.query.attendance.findMany({
-        orderBy(fields, operators) {
-          return operators.desc(fields.id);
-        },
-      });
+    async () => {
+      const data = blockchain.getChain();
 
       return {
         message: 'Find attendances success',
-        data: attendances,
+        data,
       };
     },
     {
       tags: ['Attendance'],
       detail: 'This endpoint is used to get all attendances',
-      response: { 200: OkResponseSchema(t.Array(SelectAttendanceSchema)) },
+      response: {
+        200: OkResponseSchema(t.Array(SelectBlockchainLedgerSchema)),
+      },
     },
   )
   .post(
     '',
     async ({ body, db }) => {
-      const { userId, date, clockOut } = body;
+      const { userId, date, clockOut, clockIn } = body;
 
       const findAttendance = await db.query.attendance.findFirst({
         where(fields, operators) {
@@ -59,6 +64,14 @@ export const AttendanceRouter = new Elysia()
             .update(table.attendance)
             .set({ clockOut })
             .where(eq(table.attendance.id, findAttendance.id));
+
+          await blockchainService.recordAttendanceAction({
+            action: 'CLOCK_OUT',
+            attendanceId: findAttendance.id,
+            userId,
+            date,
+            clockOut,
+          });
 
           return {
             message: 'Clock out successfully',
@@ -84,6 +97,14 @@ export const AttendanceRouter = new Elysia()
       const createAttendance = await db.query.attendance.findFirst({
         where: (fields, operators) =>
           operators.eq(fields.id, createAttendanceId[0].id),
+      });
+
+      await blockchainService.recordAttendanceAction({
+        action: 'CLOCK_IN',
+        attendanceId: createAttendanceId[0].id,
+        userId,
+        date,
+        clockIn,
       });
 
       return {
