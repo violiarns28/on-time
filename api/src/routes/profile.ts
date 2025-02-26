@@ -8,6 +8,14 @@ import Elysia from 'elysia';
 
 export const ProfileRouter = new Elysia({
   prefix: '/profile',
+  detail: {
+    tags: ['Attendance'],
+    security: [
+      {
+        BearerAuth: [],
+      },
+    ],
+  },
 })
   .use(DatabaseService)
   .use(AuthWithUserMiddleware)
