@@ -9,7 +9,7 @@ import Elysia from 'elysia';
 export const ProfileRouter = new Elysia({
   prefix: '/profile',
   detail: {
-    tags: ['Attendance'],
+    tags: ['Profile'],
     security: [
       {
         BearerAuth: [],
@@ -33,8 +33,6 @@ export const ProfileRouter = new Elysia({
       };
     },
     {
-      tags: ['Profile'],
-      detail: 'This endpoint is used to get user profile',
       response: {
         200: {
           description: 'Find user success',
@@ -71,8 +69,6 @@ export const ProfileRouter = new Elysia({
         };
       }),
     {
-      tags: ['Profile'],
-      detail: 'This endpoint is used to update user profile',
       body: UpdateUserSchema,
       response: {
         200: {
