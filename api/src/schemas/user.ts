@@ -1,17 +1,22 @@
 import { table } from '@/tables';
-import {
-  createInsertSchema,
-  createSelectSchema,
-  createUpdateSchema,
-} from 'drizzle-typebox';
+import { createInsertSchema, createSelectSchema } from 'drizzle-typebox';
 import { Static, t } from 'elysia';
-const user = createSelectSchema(table.user);
-export const SelectUserSchema = t.Omit(user, ['password']);
-export const CreateUserSchema = createInsertSchema(table.user, {
-  email: t.String({ format: 'email' }),
-});
+import { CommonModifier } from './common';
 
-export const UpdateUserSchema = createUpdateSchema(table.user);
+const userOverride = {
+  email: t.String({ format: 'email' }),
+  ...CommonModifier,
+};
+
+const _SelectUserSchema = createSelectSchema(table.user, userOverride);
+export const SelectUserSchema = t.Omit(_SelectUserSchema, ['password']);
+
+export const CreateUserSchema = createInsertSchema(table.user, userOverride);
+
+export const UpdateUserSchema = t.Omit(CreateUserSchema, [
+  'createdAt',
+  'updatedAt',
+]);
 
 export type SelectUser = Static<typeof SelectUserSchema>;
 export type CreateUser = Static<typeof CreateUserSchema>;

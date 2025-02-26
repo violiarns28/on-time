@@ -17,10 +17,11 @@ class Blockchain {
     return {
       id: 0,
       blockIndex: 0,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       data: {
         type: 'GENESIS',
         data: {
+          action: 'GENESIS',
           attendanceId: 0,
           userId: 0,
           date: '',
@@ -57,7 +58,7 @@ class Blockchain {
     const newBlock: SelectBlockchainLedger = {
       id: latest.id + 1,
       blockIndex: previousBlock.blockIndex + 1,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       data: data,
       previousHash: previousBlock.hash,
       hash: '',
@@ -138,7 +139,7 @@ class Blockchain {
         this.chain.push({
           id: block.id,
           blockIndex: block.blockIndex,
-          timestamp: block.timestamp,
+          timestamp: block.timestamp.toISOString(),
           data: block.data,
           previousHash: block.previousHash,
           hash: block.hash,
@@ -185,7 +186,7 @@ export class BlockchainService {
   }
 
   public async recordAttendanceAction(
-    attendanceData: BlockData,
+    attendanceData: BlockData['data'],
   ): Promise<void> {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');

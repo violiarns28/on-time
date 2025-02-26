@@ -9,6 +9,7 @@ import { Static, t } from 'elysia';
 export const BlockDataSchema = t.Object({
   type: t.String(),
   data: t.Object({
+    action: t.String(),
     attendanceId: t.Number(),
     userId: t.Number(),
     date: t.String({ format: 'date' }),
@@ -20,15 +21,22 @@ export const BlockDataSchema = t.Object({
 
 export type BlockData = Static<typeof BlockDataSchema>;
 
+const blockchainLedgerOverride = {
+  timestamp: t.String({ format: 'date-time' }),
+};
+
 export const SelectBlockchainLedgerSchema = createSelectSchema(
   table.blockchainLedger,
+  blockchainLedgerOverride,
 );
 export const CreateBlockchainLedgerSchema = createInsertSchema(
   table.blockchainLedger,
+  blockchainLedgerOverride,
 );
 
 export const UpdateBlockchainLedgerSchema = createUpdateSchema(
   table.blockchainLedger,
+  blockchainLedgerOverride,
 );
 
 export type SelectBlockchainLedger = Static<

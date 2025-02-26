@@ -16,7 +16,7 @@ export const attendancesTable = mysqlTable('attendances', {
     .references(() => usersTable.id, { onDelete: 'cascade' }),
   latitude: decimal('latitude', { precision: 12, scale: 5 }).notNull(),
   longitude: decimal('longitude', { precision: 12, scale: 5 }).notNull(),
-  date: date().notNull(),
+  date: date({ mode: 'string' }).notNull(),
   clockIn: time('clock_in'),
   clockOut: time('clock_out'),
   ...CommonModifier,

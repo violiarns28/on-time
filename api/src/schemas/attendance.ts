@@ -1,18 +1,20 @@
 import { table } from '@/tables';
 import { createInsertSchema, createSelectSchema } from 'drizzle-typebox';
 import { Static, t } from 'elysia';
+import { CommonModifier } from './common';
 
-const attendanceOvveride = {
+const attendanceOverride = {
   date: t.String({ format: 'date' }),
+  ...CommonModifier,
 };
 
 export const SelectAttendanceSchema = createSelectSchema(
   table.attendance,
-  attendanceOvveride,
+  attendanceOverride,
 );
 const InsertAttendanceSchema = createInsertSchema(
   table.attendance,
-  attendanceOvveride,
+  attendanceOverride,
 );
 
 export const CreateAttendanceSchema = t.Omit(InsertAttendanceSchema, [

@@ -44,11 +44,17 @@ export const AuthRouter = new Elysia({
         throw new BadRequestError('Invalid device');
       }
 
-      const token = await generateJWT(findUser);
+      const user = {
+        ...findUser,
+        createdAt: findUser.createdAt?.toISOString() || null,
+        updatedAt: findUser.updatedAt?.toISOString() || null,
+      };
+
+      const token = await generateJWT(user);
       return {
         message: 'Login success',
         data: {
-          user: findUser,
+          user,
           token,
         },
       };
@@ -91,12 +97,17 @@ export const AuthRouter = new Elysia({
             operators.eq(fields.id, newUserId[0].id),
         });
         if (!newUser) throw new ServerError('Failed to register');
-        const token = await generateJWT(newUser);
+        const user = {
+          ...newUser,
+          createdAt: newUser.createdAt?.toISOString() || null,
+          updatedAt: newUser.updatedAt?.toISOString() || null,
+        };
+        const token = await generateJWT(user);
 
         return {
           message: 'Register success',
           data: {
-            user: sanitize(newUser, ['password']),
+            user: sanitize(user, ['password']),
             token,
           },
         };
@@ -127,9 +138,14 @@ export const AuthRouter = new Elysia({
       if (!findUser) {
         throw new BadRequestError('User not found');
       }
+      const user = {
+        ...findUser,
+        createdAt: findUser.createdAt?.toISOString() || null,
+        updatedAt: findUser.updatedAt?.toISOString() || null,
+      };
       return {
         message: 'Authenticated',
-        data: findUser,
+        data: user,
       };
     },
     {

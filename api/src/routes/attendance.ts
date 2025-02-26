@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { BadRequestError } from '@/core/errors';
+import { BadRequestError, ServerError } from '@/core/errors';
 import { AuthWithUserMiddleware } from '@/core/middleware/auth';
 import { BlockchainService } from '@/core/services/blockchain';
 import { DatabaseService, drizzleClient } from '@/core/services/db';
@@ -56,19 +55,18 @@ export const AttendanceRouter = new Elysia({
     '',
     async ({ body, db, getUser }) => {
       const user = await getUser();
+      console.log('user', user);
       const userId = user.id;
-      const { date: strDate, clockOut, clockIn } = body;
+      const { date, clockOut, clockIn } = body;
       if (!clockIn && !clockOut) {
         throw new BadRequestError('Clock in or clock out is required');
       }
-      const date = new Date(strDate);
-      console.log('date', date);
 
       const findAttendance = await db.query.attendance.findFirst({
         where(fields, operators) {
           return operators.and(
             operators.eq(fields.userId, userId),
-            operators.eq(fields.date, strDate),
+            operators.eq(fields.date, date),
           );
         },
       });
@@ -95,7 +93,8 @@ export const AttendanceRouter = new Elysia({
             action: 'CLOCK_OUT',
             attendanceId: findAttendance.id,
             userId,
-            date,
+            date: date,
+            clockIn: null,
             clockOut,
           });
 
@@ -104,7 +103,9 @@ export const AttendanceRouter = new Elysia({
             data: {
               ...findAttendance,
               clockOut,
-              date: strDate,
+              date: date,
+              createdAt: findAttendance?.createdAt?.toISOString() || null,
+              updatedAt: findAttendance?.updatedAt?.toISOString() || null,
             },
           };
         }
@@ -119,7 +120,8 @@ export const AttendanceRouter = new Elysia({
         .insert(table.attendance)
         .values({
           ...body,
-          date,
+          date: date,
+          userId,
         })
         .$returningId()
         .execute();
@@ -129,24 +131,31 @@ export const AttendanceRouter = new Elysia({
           operators.eq(fields.id, createAttendanceId[0].id),
       });
 
+      if (!createAttendance) {
+        throw new ServerError('Failed to create attendance');
+      }
+
       await blockchainService.recordAttendanceAction({
         action: 'CLOCK_IN',
         attendanceId: createAttendanceId[0].id,
         userId,
-        date,
-        clockIn,
+        date: date,
+        clockIn: clockIn || null,
+        clockOut: null,
       });
 
       return {
         message: 'Clock in successfully',
         data: {
           ...createAttendance,
-          date: strDate,
+          date: date,
+          createdAt: createAttendance?.createdAt?.toISOString() || null,
+          updatedAt: createAttendance?.updatedAt?.toISOString() || null,
         },
       };
     },
     {
-      body: CreateAttendanceSchema,
+      body: t.Omit(CreateAttendanceSchema, ['userId']),
       response: {
         200: {
           description: 'Clock in successfully',

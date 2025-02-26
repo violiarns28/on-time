@@ -17,7 +17,11 @@ export const ProfileRouter = new Elysia({
       const user = await getUser();
       return {
         message: 'Find user success',
-        data: user,
+        data: {
+          ...user,
+          createdAt: user.createdAt?.toISOString() || null,
+          updatedAt: user.updatedAt?.toISOString() || null,
+        },
       };
     },
     {
@@ -41,6 +45,7 @@ export const ProfileRouter = new Elysia({
         if (body.name) user.name = body.name;
         if (body.password) user.password = body.password;
         if (body.deviceId) user.deviceId = body.deviceId;
+        user.updatedAt = new Date();
 
         await trx
           .update(table.user)
@@ -50,7 +55,11 @@ export const ProfileRouter = new Elysia({
 
         return {
           message: 'Updated',
-          data: user,
+          data: {
+            ...user,
+            createdAt: user?.createdAt?.toISOString() || null,
+            updatedAt: user?.updatedAt?.toISOString() || null,
+          },
         };
       }),
     {
