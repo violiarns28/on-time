@@ -15,7 +15,7 @@ import Elysia, { t } from 'elysia';
 const blockchainService = BlockchainService.getInstance();
 blockchainService.initializeBlockchain(drizzleClient);
 const blockchain = blockchainService.getBlockchain();
-await blockchain.loadChainFromDb();
+blockchain.cronCleanInvalid();
 
 export const AttendanceRouter = new Elysia({
   prefix: '/attendances',
@@ -34,9 +34,7 @@ export const AttendanceRouter = new Elysia({
     '',
     async ({ getUser }) => {
       await getUser();
-      await blockchain.loadChainFromDb();
       const data = blockchain.getChain();
-
       return {
         message: 'Find attendances success',
         data,
@@ -60,6 +58,10 @@ export const AttendanceRouter = new Elysia({
       const { date, clockOut, clockIn } = body;
       if (!clockIn && !clockOut) {
         throw new BadRequestError('Clock in or clock out is required');
+      }
+
+      if (clockIn && clockOut) {
+        throw new BadRequestError('Clock in and clock out cannot be together');
       }
 
       const findAttendance = await db.query.attendance.findFirst({
@@ -120,6 +122,7 @@ export const AttendanceRouter = new Elysia({
         .insert(table.attendance)
         .values({
           ...body,
+          clockOut: null,
           date: date,
           userId,
         })

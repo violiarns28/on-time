@@ -2,6 +2,8 @@ import { Database } from '@/core/services/db';
 import { BlockData, SelectBlockchainLedger } from '@/schemas/blockchain';
 import { table } from '@/tables';
 import { createHash } from 'crypto';
+import { gte } from 'drizzle-orm';
+import cron from 'node-cron';
 
 class Blockchain {
   private chain: SelectBlockchainLedger[];
@@ -9,31 +11,41 @@ class Blockchain {
   private db: Database;
 
   constructor(db: Database) {
-    this.chain = [this.createGenesisBlock()];
     this.db = db;
+    this.chain = [];
+    this.init();
   }
 
-  private createGenesisBlock(): SelectBlockchainLedger {
-    return {
-      id: 0,
-      blockIndex: 0,
-      timestamp: new Date().toISOString(),
-      data: {
-        type: 'GENESIS',
-        data: {
-          action: 'GENESIS',
-          attendanceId: 0,
-          userId: 0,
-          date: '',
-          clockIn: '',
-          clockOut: '',
-        },
-        timestamp: Date.now(),
-      },
-      previousHash: '0',
-      hash: '0',
-      nonce: 0,
-    };
+  private async init() {
+    const findBlock = await this.db.query.blockchainLedger.findFirst({
+      where: (fields, operators) => operators.eq(fields.blockIndex, 1),
+    });
+    if (!findBlock) {
+      await this.db
+        .insert(table.blockchainLedger)
+        .values({
+          id: 1,
+          data: {
+            data: {
+              date: new Date().toISOString(),
+              userId: 0,
+              clockIn: null,
+              clockOut: null,
+              action: 'GENESIS',
+              attendanceId: 0,
+            },
+            timestamp: new Date().getTime(),
+            type: 'GENESIS',
+          },
+          blockIndex: 1,
+          timestamp: new Date(),
+          previousHash: '0',
+          hash: '0',
+          nonce: 0,
+        })
+        .$returningId()
+        .execute();
+    }
   }
 
   public getLatestBlock(): SelectBlockchainLedger {
@@ -107,21 +119,81 @@ class Blockchain {
     }
   }
 
-  public isChainValid(): boolean {
+  public isChainValid(): Record<string, any> {
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
 
       if (currentBlock.hash !== this.calculateHash(currentBlock)) {
-        return false;
+        return {
+          valid: false,
+          block: {
+            previous: previousBlock,
+            current: currentBlock,
+          },
+        };
       }
 
       if (currentBlock.previousHash !== previousBlock.hash) {
-        return false;
+        return {
+          valid: false,
+          block: {
+            previous: previousBlock,
+            current: currentBlock,
+          },
+        };
       }
     }
 
-    return true;
+    return {
+      valid: true,
+    };
+  }
+
+  private async cleanInvalidBlocks(): Promise<void> {
+    console.log('Cleaning invalid blocks');
+    for (let i = 1; i < this.chain.length; i++) {
+      const currentBlock = this.chain[i];
+      const previousBlock = this.chain[i - 1];
+      console.log('Checking block:', currentBlock);
+
+      if (currentBlock.hash !== this.calculateHash(currentBlock)) {
+        this.chain = this.chain.slice(0, i);
+        await this.db
+          .delete(table.blockchainLedger)
+          .where(
+            gte(table.blockchainLedger.blockIndex, currentBlock.blockIndex),
+          )
+          .execute();
+        await this.db
+          .delete(table.attendance)
+          .where(gte(table.attendance.id, currentBlock.data.data.attendanceId))
+          .execute();
+        break;
+      }
+
+      if (currentBlock.previousHash !== previousBlock.hash) {
+        this.chain = this.chain.slice(0, i);
+        await this.db
+          .delete(table.blockchainLedger)
+          .where(
+            gte(table.blockchainLedger.blockIndex, currentBlock.blockIndex),
+          )
+          .execute();
+        await this.db
+          .delete(table.attendance)
+          .where(gte(table.attendance.id, currentBlock.data.data.attendanceId))
+          .execute();
+        break;
+      }
+    }
+  }
+
+  public cronCleanInvalid(): void {
+    // Run every 1 minutes
+    cron.schedule('*/1 * * * *', () => {
+      this.cleanInvalidBlocks();
+    });
   }
 
   public async loadChainFromDb(): Promise<void> {
@@ -132,7 +204,6 @@ class Blockchain {
           return operators.asc(fields.blockIndex);
         },
       });
-      this.chain = [this.createGenesisBlock()];
       for (const block of blocks) {
         if (block.blockIndex === 0) continue;
 
@@ -199,7 +270,7 @@ export class BlockchainService {
     });
   }
 
-  public verifyBlockchain(): boolean {
+  public verifyBlockchain(): Record<string, any> {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }

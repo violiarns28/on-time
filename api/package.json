@@ -25,10 +25,12 @@
     "drizzle-typebox": "^0.3.0",
     "elysia": "latest",
     "logixlysia": "^4.1.1",
-    "mysql2": "^3.12.0"
+    "mysql2": "^3.12.0",
+    "node-cron": "^3.0.3"
   },
   "devDependencies": {
     "@types/bun": "^1.2.2",
+    "@types/node-cron": "^3.0.11",
     "@typescript-eslint/eslint-plugin": "^8.23.0",
     "@typescript-eslint/parser": "^8.23.0",
     "bun-types": "latest",

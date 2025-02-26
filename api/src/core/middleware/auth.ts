@@ -17,10 +17,8 @@ export const AuthMiddleware = new Elysia()
   )
   .derive({ as: 'global' }, ({ jwt, bearer, cookie: { auth } }) => ({
     async verifyJWT() {
-      console.log('BEARER', bearer);
       if (!bearer) throw new AuthenticationError('Unauthorized');
       const verify = await jwt.verify(bearer);
-      console.log('VERIFIED', verify);
       if (!verify) throw new AuthenticationError('Invalid token');
       return verify as JWT & Record<string, string | number> & JWTPayloadSpec;
     },
@@ -48,7 +46,6 @@ export const AuthWithUserMiddleware = new Elysia()
   .derive({ as: 'global' }, async ({ verifyJWT, db }) => ({
     async getUser() {
       const verified = await verifyJWT();
-      console.log('VERIFIED', verified);
       if (!verified) throw new AuthenticationError('Invalid token');
       const user = await db.query.user.findFirst({
         where: (fields, operators) => operators.eq(fields.id, verified.id),
