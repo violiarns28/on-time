@@ -29,7 +29,6 @@ export const RegisterResponseSchema = LoginResponseSchema;
 
 export const AuthHeaderSchema = t.Object({
   Authorization: t.Optional(t.String()),
-  authorization: t.Optional(t.String()),
 });
 
 export type JWT = Static<typeof JWTSchema>;

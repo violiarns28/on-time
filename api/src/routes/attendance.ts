@@ -1,3 +1,5 @@
+// @ts-nocheck
+import { BadRequestError } from '@/core/errors';
 import { AuthWithUserMiddleware } from '@/core/middleware/auth';
 import { BlockchainService } from '@/core/services/blockchain';
 import { DatabaseService, drizzleClient } from '@/core/services/db';
@@ -16,13 +18,24 @@ blockchainService.initializeBlockchain(drizzleClient);
 const blockchain = blockchainService.getBlockchain();
 await blockchain.loadChainFromDb();
 
-export const AttendanceRouter = new Elysia()
-  .prefix('all', '/attendances')
+export const AttendanceRouter = new Elysia({
+  prefix: '/attendances',
+  detail: {
+    tags: ['Attendance'],
+    security: [
+      {
+        BearerAuth: [],
+      },
+    ],
+  },
+})
   .use(DatabaseService)
   .use(AuthWithUserMiddleware)
   .get(
     '',
-    async () => {
+    async ({ getUser }) => {
+      await getUser();
+      await blockchain.loadChainFromDb();
       const data = blockchain.getChain();
 
       return {
@@ -31,26 +44,36 @@ export const AttendanceRouter = new Elysia()
       };
     },
     {
-      tags: ['Attendance'],
-      detail: 'This endpoint is used to get all attendances',
       response: {
-        200: OkResponseSchema(t.Array(SelectBlockchainLedgerSchema)),
+        200: {
+          description: 'Find attendances success',
+          ...OkResponseSchema(t.Array(SelectBlockchainLedgerSchema)),
+        },
       },
     },
   )
   .post(
     '',
-    async ({ body, db }) => {
-      const { userId, date, clockOut, clockIn } = body;
+    async ({ body, db, getUser }) => {
+      const user = await getUser();
+      const userId = user.id;
+      const { date: strDate, clockOut, clockIn } = body;
+      if (!clockIn && !clockOut) {
+        throw new BadRequestError('Clock in or clock out is required');
+      }
+      const date = new Date(strDate);
+      console.log('date', date);
 
       const findAttendance = await db.query.attendance.findFirst({
         where(fields, operators) {
           return operators.and(
             operators.eq(fields.userId, userId),
-            operators.eq(fields.date, date),
+            operators.eq(fields.date, strDate),
           );
         },
       });
+
+      console.log('findAttendance', findAttendance);
 
       if (findAttendance) {
         if (findAttendance.clockIn && !findAttendance.clockOut) {
@@ -62,7 +85,10 @@ export const AttendanceRouter = new Elysia()
           }
           await db
             .update(table.attendance)
-            .set({ clockOut })
+            .set({
+              ...findAttendance,
+              clockOut,
+            })
             .where(eq(table.attendance.id, findAttendance.id));
 
           await blockchainService.recordAttendanceAction({
@@ -78,6 +104,7 @@ export const AttendanceRouter = new Elysia()
             data: {
               ...findAttendance,
               clockOut,
+              date: strDate,
             },
           };
         }
@@ -90,7 +117,10 @@ export const AttendanceRouter = new Elysia()
 
       const createAttendanceId = await db
         .insert(table.attendance)
-        .values(body)
+        .values({
+          ...body,
+          date,
+        })
         .$returningId()
         .execute();
 
@@ -109,13 +139,19 @@ export const AttendanceRouter = new Elysia()
 
       return {
         message: 'Clock in successfully',
-        data: createAttendance,
+        data: {
+          ...createAttendance,
+          date: strDate,
+        },
       };
     },
     {
-      tags: ['Attendance'],
-      detail: 'This endpoint is used to clock in or clock out',
       body: CreateAttendanceSchema,
-      response: { 200: OkResponseSchema(SelectAttendanceSchema) },
+      response: {
+        200: {
+          description: 'Clock in successfully',
+          ...OkResponseSchema(SelectAttendanceSchema),
+        },
+      },
     },
   );

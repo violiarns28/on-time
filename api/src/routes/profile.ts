@@ -6,8 +6,9 @@ import { table } from '@/tables';
 import { eq } from 'drizzle-orm';
 import Elysia from 'elysia';
 
-export const ProfileRouter = new Elysia()
-  .prefix('all', '/profile')
+export const ProfileRouter = new Elysia({
+  prefix: '/profile',
+})
   .use(DatabaseService)
   .use(AuthWithUserMiddleware)
   .get(
@@ -22,7 +23,12 @@ export const ProfileRouter = new Elysia()
     {
       tags: ['Profile'],
       detail: 'This endpoint is used to get user profile',
-      response: { 200: OkResponseSchema(SelectUserSchema) },
+      response: {
+        200: {
+          description: 'Find user success',
+          ...OkResponseSchema(SelectUserSchema),
+        },
+      },
     },
   )
   .post(
@@ -51,6 +57,11 @@ export const ProfileRouter = new Elysia()
       tags: ['Profile'],
       detail: 'This endpoint is used to update user profile',
       body: UpdateUserSchema,
-      response: { 200: OkResponseSchema(SelectUserSchema) },
+      response: {
+        200: {
+          description: 'Updated profile success',
+          ...OkResponseSchema(SelectUserSchema),
+        },
+      },
     },
   );

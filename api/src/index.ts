@@ -28,7 +28,7 @@ const app = new Elysia({
     INVALID_OPERATION: BadRequestError,
     UNSUPPORTED_MEDIA_TYPE: UnsupportedMediaTypeError,
   })
-  .onError(({ error, code, set, route, path, response }) => {
+  .onError(({ error, code, set, route, path }) => {
     try {
       console.error('<=============== ERROR ===============>');
       console.log('[ROUTE] : ', route);
@@ -82,9 +82,6 @@ const app = new Elysia({
       return { errors: 'Internal server error', type: 'internal' };
     }
   })
-  .onRequest((ctx) => {
-    console.log('CTX', ctx);
-  })
   .use(LoggerMiddleware)
   .use(serverTiming())
   .use(cors())
@@ -95,9 +92,20 @@ const app = new Elysia({
           title: Config.NAME,
           version: Config.VERSION,
         },
+        components: {
+          securitySchemes: {
+            BearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT',
+            },
+          },
+        },
       },
     }),
   )
   .use(AppRouter);
 
-app.listen(Config.PORT, () => {});
+app.listen(Config.PORT, () => {
+  console.log(`Server listening on port ${Config.PORT}`);
+});

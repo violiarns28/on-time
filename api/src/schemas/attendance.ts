@@ -1,16 +1,25 @@
 import { table } from '@/tables';
-import {
-  createInsertSchema,
-  createSelectSchema,
-  createUpdateSchema,
-} from 'drizzle-typebox';
-import { Static } from 'elysia';
+import { createInsertSchema, createSelectSchema } from 'drizzle-typebox';
+import { Static, t } from 'elysia';
 
-export const SelectAttendanceSchema = createSelectSchema(table.attendance);
-export const CreateAttendanceSchema = createInsertSchema(table.attendance);
+const attendanceOvveride = {
+  date: t.String({ format: 'date' }),
+};
 
-export const UpdateAttendanceSchema = createUpdateSchema(table.attendance);
+export const SelectAttendanceSchema = createSelectSchema(
+  table.attendance,
+  attendanceOvveride,
+);
+const InsertAttendanceSchema = createInsertSchema(
+  table.attendance,
+  attendanceOvveride,
+);
+
+export const CreateAttendanceSchema = t.Omit(InsertAttendanceSchema, [
+  'id',
+  'createdAt',
+  'updatedAt',
+]);
 
 export type SelectAttendance = Static<typeof SelectAttendanceSchema>;
 export type CreateAttendance = Static<typeof CreateAttendanceSchema>;
-export type UpdateAttendance = Static<typeof UpdateAttendanceSchema>;

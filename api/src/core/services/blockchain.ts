@@ -1,5 +1,5 @@
 import { Database } from '@/core/services/db';
-import { SelectBlockchainLedger } from '@/schemas/blockchain';
+import { BlockData, SelectBlockchainLedger } from '@/schemas/blockchain';
 import { table } from '@/tables';
 import { createHash } from 'crypto';
 
@@ -18,7 +18,17 @@ class Blockchain {
       id: 0,
       blockIndex: 0,
       timestamp: new Date(),
-      data: 'Genesis Block',
+      data: {
+        type: 'GENESIS',
+        data: {
+          attendanceId: 0,
+          userId: 0,
+          date: '',
+          clockIn: '',
+          clockOut: '',
+        },
+        timestamp: Date.now(),
+      },
       previousHash: '0',
       hash: '0',
       nonce: 0,
@@ -86,7 +96,7 @@ class Blockchain {
       await this.db.insert(table.blockchainLedger).values({
         blockIndex: block.blockIndex,
         timestamp: new Date(block.timestamp),
-        data: JSON.stringify(block.data),
+        data: block.data,
         previousHash: block.previousHash,
         hash: block.hash,
         nonce: block.nonce,
@@ -115,6 +125,7 @@ class Blockchain {
 
   public async loadChainFromDb(): Promise<void> {
     try {
+      this.chain = [];
       const blocks = await this.db.query.blockchainLedger.findMany({
         orderBy(fields, operators) {
           return operators.asc(fields.blockIndex);
@@ -128,7 +139,7 @@ class Blockchain {
           id: block.id,
           blockIndex: block.blockIndex,
           timestamp: block.timestamp,
-          data: JSON.parse(block.data),
+          data: block.data,
           previousHash: block.previousHash,
           hash: block.hash,
           nonce: block.nonce,
@@ -173,7 +184,9 @@ export class BlockchainService {
     return this.blockchain;
   }
 
-  public async recordAttendanceAction(attendanceData: any): Promise<void> {
+  public async recordAttendanceAction(
+    attendanceData: BlockData,
+  ): Promise<void> {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }

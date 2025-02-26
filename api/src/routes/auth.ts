@@ -15,8 +15,9 @@ import { sanitize } from '@/utils';
 import { password as pw } from 'bun';
 import Elysia from 'elysia';
 
-export const AuthRouter = new Elysia()
-  .prefix('all', '/auth')
+export const AuthRouter = new Elysia({
+  prefix: '/auth',
+})
   .use(AuthMiddleware)
   .use(DatabaseService)
   .post(
@@ -56,7 +57,12 @@ export const AuthRouter = new Elysia()
       tags: ['Authentication'],
       detail: 'This endpoint is used to login user',
       body: LoginSchema,
-      response: { 200: OkResponseSchema(LoginResponseSchema) },
+      response: {
+        200: {
+          description: 'Login success',
+          ...OkResponseSchema(LoginResponseSchema),
+        },
+      },
     },
   )
   .post(
@@ -99,7 +105,12 @@ export const AuthRouter = new Elysia()
       tags: ['Authentication'],
       detail: 'This endpoint is used to register new user',
       body: RegisterSchema,
-      response: { 200: OkResponseSchema(RegisterResponseSchema) },
+      response: {
+        200: {
+          description: 'Register success',
+          ...OkResponseSchema(RegisterResponseSchema),
+        },
+      },
     },
   )
   .get(
@@ -126,6 +137,11 @@ export const AuthRouter = new Elysia()
       detail:
         'This endpoint is used to authenticate user using JWT token from Authorization header',
       headers: AuthHeaderSchema,
-      response: { 200: OkResponseSchema(SelectUserSchema) },
+      response: {
+        200: {
+          description: 'Authenticated successfully',
+          ...OkResponseSchema(SelectUserSchema),
+        },
+      },
     },
   );

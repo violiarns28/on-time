@@ -1,4 +1,4 @@
-import { JWT, JWTSchema } from '@/schemas/auth';
+import { JWT } from '@/schemas/auth';
 import { SelectUser } from '@/schemas/user';
 import { bearer } from '@elysiajs/bearer';
 import jwt, { JWTPayloadSpec } from '@elysiajs/jwt';
@@ -29,14 +29,14 @@ export const AuthMiddleware = new Elysia()
         id: user.id,
         email: user.email,
         name: user.name,
-        device_id: user.device_id,
+        deviceId: user.deviceId,
         exp: Config.JWT_EXPIRES_IN, // 30 days
         iat: Math.floor(Date.now() / 1000),
       });
       auth.set({
         value: token,
         httpOnly: true,
-        maxAge: 7 * 86400,
+        maxAge: 30 * 86400, // 30 days
       });
       return token;
     },
