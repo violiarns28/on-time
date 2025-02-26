@@ -151,6 +151,7 @@ class Blockchain {
   }
 
   private async cleanInvalidBlocks(): Promise<void> {
+    this.loadChainFromDb();
     console.log('Cleaning invalid blocks');
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];

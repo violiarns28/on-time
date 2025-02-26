@@ -55,13 +55,17 @@ export const AttendanceRouter = new Elysia({
       const user = await getUser();
       console.log('user', user);
       const userId = user.id;
-      const { date, clockOut, clockIn } = body;
+      const { date, clockOut, clockIn, deviceId } = body;
       if (!clockIn && !clockOut) {
         throw new BadRequestError('Clock in or clock out is required');
       }
 
       if (clockIn && clockOut) {
         throw new BadRequestError('Clock in and clock out cannot be together');
+      }
+
+      if (deviceId !== user.deviceId) {
+        throw new BadRequestError('Invalid device');
       }
 
       const findAttendance = await db.query.attendance.findFirst({
@@ -158,7 +162,12 @@ export const AttendanceRouter = new Elysia({
       };
     },
     {
-      body: t.Omit(CreateAttendanceSchema, ['userId']),
+      body: t.Intersect([
+        t.Omit(CreateAttendanceSchema, ['userId']),
+        t.Object({
+          deviceId: t.String(),
+        }),
+      ]),
       response: {
         200: {
           description: 'Clock in successfully',
