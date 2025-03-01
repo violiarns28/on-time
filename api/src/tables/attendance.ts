@@ -2,22 +2,27 @@ import {
   bigint,
   date,
   decimal,
+  int,
+  mysqlEnum,
   mysqlTable,
-  serial,
-  time,
+  varchar,
 } from 'drizzle-orm/mysql-core';
-import { CommonModifier } from './common';
-import { usersTable } from './user';
+
+const attendanceType = mysqlEnum('attendance_type', [
+  'GENESIS',
+  'CLOCK_IN',
+  'CLOCK_OUT',
+]);
 
 export const attendancesTable = mysqlTable('attendances', {
-  id: serial().primaryKey(),
-  userId: bigint('user_id', { mode: 'number', unsigned: true })
-    .notNull()
-    .references(() => usersTable.id, { onDelete: 'cascade' }),
+  id: int().primaryKey(),
+  userId: int('user_id', {}).notNull(),
   latitude: decimal('latitude', { precision: 12, scale: 5 }).notNull(),
   longitude: decimal('longitude', { precision: 12, scale: 5 }).notNull(),
+  type: attendanceType.notNull(),
   date: date({ mode: 'string' }).notNull(),
-  clockIn: time('clock_in'),
-  clockOut: time('clock_out'),
-  ...CommonModifier,
+  timestamp: bigint({ mode: 'number' }).notNull(),
+  hash: varchar({ length: 64 }).notNull(),
+  previousHash: varchar('previous_hash', { length: 64 }).notNull(),
+  nonce: int().notNull(),
 });

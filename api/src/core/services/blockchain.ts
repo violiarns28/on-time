@@ -1,206 +1,236 @@
 import { Database } from '@/core/services/db';
-import { BlockData, SelectBlockchainLedger } from '@/schemas/blockchain';
-import { table } from '@/tables';
+import { BlockData, SelectAttendance } from '@/schemas/attendance';
+import { attendancesTable } from '@/tables/attendance';
 import { createHash } from 'crypto';
 import { gte } from 'drizzle-orm';
 import cron from 'node-cron';
 
 class Blockchain {
-  private chain: SelectBlockchainLedger[];
+  private chain: SelectAttendance[] = [];
   private difficulty: number = 2;
   private db: Database;
+  private initialized: boolean = false;
 
   constructor(db: Database) {
     this.db = db;
-    this.chain = [];
-    this.init();
   }
 
-  private async init() {
-    const findBlock = await this.db.query.blockchainLedger.findFirst({
-      where: (fields, operators) => operators.eq(fields.blockIndex, 1),
+  public async init(): Promise<void> {
+    if (this.initialized) return;
+
+    const genesisBlock = await this.db.query.attendance.findFirst({
+      where: (fields, operators) => operators.eq(fields.id, 0),
     });
-    if (!findBlock) {
+
+    if (!genesisBlock) {
       await this.createGenesisBlock();
     }
 
-    cron.schedule('*/1 * * * *', () => {
-      this.cleanInvalidBlocks();
+    await this.loadChainFromDb();
+
+    cron.schedule('*/10 * * * *', async () => {
+      await this.cleanInvalidBlocks();
     });
+
+    this.initialized = true;
   }
 
-  private async createGenesisBlock() {
-    await this.db
-      .insert(table.blockchainLedger)
-      .values({
-        id: 1,
-        data: {
-          date: new Date().toISOString(),
-          userId: 0,
-          clockIn: null,
-          clockOut: null,
-          action: 'GENESIS',
-          attendanceId: 0,
-        },
-        blockIndex: 1,
-        timestamp: new Date(),
-        previousHash: '0',
-        hash: '0',
-        nonce: 0,
-      })
-      .$returningId()
-      .execute();
+  private async createGenesisBlock(): Promise<void> {
+    const date = new Date();
+    const genesisBlock: SelectAttendance = {
+      id: 0,
+      userId: 0,
+      latitude: '0',
+      longitude: '0',
+      type: 'GENESIS',
+      timestamp: date.getTime(),
+      date: date.toISOString().split('T')[0],
+      hash: '0000000000000000000000000000000000000000000000000000000000000000',
+      previousHash: '0',
+      nonce: 0,
+    };
+
+    try {
+      await this.db.insert(attendancesTable).values(genesisBlock).execute();
+
+      console.log('Genesis block created');
+    } catch (error) {
+      console.error('Error creating genesis block:', error);
+      throw new Error('Failed to create genesis block');
+    }
   }
 
-  public getLatestBlock(): SelectBlockchainLedger {
+  public getLatestBlock(): SelectAttendance {
+    if (this.chain.length === 0) {
+      throw new Error('Blockchain not loaded. Call loadChainFromDb first.');
+    }
     return this.chain[this.chain.length - 1];
   }
 
-  public addBlock(data: BlockData): SelectBlockchainLedger {
+  public async addBlock(data: BlockData): Promise<SelectAttendance> {
+    if (this.chain.length === 0) {
+      await this.loadChainFromDb();
+    }
+
     const previousBlock = this.getLatestBlock();
     const newBlock = this.createNewBlock(previousBlock, data);
-    this.chain.push(newBlock);
-    this.persistBlock(newBlock);
-    return newBlock;
+
+    try {
+      await this.persistBlock(newBlock);
+      this.chain.push(newBlock);
+      return newBlock;
+    } catch (error) {
+      console.error('Error adding block:', error);
+      throw new Error('Failed to add block to blockchain');
+    }
   }
 
   private createNewBlock(
-    previousBlock: SelectBlockchainLedger,
+    previousBlock: SelectAttendance,
     data: BlockData,
-  ): SelectBlockchainLedger {
-    const latest = this.getLatestBlock();
-    const newBlock: SelectBlockchainLedger = {
-      id: latest.id + 1,
-      blockIndex: previousBlock.blockIndex + 1,
-      timestamp: new Date().toISOString(),
-      data: data,
+  ): SelectAttendance {
+    const newBlock: SelectAttendance = {
+      ...data,
+      id: previousBlock.id + 1,
+      timestamp: new Date().getTime(),
       previousHash: previousBlock.hash,
       hash: '',
       nonce: 0,
     };
+
     return this.mineBlock(newBlock);
   }
 
-  private calculateHash(block: SelectBlockchainLedger): string {
-    const data = JSON.stringify(block.data);
-    const args = [
-      block.blockIndex,
-      block.timestamp,
-      data,
-      block.previousHash,
-      block.nonce,
-    ];
-    return createHash('sha256').update(args.join('')).digest('hex');
+  private calculateHash(block: SelectAttendance): string {
+    const blockForHashing = {
+      ...block,
+      hash: '',
+    };
+
+    const dataString = JSON.stringify(blockForHashing);
+    return createHash('sha256').update(dataString).digest('hex');
   }
 
-  private mineBlock(block: SelectBlockchainLedger): SelectBlockchainLedger {
+  private mineBlock(block: SelectAttendance): SelectAttendance {
     const target = Array(this.difficulty + 1).join('0');
-    while (block.hash?.substring(0, this.difficulty) !== target) {
+
+    do {
       block.nonce++;
       block.hash = this.calculateHash(block);
-    }
+    } while (block.hash.substring(0, this.difficulty) !== target);
+
     console.log(`Block mined: ${block.hash}`);
     return block;
   }
 
-  private async persistBlock(block: SelectBlockchainLedger): Promise<void> {
+  private async persistBlock(block: SelectAttendance): Promise<void> {
     try {
-      await this.db.insert(table.blockchainLedger).values({
-        blockIndex: block.blockIndex,
-        timestamp: new Date(block.timestamp),
-        data: block.data,
-        previousHash: block.previousHash,
-        hash: block.hash,
-        nonce: block.nonce,
-      });
+      await this.db.insert(attendancesTable).values(block).execute();
     } catch (error) {
       console.error('Error persisting block to database:', error);
+      throw error;
     }
   }
 
-  public isChainValid(): Record<string, any> {
+  public isChainValid(): {
+    valid: boolean;
+    invalidBlock?: { previous: SelectAttendance; current: SelectAttendance };
+  } {
+    if (this.chain.length <= 1) return { valid: true };
+
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
+
       if (!this.isBlockValid(currentBlock, previousBlock)) {
         return {
           valid: false,
-          block: {
+          invalidBlock: {
             previous: previousBlock,
             current: currentBlock,
           },
         };
       }
     }
+
     return { valid: true };
   }
 
   private isBlockValid(
-    currentBlock: SelectBlockchainLedger,
-    previousBlock: SelectBlockchainLedger,
+    currentBlock: SelectAttendance,
+    previousBlock: SelectAttendance,
   ): boolean {
-    return (
-      currentBlock.hash === this.calculateHash(currentBlock) &&
-      currentBlock.previousHash === previousBlock.hash
-    );
+    if (currentBlock.previousHash !== previousBlock.hash) {
+      return false;
+    }
+
+    const calculatedHash = this.calculateHash(currentBlock);
+    if (calculatedHash !== currentBlock.hash) {
+      return false;
+    }
+
+    const target = Array(this.difficulty + 1).join('0');
+    if (currentBlock.hash.substring(0, this.difficulty) !== target) {
+      return false;
+    }
+
+    return true;
   }
 
   private async cleanInvalidBlocks(): Promise<void> {
+    console.log('Checking blockchain integrity...');
+
     await this.loadChainFromDb();
-    console.log('Cleaning invalid blocks');
-    for (let i = 1; i < this.chain.length; i++) {
-      const currentBlock = this.chain[i];
-      const previousBlock = this.chain[i - 1];
-      console.log('Checking block:', currentBlock);
-      if (!this.isBlockValid(currentBlock, previousBlock)) {
-        this.chain = this.chain.slice(0, i);
-        await this.deleteInvalidBlocks(currentBlock);
-        break;
-      }
+    const validationResult = this.isChainValid();
+
+    if (!validationResult.valid && validationResult.invalidBlock) {
+      console.warn('Invalid blocks detected, cleaning up...');
+      const invalidBlock = validationResult.invalidBlock.current;
+
+      this.chain = this.chain.filter((block) => block.id < invalidBlock.id);
+
+      await this.deleteInvalidBlocks(invalidBlock.id);
+
+      console.log(
+        `Removed invalid blocks starting from index ${invalidBlock.id}`,
+      );
+    } else {
+      console.log('Blockchain is valid');
     }
   }
 
-  private async deleteInvalidBlocks(
-    block: SelectBlockchainLedger,
-  ): Promise<void> {
-    await this.db
-      .delete(table.blockchainLedger)
-      .where(gte(table.blockchainLedger.blockIndex, block.blockIndex))
-      .execute();
-    await this.db
-      .delete(table.attendance)
-      .where(gte(table.attendance.id, block.data.attendanceId))
-      .execute();
+  private async deleteInvalidBlocks(fromIndex: number): Promise<void> {
+    try {
+      await this.db
+        .delete(attendancesTable)
+        .where(gte(attendancesTable.id, fromIndex))
+        .execute();
+    } catch (error) {
+      console.error('Error deleting invalid blocks:', error);
+      throw new Error('Failed to delete invalid blocks');
+    }
   }
 
-  public async loadChainFromDb(): Promise<void> {
+  public async loadChainFromDb(): Promise<SelectAttendance[]> {
     try {
-      this.chain = [];
-      const blocks = await this.db.query.blockchainLedger.findMany({
+      const blocks = await this.db.query.attendance.findMany({
         orderBy(fields, operators) {
-          return operators.asc(fields.blockIndex);
+          return operators.asc(fields.id);
         },
       });
-      for (const block of blocks) {
-        if (block.blockIndex === 0) continue;
-        this.chain.push({
-          id: block.id,
-          blockIndex: block.blockIndex,
-          timestamp: block.timestamp.toISOString(),
-          data: block.data,
-          previousHash: block.previousHash,
-          hash: block.hash,
-          nonce: block.nonce,
-        });
-      }
+
+      this.chain = blocks;
+
       console.log(`Loaded ${this.chain.length} blocks from database`);
+      return this.chain;
     } catch (error) {
       console.error('Error loading blockchain from database:', error);
+      throw new Error('Failed to load blockchain from database');
     }
   }
 
-  public getChain(): SelectBlockchainLedger[] {
-    return this.chain;
+  public getChain(): SelectAttendance[] {
+    return [...this.chain];
   }
 }
 
@@ -216,8 +246,10 @@ export class BlockchainService {
   }
 
   public async initializeBlockchain(db: Database): Promise<void> {
-    this.blockchain = new Blockchain(db);
-    await this.blockchain.loadChainFromDb();
+    if (!this.blockchain) {
+      this.blockchain = new Blockchain(db);
+    }
+    await this.blockchain.init();
   }
 
   public getBlockchain(): Blockchain {
@@ -231,14 +263,17 @@ export class BlockchainService {
 
   public async recordAttendanceAction(
     attendanceData: BlockData,
-  ): Promise<void> {
+  ): Promise<SelectAttendance> {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }
-    this.blockchain.addBlock(attendanceData);
+    return await this.blockchain.addBlock(attendanceData);
   }
 
-  public verifyBlockchain(): Record<string, any> {
+  public verifyBlockchain(): {
+    valid: boolean;
+    invalidBlock?: { previous: SelectAttendance; current: SelectAttendance };
+  } {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }

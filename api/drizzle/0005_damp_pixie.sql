@@ -1,1 +1,0 @@
-ALTER TABLE `attendances` MODIFY COLUMN `date` date NOT NULL;

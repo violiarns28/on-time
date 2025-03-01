@@ -1,1 +1,0 @@
-ALTER TABLE `users` MODIFY COLUMN `device_id` varchar(255) NOT NULL;

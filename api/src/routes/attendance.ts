@@ -1,4 +1,4 @@
-import { BadRequestError, ServerError } from '@/core/errors';
+import { BadRequestError } from '@/core/errors';
 import { AuthWithUserMiddleware } from '@/core/middleware/auth';
 import { BlockchainService } from '@/core/services/blockchain';
 import { DatabaseService, drizzleClient } from '@/core/services/db';
@@ -6,10 +6,7 @@ import {
   CreateAttendanceSchema,
   SelectAttendanceSchema,
 } from '@/schemas/attendance';
-import { SelectBlockchainLedgerSchema } from '@/schemas/blockchain';
 import { OkResponseSchema } from '@/schemas/response';
-import { table } from '@/tables';
-import { eq } from 'drizzle-orm';
 import Elysia, { t } from 'elysia';
 
 const blockchainService = BlockchainService.getInstance();
@@ -43,7 +40,7 @@ export const AttendanceRouter = new Elysia({
       response: {
         200: {
           description: 'Find attendances success',
-          ...OkResponseSchema(t.Array(SelectBlockchainLedgerSchema)),
+          ...OkResponseSchema(t.Array(SelectAttendanceSchema)),
         },
       },
     },
@@ -54,18 +51,20 @@ export const AttendanceRouter = new Elysia({
       const user = await getUser();
       console.log('user', user);
       const userId = user.id;
-      const { date, clockOut, clockIn, deviceId } = body;
-      if (!clockIn && !clockOut) {
-        throw new BadRequestError('Clock in or clock out is required');
+      const { timestamp, type, deviceId } = body;
+      if (!timestamp) {
+        throw new BadRequestError('Timestamp is required');
       }
 
-      if (clockIn && clockOut) {
-        throw new BadRequestError('Clock in and clock out cannot be together');
+      if (!type) {
+        throw new BadRequestError('Type is required');
       }
 
       if (deviceId !== user.deviceId) {
         throw new BadRequestError('Invalid device');
       }
+
+      const date = new Date(timestamp).toISOString().split('T')[0];
 
       const findAttendance = await db.query.attendance.findFirst({
         where(fields, operators) {
@@ -79,39 +78,22 @@ export const AttendanceRouter = new Elysia({
       console.log('findAttendance', findAttendance);
 
       if (findAttendance) {
-        if (findAttendance.clockIn && !findAttendance.clockOut) {
-          if (!clockOut) {
-            return {
-              message: 'You must clock out before clocking in again',
-              status: 'error',
-            };
-          }
-          await db
-            .update(table.attendance)
-            .set({
-              ...findAttendance,
-              clockOut,
-            })
-            .where(eq(table.attendance.id, findAttendance.id));
-
-          await blockchainService.recordAttendanceAction({
-            action: 'CLOCK_OUT',
-            attendanceId: findAttendance.id,
+        if (findAttendance.type === type) {
+          throw new BadRequestError(
+            `You have already clocked ${type === 'CLOCK_IN' ? 'in' : 'out'} today`,
+          );
+        }
+        if (findAttendance.type === 'CLOCK_IN' && type === 'CLOCK_OUT') {
+          const result = await blockchainService.recordAttendanceAction({
+            ...body,
+            type: 'CLOCK_OUT',
+            date,
             userId,
-            date: date,
-            clockIn: null,
-            clockOut,
           });
 
           return {
             message: 'Clock out successfully',
-            data: {
-              ...findAttendance,
-              clockOut,
-              date: date,
-              createdAt: findAttendance?.createdAt?.toISOString() || null,
-              updatedAt: findAttendance?.updatedAt?.toISOString() || null,
-            },
+            data: result,
           };
         }
 
@@ -121,48 +103,28 @@ export const AttendanceRouter = new Elysia({
         };
       }
 
-      const createAttendanceId = await db
-        .insert(table.attendance)
-        .values({
-          ...body,
-          clockOut: null,
-          date: date,
-          userId,
-        })
-        .$returningId()
-        .execute();
-
-      const createAttendance = await db.query.attendance.findFirst({
-        where: (fields, operators) =>
-          operators.eq(fields.id, createAttendanceId[0].id),
-      });
-
-      if (!createAttendance) {
-        throw new ServerError('Failed to create attendance');
-      }
-
-      await blockchainService.recordAttendanceAction({
-        action: 'CLOCK_IN',
-        attendanceId: createAttendanceId[0].id,
+      const result = await blockchainService.recordAttendanceAction({
+        ...body,
+        type: 'CLOCK_IN',
+        date,
         userId,
-        date: date,
-        clockIn: clockIn || null,
-        clockOut: null,
       });
 
       return {
         message: 'Clock in successfully',
-        data: {
-          ...createAttendance,
-          date: date,
-          createdAt: createAttendance?.createdAt?.toISOString() || null,
-          updatedAt: createAttendance?.updatedAt?.toISOString() || null,
-        },
+        data: result,
       };
     },
     {
       body: t.Intersect([
-        t.Omit(CreateAttendanceSchema, ['userId']),
+        t.Omit(CreateAttendanceSchema, [
+          'id',
+          'userId',
+          'date',
+          'hash',
+          'previousHash',
+          'nonce',
+        ]),
         t.Object({
           deviceId: t.String(),
         }),
