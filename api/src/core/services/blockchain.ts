@@ -21,50 +21,52 @@ class Blockchain {
       where: (fields, operators) => operators.eq(fields.blockIndex, 1),
     });
     if (!findBlock) {
-      await this.db
-        .insert(table.blockchainLedger)
-        .values({
-          id: 1,
-          data: {
-            data: {
-              date: new Date().toISOString(),
-              userId: 0,
-              clockIn: null,
-              clockOut: null,
-              action: 'GENESIS',
-              attendanceId: 0,
-            },
-            timestamp: new Date().getTime(),
-            type: 'GENESIS',
-          },
-          blockIndex: 1,
-          timestamp: new Date(),
-          previousHash: '0',
-          hash: '0',
-          nonce: 0,
-        })
-        .$returningId()
-        .execute();
+      await this.createGenesisBlock();
     }
+
+    cron.schedule('*/1 * * * *', () => {
+      this.cleanInvalidBlocks();
+    });
+  }
+
+  private async createGenesisBlock() {
+    await this.db
+      .insert(table.blockchainLedger)
+      .values({
+        id: 1,
+        data: {
+          date: new Date().toISOString(),
+          userId: 0,
+          clockIn: null,
+          clockOut: null,
+          action: 'GENESIS',
+          attendanceId: 0,
+        },
+        blockIndex: 1,
+        timestamp: new Date(),
+        previousHash: '0',
+        hash: '0',
+        nonce: 0,
+      })
+      .$returningId()
+      .execute();
   }
 
   public getLatestBlock(): SelectBlockchainLedger {
     return this.chain[this.chain.length - 1];
   }
 
-  public addBlock(data: any): SelectBlockchainLedger {
+  public addBlock(data: BlockData): SelectBlockchainLedger {
     const previousBlock = this.getLatestBlock();
     const newBlock = this.createNewBlock(previousBlock, data);
     this.chain.push(newBlock);
-
     this.persistBlock(newBlock);
-
     return newBlock;
   }
 
   private createNewBlock(
     previousBlock: SelectBlockchainLedger,
-    data: any,
+    data: BlockData,
   ): SelectBlockchainLedger {
     const latest = this.getLatestBlock();
     const newBlock: SelectBlockchainLedger = {
@@ -76,7 +78,6 @@ class Blockchain {
       hash: '',
       nonce: 0,
     };
-
     return this.mineBlock(newBlock);
   }
 
@@ -94,12 +95,10 @@ class Blockchain {
 
   private mineBlock(block: SelectBlockchainLedger): SelectBlockchainLedger {
     const target = Array(this.difficulty + 1).join('0');
-
     while (block.hash?.substring(0, this.difficulty) !== target) {
       block.nonce++;
       block.hash = this.calculateHash(block);
     }
-
     console.log(`Block mined: ${block.hash}`);
     return block;
   }
@@ -123,18 +122,7 @@ class Blockchain {
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
-
-      if (currentBlock.hash !== this.calculateHash(currentBlock)) {
-        return {
-          valid: false,
-          block: {
-            previous: previousBlock,
-            current: currentBlock,
-          },
-        };
-      }
-
-      if (currentBlock.previousHash !== previousBlock.hash) {
+      if (!this.isBlockValid(currentBlock, previousBlock)) {
         return {
           valid: false,
           block: {
@@ -144,57 +132,45 @@ class Blockchain {
         };
       }
     }
+    return { valid: true };
+  }
 
-    return {
-      valid: true,
-    };
+  private isBlockValid(
+    currentBlock: SelectBlockchainLedger,
+    previousBlock: SelectBlockchainLedger,
+  ): boolean {
+    return (
+      currentBlock.hash === this.calculateHash(currentBlock) &&
+      currentBlock.previousHash === previousBlock.hash
+    );
   }
 
   private async cleanInvalidBlocks(): Promise<void> {
-    this.loadChainFromDb();
+    await this.loadChainFromDb();
     console.log('Cleaning invalid blocks');
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
       console.log('Checking block:', currentBlock);
-
-      if (currentBlock.hash !== this.calculateHash(currentBlock)) {
+      if (!this.isBlockValid(currentBlock, previousBlock)) {
         this.chain = this.chain.slice(0, i);
-        await this.db
-          .delete(table.blockchainLedger)
-          .where(
-            gte(table.blockchainLedger.blockIndex, currentBlock.blockIndex),
-          )
-          .execute();
-        await this.db
-          .delete(table.attendance)
-          .where(gte(table.attendance.id, currentBlock.data.data.attendanceId))
-          .execute();
-        break;
-      }
-
-      if (currentBlock.previousHash !== previousBlock.hash) {
-        this.chain = this.chain.slice(0, i);
-        await this.db
-          .delete(table.blockchainLedger)
-          .where(
-            gte(table.blockchainLedger.blockIndex, currentBlock.blockIndex),
-          )
-          .execute();
-        await this.db
-          .delete(table.attendance)
-          .where(gte(table.attendance.id, currentBlock.data.data.attendanceId))
-          .execute();
+        await this.deleteInvalidBlocks(currentBlock);
         break;
       }
     }
   }
 
-  public cronCleanInvalid(): void {
-    // Run every 1 minutes
-    cron.schedule('*/1 * * * *', () => {
-      this.cleanInvalidBlocks();
-    });
+  private async deleteInvalidBlocks(
+    block: SelectBlockchainLedger,
+  ): Promise<void> {
+    await this.db
+      .delete(table.blockchainLedger)
+      .where(gte(table.blockchainLedger.blockIndex, block.blockIndex))
+      .execute();
+    await this.db
+      .delete(table.attendance)
+      .where(gte(table.attendance.id, block.data.attendanceId))
+      .execute();
   }
 
   public async loadChainFromDb(): Promise<void> {
@@ -207,7 +183,6 @@ class Blockchain {
       });
       for (const block of blocks) {
         if (block.blockIndex === 0) continue;
-
         this.chain.push({
           id: block.id,
           blockIndex: block.blockIndex,
@@ -218,7 +193,6 @@ class Blockchain {
           nonce: block.nonce,
         });
       }
-
       console.log(`Loaded ${this.chain.length} blocks from database`);
     } catch (error) {
       console.error('Error loading blockchain from database:', error);
@@ -233,8 +207,6 @@ class Blockchain {
 export class BlockchainService {
   private static instance: BlockchainService;
   private blockchain: Blockchain | null = null;
-
-  // private constructor() { }
 
   public static getInstance(): BlockchainService {
     if (!BlockchainService.instance) {
@@ -258,24 +230,18 @@ export class BlockchainService {
   }
 
   public async recordAttendanceAction(
-    attendanceData: BlockData['data'],
+    attendanceData: BlockData,
   ): Promise<void> {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }
-
-    this.blockchain.addBlock({
-      type: 'ATTENDANCE',
-      data: attendanceData,
-      timestamp: Date.now(),
-    });
+    this.blockchain.addBlock(attendanceData);
   }
 
   public verifyBlockchain(): Record<string, any> {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }
-
     return this.blockchain.isChainValid();
   }
 }

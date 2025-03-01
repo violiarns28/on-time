@@ -15,7 +15,6 @@ import Elysia, { t } from 'elysia';
 const blockchainService = BlockchainService.getInstance();
 blockchainService.initializeBlockchain(drizzleClient);
 const blockchain = blockchainService.getBlockchain();
-blockchain.cronCleanInvalid();
 
 export const AttendanceRouter = new Elysia({
   prefix: '/attendances',

@@ -7,16 +7,12 @@ import {
 import { Static, t } from 'elysia';
 
 export const BlockDataSchema = t.Object({
-  type: t.String(),
-  data: t.Object({
-    action: t.String(),
-    attendanceId: t.Number(),
-    userId: t.Number(),
-    date: t.String({ format: 'date' }),
-    clockIn: t.Nullable(t.String()),
-    clockOut: t.Nullable(t.String()),
-  }),
-  timestamp: t.Number(),
+  action: t.String(),
+  attendanceId: t.Number(),
+  userId: t.Number(),
+  date: t.String({ format: 'date' }),
+  clockIn: t.Nullable(t.String()),
+  clockOut: t.Nullable(t.String()),
 });
 
 export type BlockData = Static<typeof BlockDataSchema>;
