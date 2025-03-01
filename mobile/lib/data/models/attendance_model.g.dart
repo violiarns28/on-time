@@ -12,11 +12,12 @@ _AttendanceModel _$AttendanceModelFromJson(Map<String, dynamic> json) =>
       userId: (json['userId'] as num).toInt(),
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
+      type: $enumDecode(_$AttendanceTypeEnumMap, json['type']),
       date: json['date'] as String,
-      clockIn: json['clockIn'] as String?,
-      clockOut: json['clockOut'] as String?,
-      createdAt: json['createdAt'] as String?,
-      updatedAt: json['updatedAt'] as String?,
+      timestamp: (json['timestamp'] as num).toInt(),
+      hash: json['hash'] as String,
+      previousHash: json['previousHash'] as String,
+      nonce: (json['nonce'] as num).toInt(),
     );
 
 Map<String, dynamic> _$AttendanceModelToJson(_AttendanceModel instance) =>
@@ -25,9 +26,16 @@ Map<String, dynamic> _$AttendanceModelToJson(_AttendanceModel instance) =>
       'userId': instance.userId,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
+      'type': _$AttendanceTypeEnumMap[instance.type]!,
       'date': instance.date,
-      'clockIn': instance.clockIn,
-      'clockOut': instance.clockOut,
-      'createdAt': instance.createdAt,
-      'updatedAt': instance.updatedAt,
+      'timestamp': instance.timestamp,
+      'hash': instance.hash,
+      'previousHash': instance.previousHash,
+      'nonce': instance.nonce,
     };
+
+const _$AttendanceTypeEnumMap = {
+  AttendanceType.GENESIS: 'GENESIS',
+  AttendanceType.CLOCK_IN: 'CLOCK_IN',
+  AttendanceType.CLOCK_OUT: 'CLOCK_OUT',
+};

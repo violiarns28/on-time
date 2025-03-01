@@ -19,11 +19,12 @@ mixin _$AttendanceModel {
   int get userId;
   double get latitude;
   double get longitude;
+  AttendanceType get type;
   String get date;
-  String? get clockIn;
-  String? get clockOut;
-  String? get createdAt;
-  String? get updatedAt;
+  int get timestamp;
+  String get hash;
+  String get previousHash;
+  int get nonce;
 
   /// Create a copy of AttendanceModel
   /// with the given fields replaced by the non-null parameter values.
@@ -47,24 +48,24 @@ mixin _$AttendanceModel {
                 other.latitude == latitude) &&
             (identical(other.longitude, longitude) ||
                 other.longitude == longitude) &&
+            (identical(other.type, type) || other.type == type) &&
             (identical(other.date, date) || other.date == date) &&
-            (identical(other.clockIn, clockIn) || other.clockIn == clockIn) &&
-            (identical(other.clockOut, clockOut) ||
-                other.clockOut == clockOut) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+            (identical(other.timestamp, timestamp) ||
+                other.timestamp == timestamp) &&
+            (identical(other.hash, hash) || other.hash == hash) &&
+            (identical(other.previousHash, previousHash) ||
+                other.previousHash == previousHash) &&
+            (identical(other.nonce, nonce) || other.nonce == nonce));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, userId, latitude, longitude,
-      date, clockIn, clockOut, createdAt, updatedAt);
+      type, date, timestamp, hash, previousHash, nonce);
 
   @override
   String toString() {
-    return 'AttendanceModel(id: $id, userId: $userId, latitude: $latitude, longitude: $longitude, date: $date, clockIn: $clockIn, clockOut: $clockOut, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'AttendanceModel(id: $id, userId: $userId, latitude: $latitude, longitude: $longitude, type: $type, date: $date, timestamp: $timestamp, hash: $hash, previousHash: $previousHash, nonce: $nonce)';
   }
 }
 
@@ -79,11 +80,12 @@ abstract mixin class $AttendanceModelCopyWith<$Res> {
       int userId,
       double latitude,
       double longitude,
+      AttendanceType type,
       String date,
-      String? clockIn,
-      String? clockOut,
-      String? createdAt,
-      String? updatedAt});
+      int timestamp,
+      String hash,
+      String previousHash,
+      int nonce});
 }
 
 /// @nodoc
@@ -103,11 +105,12 @@ class _$AttendanceModelCopyWithImpl<$Res>
     Object? userId = null,
     Object? latitude = null,
     Object? longitude = null,
+    Object? type = null,
     Object? date = null,
-    Object? clockIn = freezed,
-    Object? clockOut = freezed,
-    Object? createdAt = freezed,
-    Object? updatedAt = freezed,
+    Object? timestamp = null,
+    Object? hash = null,
+    Object? previousHash = null,
+    Object? nonce = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -126,26 +129,30 @@ class _$AttendanceModelCopyWithImpl<$Res>
           ? _self.longitude
           : longitude // ignore: cast_nullable_to_non_nullable
               as double,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as AttendanceType,
       date: null == date
           ? _self.date
           : date // ignore: cast_nullable_to_non_nullable
               as String,
-      clockIn: freezed == clockIn
-          ? _self.clockIn
-          : clockIn // ignore: cast_nullable_to_non_nullable
-              as String?,
-      clockOut: freezed == clockOut
-          ? _self.clockOut
-          : clockOut // ignore: cast_nullable_to_non_nullable
-              as String?,
-      createdAt: freezed == createdAt
-          ? _self.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as String?,
-      updatedAt: freezed == updatedAt
-          ? _self.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as String?,
+      timestamp: null == timestamp
+          ? _self.timestamp
+          : timestamp // ignore: cast_nullable_to_non_nullable
+              as int,
+      hash: null == hash
+          ? _self.hash
+          : hash // ignore: cast_nullable_to_non_nullable
+              as String,
+      previousHash: null == previousHash
+          ? _self.previousHash
+          : previousHash // ignore: cast_nullable_to_non_nullable
+              as String,
+      nonce: null == nonce
+          ? _self.nonce
+          : nonce // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -158,11 +165,12 @@ class _AttendanceModel implements AttendanceModel {
       required this.userId,
       required this.latitude,
       required this.longitude,
+      required this.type,
       required this.date,
-      this.clockIn,
-      this.clockOut,
-      this.createdAt,
-      this.updatedAt});
+      required this.timestamp,
+      required this.hash,
+      required this.previousHash,
+      required this.nonce});
   factory _AttendanceModel.fromJson(Map<String, dynamic> json) =>
       _$AttendanceModelFromJson(json);
 
@@ -175,15 +183,17 @@ class _AttendanceModel implements AttendanceModel {
   @override
   final double longitude;
   @override
+  final AttendanceType type;
+  @override
   final String date;
   @override
-  final String? clockIn;
+  final int timestamp;
   @override
-  final String? clockOut;
+  final String hash;
   @override
-  final String? createdAt;
+  final String previousHash;
   @override
-  final String? updatedAt;
+  final int nonce;
 
   /// Create a copy of AttendanceModel
   /// with the given fields replaced by the non-null parameter values.
@@ -211,24 +221,24 @@ class _AttendanceModel implements AttendanceModel {
                 other.latitude == latitude) &&
             (identical(other.longitude, longitude) ||
                 other.longitude == longitude) &&
+            (identical(other.type, type) || other.type == type) &&
             (identical(other.date, date) || other.date == date) &&
-            (identical(other.clockIn, clockIn) || other.clockIn == clockIn) &&
-            (identical(other.clockOut, clockOut) ||
-                other.clockOut == clockOut) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+            (identical(other.timestamp, timestamp) ||
+                other.timestamp == timestamp) &&
+            (identical(other.hash, hash) || other.hash == hash) &&
+            (identical(other.previousHash, previousHash) ||
+                other.previousHash == previousHash) &&
+            (identical(other.nonce, nonce) || other.nonce == nonce));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, userId, latitude, longitude,
-      date, clockIn, clockOut, createdAt, updatedAt);
+      type, date, timestamp, hash, previousHash, nonce);
 
   @override
   String toString() {
-    return 'AttendanceModel(id: $id, userId: $userId, latitude: $latitude, longitude: $longitude, date: $date, clockIn: $clockIn, clockOut: $clockOut, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'AttendanceModel(id: $id, userId: $userId, latitude: $latitude, longitude: $longitude, type: $type, date: $date, timestamp: $timestamp, hash: $hash, previousHash: $previousHash, nonce: $nonce)';
   }
 }
 
@@ -245,11 +255,12 @@ abstract mixin class _$AttendanceModelCopyWith<$Res>
       int userId,
       double latitude,
       double longitude,
+      AttendanceType type,
       String date,
-      String? clockIn,
-      String? clockOut,
-      String? createdAt,
-      String? updatedAt});
+      int timestamp,
+      String hash,
+      String previousHash,
+      int nonce});
 }
 
 /// @nodoc
@@ -269,11 +280,12 @@ class __$AttendanceModelCopyWithImpl<$Res>
     Object? userId = null,
     Object? latitude = null,
     Object? longitude = null,
+    Object? type = null,
     Object? date = null,
-    Object? clockIn = freezed,
-    Object? clockOut = freezed,
-    Object? createdAt = freezed,
-    Object? updatedAt = freezed,
+    Object? timestamp = null,
+    Object? hash = null,
+    Object? previousHash = null,
+    Object? nonce = null,
   }) {
     return _then(_AttendanceModel(
       id: null == id
@@ -292,26 +304,30 @@ class __$AttendanceModelCopyWithImpl<$Res>
           ? _self.longitude
           : longitude // ignore: cast_nullable_to_non_nullable
               as double,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as AttendanceType,
       date: null == date
           ? _self.date
           : date // ignore: cast_nullable_to_non_nullable
               as String,
-      clockIn: freezed == clockIn
-          ? _self.clockIn
-          : clockIn // ignore: cast_nullable_to_non_nullable
-              as String?,
-      clockOut: freezed == clockOut
-          ? _self.clockOut
-          : clockOut // ignore: cast_nullable_to_non_nullable
-              as String?,
-      createdAt: freezed == createdAt
-          ? _self.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as String?,
-      updatedAt: freezed == updatedAt
-          ? _self.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as String?,
+      timestamp: null == timestamp
+          ? _self.timestamp
+          : timestamp // ignore: cast_nullable_to_non_nullable
+              as int,
+      hash: null == hash
+          ? _self.hash
+          : hash // ignore: cast_nullable_to_non_nullable
+              as String,
+      previousHash: null == previousHash
+          ? _self.previousHash
+          : previousHash // ignore: cast_nullable_to_non_nullable
+              as String,
+      nonce: null == nonce
+          ? _self.nonce
+          : nonce // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
