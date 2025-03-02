@@ -21,7 +21,7 @@ mixin _$AttendanceModel {
   double get longitude;
   AttendanceType get type;
   String get date;
-  int get timestamp;
+  BigInt get timestamp;
   String get hash;
   String get previousHash;
   int get nonce;
@@ -82,7 +82,7 @@ abstract mixin class $AttendanceModelCopyWith<$Res> {
       double longitude,
       AttendanceType type,
       String date,
-      int timestamp,
+      BigInt timestamp,
       String hash,
       String previousHash,
       int nonce});
@@ -140,7 +140,7 @@ class _$AttendanceModelCopyWithImpl<$Res>
       timestamp: null == timestamp
           ? _self.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
-              as int,
+              as BigInt,
       hash: null == hash
           ? _self.hash
           : hash // ignore: cast_nullable_to_non_nullable
@@ -159,7 +159,7 @@ class _$AttendanceModelCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _AttendanceModel implements AttendanceModel {
+class _AttendanceModel extends AttendanceModel {
   const _AttendanceModel(
       {required this.id,
       required this.userId,
@@ -170,7 +170,8 @@ class _AttendanceModel implements AttendanceModel {
       required this.timestamp,
       required this.hash,
       required this.previousHash,
-      required this.nonce});
+      required this.nonce})
+      : super._();
   factory _AttendanceModel.fromJson(Map<String, dynamic> json) =>
       _$AttendanceModelFromJson(json);
 
@@ -187,7 +188,7 @@ class _AttendanceModel implements AttendanceModel {
   @override
   final String date;
   @override
-  final int timestamp;
+  final BigInt timestamp;
   @override
   final String hash;
   @override
@@ -257,7 +258,7 @@ abstract mixin class _$AttendanceModelCopyWith<$Res>
       double longitude,
       AttendanceType type,
       String date,
-      int timestamp,
+      BigInt timestamp,
       String hash,
       String previousHash,
       int nonce});
@@ -315,7 +316,7 @@ class __$AttendanceModelCopyWithImpl<$Res>
       timestamp: null == timestamp
           ? _self.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
-              as int,
+              as BigInt,
       hash: null == hash
           ? _self.hash
           : hash // ignore: cast_nullable_to_non_nullable

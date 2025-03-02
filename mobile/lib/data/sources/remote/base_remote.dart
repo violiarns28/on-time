@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
 import 'package:on_time/core/constants.dart';
-import 'package:on_time/data/sources/local/user_local.dart';
+import 'package:on_time/data/sources/local/dao/user_dao.dart';
 
 base class BaseRemote extends GetConnect {
-  final UserLocal userLocal;
+  final UserDao userLocal;
 
   BaseRemote(this.userLocal);
 
