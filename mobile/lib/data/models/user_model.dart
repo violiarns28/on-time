@@ -17,3 +17,17 @@ abstract class UserModel with _$UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
 }
+
+@freezed
+abstract class UpdateProfileRequest with _$UpdateProfileRequest {
+  const factory UpdateProfileRequest({
+    required int id,
+    required String name,
+    required String email,
+    required String deviceId,
+    required String password,
+  }) = _UpdateProfileRequest;
+
+  factory UpdateProfileRequest.fromJson(Map<String, dynamic> json) =>
+      _$UpdateProfileRequestFromJson(json);
+}

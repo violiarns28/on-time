@@ -4,7 +4,7 @@ import 'package:on_time/data/models/user_model.dart';
 import 'package:on_time/data/sources/remote/base_remote.dart';
 
 final class AuthRemote extends BaseRemote {
-  AuthRemote(super.local);
+  AuthRemote(super.userLocal);
 
   @override
   Future<void> onInit() async {
@@ -21,7 +21,8 @@ final class AuthRemote extends BaseRemote {
 
     final processed = handleStatusCode(response);
     if (processed is LoginResponse) {
-      await local.saveToken(processed.token);
+      await userLocal.saveToken(processed.token);
+      await userLocal.saveUser(processed.user);
       return processed.user;
     } else {
       throw Exception('Something went wrong');
@@ -38,7 +39,8 @@ final class AuthRemote extends BaseRemote {
     final processed = handleStatusCode(response);
 
     if (processed is RegisterResponse) {
-      await local.saveToken(processed.token);
+      await userLocal.saveToken(processed.token);
+      await userLocal.saveUser(processed.user);
       return processed.user;
     } else {
       throw Exception('Something went wrong');
@@ -54,6 +56,7 @@ final class AuthRemote extends BaseRemote {
     final processed = handleStatusCode(response);
 
     if (processed is UserModel) {
+      await userLocal.saveUser(processed);
       return true;
     } else {
       return false;

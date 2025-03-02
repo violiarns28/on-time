@@ -1,16 +1,16 @@
 import 'package:get/get.dart';
 import 'package:on_time/core/constants.dart';
-import 'package:on_time/data/sources/local/base_local.dart';
+import 'package:on_time/data/sources/local/user_local.dart';
 
 base class BaseRemote extends GetConnect {
-  final BaseLocal local;
+  final UserLocal userLocal;
 
-  BaseRemote(this.local);
+  BaseRemote(this.userLocal);
 
   @override
   Future<void> onInit() async {
     httpClient.baseUrl = Constants.baseUrl;
-    final token = await local.getToken();
+    final token = await userLocal.getToken();
     if (token != null) {
       httpClient.addRequestModifier<Object?>((request) {
         request.headers['Authorization'] = 'Bearer $token';

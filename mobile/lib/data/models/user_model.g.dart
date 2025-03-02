@@ -24,3 +24,23 @@ Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
     };
+
+_UpdateProfileRequest _$UpdateProfileRequestFromJson(
+        Map<String, dynamic> json) =>
+    _UpdateProfileRequest(
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      email: json['email'] as String,
+      deviceId: json['deviceId'] as String,
+      password: json['password'] as String,
+    );
+
+Map<String, dynamic> _$UpdateProfileRequestToJson(
+        _UpdateProfileRequest instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'email': instance.email,
+      'deviceId': instance.deviceId,
+      'password': instance.password,
+    };
