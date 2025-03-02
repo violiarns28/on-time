@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:on_time/data/models/attendance_model.dart';
+import 'package:on_time/ui/screens/attendance/attendance_controller.dart';
 import 'package:on_time/ui/screens/history_detail/history_detail_screen.dart';
 
-class AttendanceScreen extends StatelessWidget {
-  AttendanceScreen({super.key});
-  late GoogleMapController mapController;
-  final LatLng _center = const LatLng(-7.341591059504343, 112.736106577182336);
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
+class AttendanceScreen extends GetView<AttendanceController> {
+  const AttendanceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +18,9 @@ class AttendanceScreen extends StatelessWidget {
       body: Stack(
         children: [
           GoogleMap(
-            onMapCreated: _onMapCreated,
+            onMapCreated: controller.onMapCreated,
             initialCameraPosition: CameraPosition(
-              target: _center,
+              target: controller.center,
               zoom: 11.0,
             ),
             markers: {
@@ -135,37 +132,45 @@ class AttendanceScreen extends StatelessWidget {
                             ],
                           ),
                           Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  _buildHistoryItem(
-                                    "Genesis Block",
-                                    "0",
-                                    "f493431dc19e2b21a774165387b579ff43a4e27560d5898e4704aef2ada7335e",
+                            child: StreamBuilder<List<AttendanceModel>>(
+                              stream: controller.attendancesStream,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                                if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text(snapshot.error.toString()),
+                                  );
+                                }
+
+                                final attendances = snapshot.data;
+                                if (attendances == null ||
+                                    attendances.isEmpty) {
+                                  return const Center(
+                                    child: Text("No history found"),
+                                  );
+                                }
+
+                                return SingleChildScrollView(
+                                  child: Column(
+                                    children: attendances.map((attendance) {
+                                      return _buildHistoryItem(
+                                        attendance.type.name,
+                                        attendance.previousHash,
+                                        attendance.hash,
+                                        showClockIn: attendance.type ==
+                                            AttendanceType.CLOCK_IN,
+                                        showClockOut: attendance.type ==
+                                            AttendanceType.CLOCK_OUT,
+                                      );
+                                    }).toList(),
                                   ),
-                                  const SizedBox(height: 16),
-                                  _buildHistoryItem(
-                                    "Violia Ruana",
-                                    "f493431dc19e2b21a774165387b579ff43a4e27560d5898e4704aef2ada7335e",
-                                    "0000077ce29e9d9e946726497599436614bc53a446cde5b2f9e5ba8aeda46cbd",
-                                    showClockIn: true,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildHistoryItem(
-                                    "Violia Ruana",
-                                    "1122399bh04n9j9f99u4u934unf9kmavd83b940bvu0e9b02183vwqvds12j0de7",
-                                    "0000077ce29e9d9e946726497599436614bc53a446cde5b2f9e5ba8aeda46cbd",
-                                    showClockOut: true,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildHistoryItem(
-                                    "Moana",
-                                    "0000077ce29e9d9e946726497599436614bc53a446cde5b2f9e5ba8aeda46cbd",
-                                    "1122399bh04n9j9f99u4u934unf9kmavd83b940bvu0e9b02183vwqvds12j0de7",
-                                    showClockIn: true,
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
                           ),
                         ],
