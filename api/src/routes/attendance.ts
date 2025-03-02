@@ -27,7 +27,7 @@ export const AttendanceRouter = new Elysia({
   .use(DatabaseService)
   .use(AuthWithUserMiddleware)
   .get(
-    '',
+    '/',
     async ({ getUser }) => {
       await getUser();
       const data = blockchain.getChain();
@@ -65,9 +65,37 @@ export const AttendanceRouter = new Elysia({
         },
       },
     },
+  ).
+  get(
+    '/me/latest',
+    async ({ db, getUser }) => {
+      const user = await getUser();
+      const userId = user.id;
+      const data = blockchain.getChain();
+      const attendances = data.filter((attendance) => attendance.userId === userId);
+      if (!attendances.length) {
+        return {
+          message: 'Find latest attendance success',
+          data: null,
+        };
+      }
+      const latestAttendance = attendances[attendances.length - 1];
+      return {
+        message: 'Find latest attendance success',
+        data: latestAttendance,
+      };
+    },
+    {
+      response: {
+        200: {
+          description: 'Find latest attendance success',
+          ...OkResponseSchema(t.Union([SelectAttendanceSchema, t.Null()])),
+        },
+      },
+    },
   )
   .post(
-    '',
+    '/',
     async ({ body, db, getUser }) => {
       const user = await getUser();
       console.log('user', user);
