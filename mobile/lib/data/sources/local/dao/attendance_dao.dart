@@ -1,12 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:on_time/data/models/attendance_model.dart';
-import 'package:on_time/data/sources/local/base_sql_local.dart';
-import 'package:on_time/data/sources/local/tables/attendance_table.dart';
+import 'package:on_time/data/sources/local/db/app_database.dart';
+import 'package:on_time/data/sources/local/db/attendance_table.dart';
 
 part 'attendance_dao.g.dart';
 
 @DriftAccessor(tables: [AttendanceTable])
-class AttendanceDao extends DatabaseAccessor<BaseSqlLocal>
+class AttendanceDao extends DatabaseAccessor<AppDatabase>
     with _$AttendanceDaoMixin {
   AttendanceDao(super.db);
 

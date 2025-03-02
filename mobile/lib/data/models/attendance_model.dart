@@ -1,5 +1,5 @@
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:on_time/data/sources/local/base_sql_local.dart';
+import 'package:on_time/data/sources/local/db/app_database.dart';
 
 part 'attendance_model.mapper.dart';
 
@@ -62,6 +62,6 @@ class AttendanceModel with AttendanceModelMappable {
         nonce: nonce,
       );
 
-  void upsert() => BaseSqlLocal().attendanceDao.saveAttendance(this);
-  void delete() => BaseSqlLocal().attendanceDao.deleteAttendance(this);
+  Future<void> upsert() => AppDatabase().attendanceDao.saveAttendance(this);
+  Future<void> delete() => AppDatabase().attendanceDao.deleteAttendance(this);
 }

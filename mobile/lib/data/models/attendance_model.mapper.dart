@@ -6,6 +6,56 @@
 
 part of 'attendance_model.dart';
 
+class AttendanceTypeMapper extends EnumMapper<AttendanceType> {
+  AttendanceTypeMapper._();
+
+  static AttendanceTypeMapper? _instance;
+  static AttendanceTypeMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = AttendanceTypeMapper._());
+    }
+    return _instance!;
+  }
+
+  static AttendanceType fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  AttendanceType decode(dynamic value) {
+    switch (value) {
+      case 'GENESIS':
+        return AttendanceType.GENESIS;
+      case 'CLOCK_IN':
+        return AttendanceType.CLOCK_IN;
+      case 'CLOCK_OUT':
+        return AttendanceType.CLOCK_OUT;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(AttendanceType self) {
+    switch (self) {
+      case AttendanceType.GENESIS:
+        return 'GENESIS';
+      case AttendanceType.CLOCK_IN:
+        return 'CLOCK_IN';
+      case AttendanceType.CLOCK_OUT:
+        return 'CLOCK_OUT';
+    }
+  }
+}
+
+extension AttendanceTypeMapperExtension on AttendanceType {
+  String toValue() {
+    AttendanceTypeMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<AttendanceType>(this) as String;
+  }
+}
+
 class AttendanceModelMapper extends ClassMapperBase<AttendanceModel> {
   AttendanceModelMapper._();
 
@@ -13,6 +63,7 @@ class AttendanceModelMapper extends ClassMapperBase<AttendanceModel> {
   static AttendanceModelMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = AttendanceModelMapper._());
+      AttendanceTypeMapper.ensureInitialized();
     }
     return _instance!;
   }

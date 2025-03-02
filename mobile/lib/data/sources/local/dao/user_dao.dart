@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:on_time/core/constants.dart';
 import 'package:on_time/data/models/user_model.dart';
-import 'package:on_time/data/sources/local/base_prefs_local.dart';
+import 'package:on_time/data/sources/local/prefs/base_prefs_local.dart';
 
 final class UserDao extends BasePrefsLocal {
   Future<void> saveToken(String token) {

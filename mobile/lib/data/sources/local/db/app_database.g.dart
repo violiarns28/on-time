@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'base_sql_local.dart';
+part of 'app_database.dart';
 
 // ignore_for_file: type=lint
 class $AttendanceTableTable extends AttendanceTable
@@ -505,12 +505,12 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
   }
 }
 
-abstract class _$BaseSqlLocal extends GeneratedDatabase {
-  _$BaseSqlLocal(QueryExecutor e) : super(e);
-  $BaseSqlLocalManager get managers => $BaseSqlLocalManager(this);
+abstract class _$AppDatabase extends GeneratedDatabase {
+  _$AppDatabase(QueryExecutor e) : super(e);
+  $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $AttendanceTableTable attendanceTable =
       $AttendanceTableTable(this);
-  late final AttendanceDao attendanceDao = AttendanceDao(this as BaseSqlLocal);
+  late final AttendanceDao attendanceDao = AttendanceDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -546,7 +546,7 @@ typedef $$AttendanceTableTableUpdateCompanionBuilder = AttendanceTableCompanion
 });
 
 class $$AttendanceTableTableFilterComposer
-    extends Composer<_$BaseSqlLocal, $AttendanceTableTable> {
+    extends Composer<_$AppDatabase, $AttendanceTableTable> {
   $$AttendanceTableTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -588,7 +588,7 @@ class $$AttendanceTableTableFilterComposer
 }
 
 class $$AttendanceTableTableOrderingComposer
-    extends Composer<_$BaseSqlLocal, $AttendanceTableTable> {
+    extends Composer<_$AppDatabase, $AttendanceTableTable> {
   $$AttendanceTableTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -629,7 +629,7 @@ class $$AttendanceTableTableOrderingComposer
 }
 
 class $$AttendanceTableTableAnnotationComposer
-    extends Composer<_$BaseSqlLocal, $AttendanceTableTable> {
+    extends Composer<_$AppDatabase, $AttendanceTableTable> {
   $$AttendanceTableTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -669,7 +669,7 @@ class $$AttendanceTableTableAnnotationComposer
 }
 
 class $$AttendanceTableTableTableManager extends RootTableManager<
-    _$BaseSqlLocal,
+    _$AppDatabase,
     $AttendanceTableTable,
     AttendanceTableData,
     $$AttendanceTableTableFilterComposer,
@@ -679,12 +679,12 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
     $$AttendanceTableTableUpdateCompanionBuilder,
     (
       AttendanceTableData,
-      BaseReferences<_$BaseSqlLocal, $AttendanceTableTable, AttendanceTableData>
+      BaseReferences<_$AppDatabase, $AttendanceTableTable, AttendanceTableData>
     ),
     AttendanceTableData,
     PrefetchHooks Function()> {
   $$AttendanceTableTableTableManager(
-      _$BaseSqlLocal db, $AttendanceTableTable table)
+      _$AppDatabase db, $AttendanceTableTable table)
       : super(TableManagerState(
           db: db,
           table: table,
@@ -750,7 +750,7 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
 }
 
 typedef $$AttendanceTableTableProcessedTableManager = ProcessedTableManager<
-    _$BaseSqlLocal,
+    _$AppDatabase,
     $AttendanceTableTable,
     AttendanceTableData,
     $$AttendanceTableTableFilterComposer,
@@ -760,14 +760,14 @@ typedef $$AttendanceTableTableProcessedTableManager = ProcessedTableManager<
     $$AttendanceTableTableUpdateCompanionBuilder,
     (
       AttendanceTableData,
-      BaseReferences<_$BaseSqlLocal, $AttendanceTableTable, AttendanceTableData>
+      BaseReferences<_$AppDatabase, $AttendanceTableTable, AttendanceTableData>
     ),
     AttendanceTableData,
     PrefetchHooks Function()>;
 
-class $BaseSqlLocalManager {
-  final _$BaseSqlLocal _db;
-  $BaseSqlLocalManager(this._db);
+class $AppDatabaseManager {
+  final _$AppDatabase _db;
+  $AppDatabaseManager(this._db);
   $$AttendanceTableTableTableManager get attendanceTable =>
       $$AttendanceTableTableTableManager(_db, _db.attendanceTable);
 }
