@@ -116,19 +116,33 @@ class SignUpScreen extends GetView<SignUpController> {
                             child: SizedBox(
                               width: 200,
                               height: 42,
-                              child: ElevatedButton(
-                                onPressed: controller.signUp,
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      WidgetStateProperty.all<Color>(
-                                          const Color(0xFF4098AA)),
-                                ),
-                                child: const Text(
-                                  "Sign Up",
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.w600),
+                              child: Obx(
+                                () => ElevatedButton(
+                                  onPressed: controller.isLoading
+                                      ? null
+                                      : controller.signUp,
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        WidgetStateProperty.all<Color>(
+                                            const Color(0xFF4098AA)),
+                                  ),
+                                  child: controller.isLoading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Colors.white),
+                                          ),
+                                        )
+                                      : const Text(
+                                          "Sign Up",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18.0,
+                                              fontWeight: FontWeight.w600),
+                                        ),
                                 ),
                               ),
                             ),

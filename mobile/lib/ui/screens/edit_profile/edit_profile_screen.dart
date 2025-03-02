@@ -246,8 +246,15 @@ class EditProfileScreen extends GetView<EditProfileController> {
                               const Color(0xFF4098AA)),
                         ),
                         child: controller.isLoading
-                            ? CircularProgressIndicator()
-                            : Text(
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : const Text(
                                 "Save Changes",
                                 style: TextStyle(
                                   color: Colors.white,

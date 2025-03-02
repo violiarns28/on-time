@@ -103,20 +103,32 @@ class SignInScreen extends GetView<SignInController> {
                         child: SizedBox(
                           width: 256,
                           height: 38,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Get.toNamed(Routes.HOME);
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStateProperty.all<Color>(
-                                  const Color(0xFF4098AA)),
-                            ),
-                            child: const Text(
-                              "Sign In",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20.0,
-                                  fontWeight: FontWeight.w600),
+                          child: Obx(
+                            () => ElevatedButton(
+                              onPressed: controller.isLoading
+                                  ? null
+                                  : controller.signIn,
+                              style: ButtonStyle(
+                                backgroundColor: WidgetStateProperty.all<Color>(
+                                    const Color(0xFF4098AA)),
+                              ),
+                              child: controller.isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  : const Text(
+                                      "Sign In",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20.0,
+                                          fontWeight: FontWeight.w600),
+                                    ),
                             ),
                           ),
                         ),

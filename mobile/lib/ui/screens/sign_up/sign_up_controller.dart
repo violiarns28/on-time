@@ -19,6 +19,8 @@ class SignUpController extends GetxController {
 
   final _isPasswordVisible = false.obs;
   bool get isPasswordVisible => _isPasswordVisible.value;
+  final _isLoading = false.obs;
+  bool get isLoading => _isLoading.value;
 
   @override
   void onInit() {
@@ -51,6 +53,7 @@ class SignUpController extends GetxController {
   }
 
   void signUp() async {
+    _isLoading.value = true;
     log.d("[SignUpController] signUp");
     try {
       final response = await authRemote.register(
@@ -78,6 +81,8 @@ class SignUpController extends GetxController {
         e.toString(),
         snackPosition: SnackPosition.BOTTOM,
       );
+    } finally {
+      _isLoading.value = false;
     }
   }
 }
