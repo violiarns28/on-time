@@ -17,12 +17,16 @@ class AttendanceController extends GetxController {
   Stream<List<AttendanceModel>> get attendancesStream =>
       _attendancesController.stream;
 
+  late Timer scheduler;
+
   @override
   Future<void> onInit() async {
     await _attendanceRemote.onInit();
 
     _listenToAttendances();
     await _fetchAttendances();
+
+    scheduleAttendance();
 
     super.onInit();
   }
@@ -32,6 +36,8 @@ class AttendanceController extends GetxController {
     _attendanceRemote.onClose();
 
     _attendancesController.close();
+
+    scheduler.cancel();
 
     super.onClose();
   }
@@ -48,5 +54,11 @@ class AttendanceController extends GetxController {
 
   Future<void> _fetchAttendances() async {
     await _attendanceRemote.getAttendances();
+  }
+
+  void scheduleAttendance() {
+    scheduler = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      await _fetchAttendances();
+    });
   }
 }

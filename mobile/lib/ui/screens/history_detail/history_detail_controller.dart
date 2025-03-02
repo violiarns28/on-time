@@ -13,12 +13,16 @@ class HistoryDetailController extends GetxController {
   Stream<List<AttendanceModel>> get attendancesStream =>
       _attendancesController.stream;
 
+  late Timer scheduler;
+
   @override
   Future<void> onInit() async {
     await _attendanceRemote.onInit();
 
     _listenToAttendances();
     await _fetchAttendances();
+
+    scheduleAttendance();
 
     super.onInit();
   }
@@ -40,5 +44,11 @@ class HistoryDetailController extends GetxController {
 
   Future<void> _fetchAttendances() async {
     await _attendanceRemote.getAttendances();
+  }
+
+  void scheduleAttendance() {
+    scheduler = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      await _fetchAttendances();
+    });
   }
 }
