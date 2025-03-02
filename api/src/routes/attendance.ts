@@ -45,6 +45,27 @@ export const AttendanceRouter = new Elysia({
       },
     },
   )
+  .get(
+    '/me',
+    async ({ db, getUser }) => {
+      const user = await getUser();
+      const userId = user.id;
+      const data = blockchain.getChain();
+      const attendances = data.filter((attendance) => attendance.userId === userId);
+      return {
+        message: 'Find attendances success',
+        data: attendances,
+      };
+    },
+    {
+      response: {
+        200: {
+          description: 'Find attendances success',
+          ...OkResponseSchema(t.Array(SelectAttendanceSchema)),
+        },
+      },
+    },
+  )
   .post(
     '',
     async ({ body, db, getUser }) => {
