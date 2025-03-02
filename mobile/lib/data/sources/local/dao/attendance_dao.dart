@@ -11,12 +11,21 @@ class AttendanceDao extends DatabaseAccessor<BaseSqlLocal>
   AttendanceDao(super.db);
 
   Future<void> saveAttendance(AttendanceModel attendance) {
-    return into(attendanceTable).insert(attendance.toLocal());
+    return into(attendanceTable).insert(
+      attendance.toLocal(),
+      mode: InsertMode.insertOrReplace,
+    );
   }
 
   Future<List<AttendanceModel>> getAttendances() async {
     final result = await select(attendanceTable).get();
     return result.map((e) => AttendanceModel.fromLocal(e)).toList();
+  }
+
+  Stream<List<AttendanceModel>> watchAttendances() {
+    return select(attendanceTable).watch().map((event) {
+      return event.map((e) => AttendanceModel.fromLocal(e)).toList();
+    });
   }
 
   Future<void> deleteAttendance(AttendanceModel attendance) {

@@ -48,12 +48,11 @@ dependencies:
   random_avatar: ^0.0.8
   awesome_snackbar_content: ^0.1.5
   image_picker: ^1.1.2
-  freezed_annotation: ^3.0.0
-  json_annotation: ^4.9.0
   shared_preferences: ^2.5.2
   drift: ^2.25.1
   drift_flutter: ^0.2.4
   path_provider: ^2.1.5
+  dart_mappable: ^4.4.0
 
 dev_dependencies:
   flutter_test:
@@ -66,9 +65,8 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
   build_runner: ^2.4.15
-  freezed: ^3.0.2
-  json_serializable: ^6.9.4
   drift_dev: ^2.25.2
+  dart_mappable_builder: ^4.4.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

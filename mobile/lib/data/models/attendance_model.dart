@@ -1,29 +1,39 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:on_time/data/sources/local/base_sql_local.dart';
 
-part 'attendance_model.freezed.dart';
-part 'attendance_model.g.dart';
+part 'attendance_model.mapper.dart';
 
+@MappableEnum()
 enum AttendanceType { GENESIS, CLOCK_IN, CLOCK_OUT }
 
-@freezed
-abstract class AttendanceModel with _$AttendanceModel {
-  const AttendanceModel._();
-  const factory AttendanceModel({
-    required int id,
-    required int userId,
-    required double latitude,
-    required double longitude,
-    required AttendanceType type,
-    required String date,
-    required BigInt timestamp,
-    required String hash,
-    required String previousHash,
-    required int nonce,
-  }) = _AttendanceModel;
+@MappableClass()
+class AttendanceModel with AttendanceModelMappable {
+  final int id;
+  final int userId;
+  final double latitude;
+  final double longitude;
+  final AttendanceType type;
+  final String date;
+  final BigInt timestamp;
+  final String hash;
+  final String previousHash;
+  final int nonce;
 
-  factory AttendanceModel.fromJson(Map<String, dynamic> json) =>
-      _$AttendanceModelFromJson(json);
+  const AttendanceModel({
+    required this.id,
+    required this.userId,
+    required this.latitude,
+    required this.longitude,
+    required this.type,
+    required this.date,
+    required this.timestamp,
+    required this.hash,
+    required this.previousHash,
+    required this.nonce,
+  });
+
+  static const fromMap = AttendanceModelMapper.fromMap;
+  static const fromJson = AttendanceModelMapper.fromJson;
 
   factory AttendanceModel.fromLocal(AttendanceTableData data) =>
       AttendanceModel(
@@ -51,4 +61,7 @@ abstract class AttendanceModel with _$AttendanceModel {
         previousHash: previousHash,
         nonce: nonce,
       );
+
+  void upsert() => BaseSqlLocal().attendanceDao.saveAttendance(this);
+  void delete() => BaseSqlLocal().attendanceDao.deleteAttendance(this);
 }

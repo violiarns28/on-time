@@ -1,51 +1,61 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:on_time/data/models/user_model.dart';
 
-part 'auth_model.freezed.dart';
-part 'auth_model.g.dart';
+part 'auth_model.mapper.dart';
 
-@freezed
-abstract class LoginRequest with _$LoginRequest {
-  const factory LoginRequest({
-    required String email,
-    required String password,
-  }) = _LoginRequest;
+@MappableClass()
+abstract class LoginRequest with LoginRequestMappable {
+  final String email;
+  final String password;
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
-      _$LoginRequestFromJson(json);
+  const LoginRequest({
+    required this.email,
+    required this.password,
+  });
+
+  static const fromMap = LoginRequestMapper.fromMap;
+  static const fromJson = LoginRequestMapper.fromJson;
 }
 
-@freezed
-abstract class LoginResponse with _$LoginResponse {
-  const factory LoginResponse({
-    required UserModel user,
-    required String token,
-  }) = _LoginResponse;
+@MappableClass()
+abstract class LoginResponse with LoginResponseMappable {
+  final UserModel user;
+  final String token;
+  const LoginResponse({
+    required this.user,
+    required this.token,
+  });
 
-  factory LoginResponse.fromJson(Map<String, dynamic> json) =>
-      _$LoginResponseFromJson(json);
+  static const fromMap = LoginResponseMapper.fromMap;
+  static const fromJson = LoginResponseMapper.fromJson;
 }
 
-@freezed
-abstract class RegisterRequest with _$RegisterRequest {
-  const factory RegisterRequest({
-    required String email,
-    required String password,
-    required String name,
-    required String deviceId,
-  }) = _RegisterRequest;
+@MappableClass()
+abstract class RegisterRequest with RegisterRequestMappable {
+  final String email;
+  final String password;
+  final String name;
+  final String deviceId;
+  const RegisterRequest({
+    required this.email,
+    required this.password,
+    required this.name,
+    required this.deviceId,
+  });
 
-  factory RegisterRequest.fromJson(Map<String, dynamic> json) =>
-      _$RegisterRequestFromJson(json);
+  static const fromMap = RegisterRequestMapper.fromMap;
+  static const fromJson = RegisterRequestMapper.fromJson;
 }
 
-@freezed
-abstract class RegisterResponse with _$RegisterResponse {
-  const factory RegisterResponse({
-    required UserModel user,
-    required String token,
-  }) = _RegisterResponse;
+@MappableClass()
+abstract class RegisterResponse with RegisterResponseMappable {
+  final UserModel user;
+  final String token;
+  const RegisterResponse({
+    required this.user,
+    required this.token,
+  });
 
-  factory RegisterResponse.fromJson(Map<String, dynamic> json) =>
-      _$RegisterResponseFromJson(json);
+  static const fromMap = RegisterResponseMapper.fromMap;
+  static const fromJson = RegisterResponseMapper.fromJson;
 }

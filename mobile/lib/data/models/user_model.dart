@@ -1,33 +1,45 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-part 'user_model.freezed.dart';
-part 'user_model.g.dart';
+part 'user_model.mapper.dart';
 
-@freezed
-abstract class UserModel with _$UserModel {
-  const factory UserModel({
-    required int id,
-    required String name,
-    required String email,
-    required String deviceId,
-    String? createdAt,
-    String? updatedAt,
-  }) = _UserModel;
+@MappableClass()
+class UserModel with UserModelMappable {
+  final int id;
+  final String name;
+  final String email;
+  final String deviceId;
+  final String? createdAt;
+  final String? updatedAt;
 
-  factory UserModel.fromJson(Map<String, dynamic> json) =>
-      _$UserModelFromJson(json);
+  const UserModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.deviceId,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  static const fromMap = UserModelMapper.fromMap;
+  static const fromJson = UserModelMapper.fromJson;
 }
 
-@freezed
-abstract class UpdateProfileRequest with _$UpdateProfileRequest {
-  const factory UpdateProfileRequest({
-    required int id,
-    required String name,
-    required String email,
-    required String deviceId,
-    required String password,
-  }) = _UpdateProfileRequest;
+@MappableClass()
+class UpdateProfileRequest with UpdateProfileRequestMappable {
+  final int? id;
+  final String? name;
+  final String? email;
+  final String? deviceId;
+  final String? password;
 
-  factory UpdateProfileRequest.fromJson(Map<String, dynamic> json) =>
-      _$UpdateProfileRequestFromJson(json);
+  const UpdateProfileRequest({
+    this.id,
+    this.name,
+    this.email,
+    this.deviceId,
+    this.password,
+  });
+
+  static const fromMap = UpdateProfileRequestMapper.fromMap;
+  static const fromJson = UpdateProfileRequestMapper.fromJson;
 }
