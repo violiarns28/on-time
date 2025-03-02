@@ -1,47 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:on_time/ui/screens/edit_profile/edit_profile_controller.dart';
+import 'package:on_time/ui/widgets/text_input.dart';
 import 'package:random_avatar/random_avatar.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends GetView<EditProfileController> {
   const EditProfileScreen({super.key});
-
-  @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
-}
-
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  final FocusNode _nameFocusNode = FocusNode();
-  final FocusNode _newPasswordFocusNode = FocusNode();
-  final FocusNode _confirmPasswordFocusNode = FocusNode();
-  final FocusNode _oldPasswordFocusNode = FocusNode();
-
-  bool _isNewPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
-  bool _isOldPasswordVisible = false;
-
-  File? _selectedImage;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameFocusNode.addListener(() => setState(() {}));
-    _newPasswordFocusNode.addListener(() => setState(() {}));
-    _confirmPasswordFocusNode.addListener(() => setState(() {}));
-    _oldPasswordFocusNode.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _nameFocusNode.dispose();
-    _newPasswordFocusNode.dispose();
-    _confirmPasswordFocusNode.dispose();
-    _oldPasswordFocusNode.dispose();
-    super.dispose();
-  }
 
   Color _getFocusColor(FocusNode focusNode) {
     return focusNode.hasFocus ? const Color(0xFF4098AA) : Colors.black;
@@ -82,7 +46,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: SizedBox(
                         width: 120,
                         height: 120,
-                        child: _selectedImage == null
+                        child: controller.imageFile == null
                             ? RandomAvatar('saytoonz',
                                 fit: BoxFit.cover,
                                 trBackground: true,
@@ -91,7 +55,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             : ClipRRect(
                                 borderRadius: BorderRadius.circular(100),
                                 child: Image.file(
-                                  _selectedImage!,
+                                  controller.imageFile!,
                                   fit: BoxFit.cover,
                                   width: 120,
                                   height: 120,
@@ -135,9 +99,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                 BorderRadius.circular(16.0),
                                           ),
                                         ),
-                                        onPressed: () {
-                                          _pickImageFromGallery();
-                                        },
+                                        onPressed:
+                                            controller.pickImageFromGallery,
                                         child: const Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
@@ -169,9 +132,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                 BorderRadius.circular(16.0),
                                           ),
                                         ),
-                                        onPressed: () {
-                                          _captureImageWithCamera();
-                                        },
+                                        onPressed:
+                                            controller.captureImageWithCamera,
                                         child: const Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
@@ -214,54 +176,53 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Form(
                 child: Column(
                   children: [
-                    _buildTextField(
-                      focusNode: _nameFocusNode,
-                      label: "Name",
-                      hint: "Enter your name",
-                      icon: Icons.person_2_rounded,
+                    Obx(
+                      () => TextInput(
+                        focusNode: controller.nameFocusNode,
+                        controller: controller.nameController,
+                        label: "Name",
+                        hint: "Enter your name",
+                        icon: Icons.person_2_rounded,
+                      ),
                     ),
                     const SizedBox(height: 16.0),
-                    _buildTextField(
-                      focusNode: _newPasswordFocusNode,
-                      label: "New Password",
-                      hint: "Enter your new password",
-                      icon: Icons.lock_rounded,
-                      isPassword: true,
-                      isPasswordVisible: _isNewPasswordVisible,
-                      toggleVisibility: () {
-                        setState(() {
-                          _isNewPasswordVisible = !_isNewPasswordVisible;
-                        });
-                      },
+                    Obx(
+                      () => TextInput(
+                        focusNode: controller.newPasswordFocusNode,
+                        controller: controller.newPasswordController,
+                        label: "New Password",
+                        hint: "Enter your new password",
+                        icon: Icons.lock_rounded,
+                        isPassword: true,
+                        isPasswordVisible: controller.isPasswordVisible,
+                        toggleVisibility: controller.togglePasswordVisibility,
+                      ),
                     ),
                     const SizedBox(height: 16.0),
-                    _buildTextField(
-                      focusNode: _confirmPasswordFocusNode,
-                      label: "Confirm Password",
-                      hint: "Confirm your new password",
-                      icon: Icons.lock_rounded,
-                      isPassword: true,
-                      isPasswordVisible: _isConfirmPasswordVisible,
-                      toggleVisibility: () {
-                        setState(() {
-                          _isConfirmPasswordVisible =
-                              !_isConfirmPasswordVisible;
-                        });
-                      },
+                    Obx(
+                      () => TextInput(
+                        focusNode: controller.confirmPasswordFocusNode,
+                        controller: controller.confirmPasswordController,
+                        label: "Confirm Password",
+                        hint: "Confirm your new password",
+                        icon: Icons.lock_rounded,
+                        isPassword: true,
+                        isPasswordVisible: controller.isPasswordVisible,
+                        toggleVisibility: controller.togglePasswordVisibility,
+                      ),
                     ),
                     const SizedBox(height: 16.0),
-                    _buildTextField(
-                      focusNode: _oldPasswordFocusNode,
-                      label: "Old Password",
-                      hint: "Enter your old password",
-                      icon: Icons.lock_rounded,
-                      isPassword: true,
-                      isPasswordVisible: _isOldPasswordVisible,
-                      toggleVisibility: () {
-                        setState(() {
-                          _isOldPasswordVisible = !_isOldPasswordVisible;
-                        });
-                      },
+                    Obx(
+                      () => TextInput(
+                        focusNode: controller.oldPasswordFocusNode,
+                        controller: controller.oldPasswordController,
+                        label: "Old Password",
+                        hint: "Enter your old password",
+                        icon: Icons.lock_rounded,
+                        isPassword: true,
+                        isPasswordVisible: controller.isPasswordVisible,
+                        toggleVisibility: controller.togglePasswordVisibility,
+                      ),
                     ),
                   ],
                 ),
@@ -275,33 +236,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: SizedBox(
                     width: 200,
                     height: 42,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Get.snackbar(
-                          "",
-                          "",
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.transparent,
-                          messageText: const AwesomeSnackbarContent(
-                            title: "Success",
-                            message:
-                                "Your changes have been saved successfully!",
-                            contentType: ContentType.success,
-                          ),
-                          duration: const Duration(seconds: 2),
-                        );
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all<Color>(
-                            const Color(0xFF4098AA)),
-                      ),
-                      child: const Text(
-                        "Save Changes",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.w600,
+                    child: Obx(
+                      () => ElevatedButton(
+                        onPressed: controller.isLoading
+                            ? null
+                            : controller.updateProfile,
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all<Color>(
+                              const Color(0xFF4098AA)),
                         ),
+                        child: controller.isLoading
+                            ? CircularProgressIndicator()
+                            : Text(
+                                "Save Changes",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                   ),
@@ -311,119 +264,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required FocusNode focusNode,
-    required String label,
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-    bool isPasswordVisible = false,
-    VoidCallback? toggleVisibility,
-  }) {
-    return TextFormField(
-      focusNode: focusNode,
-      obscureText: isPassword ? !isPasswordVisible : false,
-      keyboardType:
-          isPassword ? TextInputType.visiblePassword : TextInputType.text,
-      decoration: InputDecoration(
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          borderSide: const BorderSide(color: Color(0xFF4098AA), width: 2.0),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        prefixIcon: Container(
-          width: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: _getFocusColor(focusNode),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                height: 24,
-                width: 1,
-                color: _getFocusColor(focusNode),
-              ),
-            ],
-          ),
-        ),
-        prefixIconConstraints: const BoxConstraints(minWidth: 60),
-        labelText: label,
-        labelStyle: TextStyle(
-          color: _getFocusColor(focusNode),
-          fontWeight: FontWeight.w500,
-        ),
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        suffixIcon: isPassword
-            ? IconButton(
-                onPressed: toggleVisibility,
-                icon: Icon(
-                  isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                  color: _getFocusColor(focusNode),
-                ),
-              )
-            : null,
-      ),
-    );
-  }
-
-  Future<void> _pickImageFromGallery() async {
-    final returnedImage =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (returnedImage != null) {
-      Navigator.pop(context);
-      _showImagePreviewDialog(File(returnedImage.path));
-    }
-  }
-
-  Future _captureImageWithCamera() async {
-    final returnedImage =
-        await ImagePicker().pickImage(source: ImageSource.camera);
-
-    setState(() {
-      Navigator.pop(context);
-      _selectedImage = File(returnedImage!.path);
-    });
-  }
-
-  void _showImagePreviewDialog(File imageFile) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Preview Image"),
-          content: Image.file(imageFile),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _selectedImage = imageFile;
-                });
-                Navigator.pop(context);
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
     );
   }
 }
