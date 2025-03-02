@@ -17,7 +17,7 @@ type Env = Static<typeof EnvSchema>;
 
 declare global {
   namespace NodeJS {
-    interface ProcessEnv extends Env { }
+    interface ProcessEnv extends Env {}
   }
 }
 

@@ -47,11 +47,14 @@ export const AttendanceRouter = new Elysia({
   )
   .get(
     '/me/latest',
-    async ({ db, getUser ,query}) => {
+    async ({ db, getUser, query }) => {
       const user = await getUser();
       const userId = user.id;
       const data = blockchain.getChain();
-      const attendances = data.filter((attendance) => (attendance.userId === userId && attendance.type === query.type));
+      const attendances = data.filter(
+        (attendance) =>
+          attendance.userId === userId && attendance.type === query.type,
+      );
       if (!attendances.length) {
         return {
           message: 'Find latest attendance success',
@@ -71,7 +74,7 @@ export const AttendanceRouter = new Elysia({
           ...OkResponseSchema(t.Union([SelectAttendanceSchema, t.Null()])),
         },
       },
-      query: t.Pick( SelectAttendanceSchema, ['type']),
+      query: t.Pick(SelectAttendanceSchema, ['type']),
     },
   )
   .post(
@@ -81,7 +84,7 @@ export const AttendanceRouter = new Elysia({
       console.log('user', user);
       const userId = user.id;
       const { type, deviceId } = body;
-   
+
       if (!type) {
         throw new BadRequestError('Type is required');
       }
@@ -89,7 +92,7 @@ export const AttendanceRouter = new Elysia({
       if (deviceId !== user.deviceId) {
         throw new BadRequestError('Invalid device');
       }
-      
+
       const now = new Date();
 
       const date = now.toISOString().split('T')[0];
