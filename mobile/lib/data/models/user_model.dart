@@ -9,12 +9,11 @@ abstract class UserModel with _$UserModel {
     required int id,
     required String name,
     required String email,
-    String? password,
     required String deviceId,
     String? createdAt,
     String? updatedAt,
   }) = _UserModel;
 
-  factory UserModel.fromJson(Map<String, Object?> json) =>
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
 }

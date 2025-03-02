@@ -20,6 +20,6 @@ abstract class AttendanceModel with _$AttendanceModel {
     required int nonce,
   }) = _AttendanceModel;
 
-  factory AttendanceModel.fromJson(Map<String, Object?> json) =>
+  factory AttendanceModel.fromJson(Map<String, dynamic> json) =>
       _$AttendanceModelFromJson(json);
 }

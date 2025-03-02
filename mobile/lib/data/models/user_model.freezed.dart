@@ -18,7 +18,6 @@ mixin _$UserModel {
   int get id;
   String get name;
   String get email;
-  String? get password;
   String get deviceId;
   String? get createdAt;
   String? get updatedAt;
@@ -41,8 +40,6 @@ mixin _$UserModel {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.email, email) || other.email == email) &&
-            (identical(other.password, password) ||
-                other.password == password) &&
             (identical(other.deviceId, deviceId) ||
                 other.deviceId == deviceId) &&
             (identical(other.createdAt, createdAt) ||
@@ -53,12 +50,12 @@ mixin _$UserModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, name, email, password, deviceId, createdAt, updatedAt);
+  int get hashCode =>
+      Object.hash(runtimeType, id, name, email, deviceId, createdAt, updatedAt);
 
   @override
   String toString() {
-    return 'UserModel(id: $id, name: $name, email: $email, password: $password, deviceId: $deviceId, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'UserModel(id: $id, name: $name, email: $email, deviceId: $deviceId, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 }
 
@@ -71,7 +68,6 @@ abstract mixin class $UserModelCopyWith<$Res> {
       {int id,
       String name,
       String email,
-      String? password,
       String deviceId,
       String? createdAt,
       String? updatedAt});
@@ -92,7 +88,6 @@ class _$UserModelCopyWithImpl<$Res> implements $UserModelCopyWith<$Res> {
     Object? id = null,
     Object? name = null,
     Object? email = null,
-    Object? password = freezed,
     Object? deviceId = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -110,10 +105,6 @@ class _$UserModelCopyWithImpl<$Res> implements $UserModelCopyWith<$Res> {
           ? _self.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
-      password: freezed == password
-          ? _self.password
-          : password // ignore: cast_nullable_to_non_nullable
-              as String?,
       deviceId: null == deviceId
           ? _self.deviceId
           : deviceId // ignore: cast_nullable_to_non_nullable
@@ -137,7 +128,6 @@ class _UserModel implements UserModel {
       {required this.id,
       required this.name,
       required this.email,
-      this.password,
       required this.deviceId,
       this.createdAt,
       this.updatedAt});
@@ -150,8 +140,6 @@ class _UserModel implements UserModel {
   final String name;
   @override
   final String email;
-  @override
-  final String? password;
   @override
   final String deviceId;
   @override
@@ -182,8 +170,6 @@ class _UserModel implements UserModel {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.email, email) || other.email == email) &&
-            (identical(other.password, password) ||
-                other.password == password) &&
             (identical(other.deviceId, deviceId) ||
                 other.deviceId == deviceId) &&
             (identical(other.createdAt, createdAt) ||
@@ -194,12 +180,12 @@ class _UserModel implements UserModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, name, email, password, deviceId, createdAt, updatedAt);
+  int get hashCode =>
+      Object.hash(runtimeType, id, name, email, deviceId, createdAt, updatedAt);
 
   @override
   String toString() {
-    return 'UserModel(id: $id, name: $name, email: $email, password: $password, deviceId: $deviceId, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'UserModel(id: $id, name: $name, email: $email, deviceId: $deviceId, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 }
 
@@ -215,7 +201,6 @@ abstract mixin class _$UserModelCopyWith<$Res>
       {int id,
       String name,
       String email,
-      String? password,
       String deviceId,
       String? createdAt,
       String? updatedAt});
@@ -236,7 +221,6 @@ class __$UserModelCopyWithImpl<$Res> implements _$UserModelCopyWith<$Res> {
     Object? id = null,
     Object? name = null,
     Object? email = null,
-    Object? password = freezed,
     Object? deviceId = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -254,10 +238,6 @@ class __$UserModelCopyWithImpl<$Res> implements _$UserModelCopyWith<$Res> {
           ? _self.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
-      password: freezed == password
-          ? _self.password
-          : password // ignore: cast_nullable_to_non_nullable
-              as String?,
       deviceId: null == deviceId
           ? _self.deviceId
           : deviceId // ignore: cast_nullable_to_non_nullable
