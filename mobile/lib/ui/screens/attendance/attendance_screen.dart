@@ -56,11 +56,19 @@ class AttendanceScreen extends GetView<AttendanceController> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              _buildClockContainer(
-                                  "Clock In", "08:00", const Color(0xFF2DBF4D)),
+                              Obx(
+                                () => _buildClockContainer(
+                                    "Clock In",
+                                    controller.latestClockIn,
+                                    const Color(0xFF2DBF4D)),
+                              ),
                               const SizedBox(width: 16.0),
-                              _buildClockContainer("Clock Out", "18:00",
-                                  const Color(0xFFFF0000)),
+                              Obx(
+                                () => _buildClockContainer(
+                                    "Clock Out",
+                                    controller.latestClockOut,
+                                    const Color(0xFFE74C3C)),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 24),
@@ -68,19 +76,37 @@ class AttendanceScreen extends GetView<AttendanceController> {
                             width: 240,
                             height: 42,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: controller.isLoading
+                                  ? null
+                                  : controller.isAlreadyClockInAndOut
+                                      ? null
+                                      : controller.saveAttendance,
                               style: ButtonStyle(
                                 backgroundColor: WidgetStateProperty.all<Color>(
                                     const Color(0xFF4098AA)),
                               ),
-                              child: const Text(
-                                "Clock In",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              child: controller.isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  : Text(
+                                      controller.isAlreadyClockInAndOut
+                                          ? "Already clocked in and out"
+                                          : controller.isAlreadyClockIn
+                                              ? "Clock Out"
+                                              : "Clock In",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                             ),
                           ),
                           const SizedBox(height: 8),

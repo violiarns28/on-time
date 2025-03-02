@@ -13,10 +13,10 @@ final class AttendanceRemote extends BaseRemote {
     super.onInit();
   }
 
-  Future<void> saveAttendance(AttendanceModel attendance) async {
+  Future<AttendanceModel?> saveAttendance(MarkAttendanceRequest args) async {
     final response = await post(
       '/',
-      attendance.toJson(),
+      args.toJson(),
       decoder: (obj) => AttendanceModel.fromJson(obj['data']),
     );
 
@@ -24,6 +24,7 @@ final class AttendanceRemote extends BaseRemote {
 
     if (processed is AttendanceModel) {
       await attendanceDao.saveAttendance(processed);
+      return processed;
     } else {
       throw Exception('Something went wrong');
     }
@@ -41,6 +42,23 @@ final class AttendanceRemote extends BaseRemote {
 
     if (processed is List<AttendanceModel>) {
       await attendanceDao.saveAttendances(processed);
+      return processed;
+    } else {
+      throw Exception('Something went wrong');
+    }
+  }
+
+  Future<AttendanceModel> getMyLatestAttendance(AttendanceType type) async {
+    final response = await get('/me/latest',
+        decoder: (obj) =>
+            obj['data'] != null ? AttendanceModel.fromJson(obj['data']) : null,
+        query: {
+          'type': type.toString().split('.').last,
+        });
+
+    final processed = handleStatusCode(response);
+
+    if (processed is AttendanceModel) {
       return processed;
     } else {
       throw Exception('Something went wrong');

@@ -244,3 +244,132 @@ class _AttendanceModelCopyWithImpl<$R, $Out>
           Then<$Out2, $R2> t) =>
       _AttendanceModelCopyWithImpl($value, $cast, t);
 }
+
+class MarkAttendanceRequestMapper
+    extends ClassMapperBase<MarkAttendanceRequest> {
+  MarkAttendanceRequestMapper._();
+
+  static MarkAttendanceRequestMapper? _instance;
+  static MarkAttendanceRequestMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = MarkAttendanceRequestMapper._());
+      AttendanceTypeMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'MarkAttendanceRequest';
+
+  static double _$latitude(MarkAttendanceRequest v) => v.latitude;
+  static const Field<MarkAttendanceRequest, double> _f$latitude =
+      Field('latitude', _$latitude);
+  static double _$longitude(MarkAttendanceRequest v) => v.longitude;
+  static const Field<MarkAttendanceRequest, double> _f$longitude =
+      Field('longitude', _$longitude);
+  static AttendanceType _$type(MarkAttendanceRequest v) => v.type;
+  static const Field<MarkAttendanceRequest, AttendanceType> _f$type =
+      Field('type', _$type);
+
+  @override
+  final MappableFields<MarkAttendanceRequest> fields = const {
+    #latitude: _f$latitude,
+    #longitude: _f$longitude,
+    #type: _f$type,
+  };
+
+  static MarkAttendanceRequest _instantiate(DecodingData data) {
+    return MarkAttendanceRequest(
+        latitude: data.dec(_f$latitude),
+        longitude: data.dec(_f$longitude),
+        type: data.dec(_f$type));
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static MarkAttendanceRequest fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<MarkAttendanceRequest>(map);
+  }
+
+  static MarkAttendanceRequest fromJson(String json) {
+    return ensureInitialized().decodeJson<MarkAttendanceRequest>(json);
+  }
+}
+
+mixin MarkAttendanceRequestMappable {
+  String toJson() {
+    return MarkAttendanceRequestMapper.ensureInitialized()
+        .encodeJson<MarkAttendanceRequest>(this as MarkAttendanceRequest);
+  }
+
+  Map<String, dynamic> toMap() {
+    return MarkAttendanceRequestMapper.ensureInitialized()
+        .encodeMap<MarkAttendanceRequest>(this as MarkAttendanceRequest);
+  }
+
+  MarkAttendanceRequestCopyWith<MarkAttendanceRequest, MarkAttendanceRequest,
+          MarkAttendanceRequest>
+      get copyWith => _MarkAttendanceRequestCopyWithImpl(
+          this as MarkAttendanceRequest, $identity, $identity);
+  @override
+  String toString() {
+    return MarkAttendanceRequestMapper.ensureInitialized()
+        .stringifyValue(this as MarkAttendanceRequest);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return MarkAttendanceRequestMapper.ensureInitialized()
+        .equalsValue(this as MarkAttendanceRequest, other);
+  }
+
+  @override
+  int get hashCode {
+    return MarkAttendanceRequestMapper.ensureInitialized()
+        .hashValue(this as MarkAttendanceRequest);
+  }
+}
+
+extension MarkAttendanceRequestValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, MarkAttendanceRequest, $Out> {
+  MarkAttendanceRequestCopyWith<$R, MarkAttendanceRequest, $Out>
+      get $asMarkAttendanceRequest =>
+          $base.as((v, t, t2) => _MarkAttendanceRequestCopyWithImpl(v, t, t2));
+}
+
+abstract class MarkAttendanceRequestCopyWith<
+    $R,
+    $In extends MarkAttendanceRequest,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
+  $R call({double? latitude, double? longitude, AttendanceType? type});
+  MarkAttendanceRequestCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+      Then<$Out2, $R2> t);
+}
+
+class _MarkAttendanceRequestCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, MarkAttendanceRequest, $Out>
+    implements MarkAttendanceRequestCopyWith<$R, MarkAttendanceRequest, $Out> {
+  _MarkAttendanceRequestCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<MarkAttendanceRequest> $mapper =
+      MarkAttendanceRequestMapper.ensureInitialized();
+  @override
+  $R call({double? latitude, double? longitude, AttendanceType? type}) =>
+      $apply(FieldCopyWithData({
+        if (latitude != null) #latitude: latitude,
+        if (longitude != null) #longitude: longitude,
+        if (type != null) #type: type
+      }));
+  @override
+  MarkAttendanceRequest $make(CopyWithData data) => MarkAttendanceRequest(
+      latitude: data.get(#latitude, or: $value.latitude),
+      longitude: data.get(#longitude, or: $value.longitude),
+      type: data.get(#type, or: $value.type));
+
+  @override
+  MarkAttendanceRequestCopyWith<$R2, MarkAttendanceRequest, $Out2>
+      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+          _MarkAttendanceRequestCopyWithImpl($value, $cast, t);
+}

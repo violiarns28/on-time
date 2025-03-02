@@ -65,3 +65,19 @@ class AttendanceModel with AttendanceModelMappable {
   Future<void> upsert() => AppDatabase().attendanceDao.saveAttendance(this);
   Future<void> delete() => AppDatabase().attendanceDao.deleteAttendance(this);
 }
+
+@MappableClass()
+class MarkAttendanceRequest with MarkAttendanceRequestMappable {
+  final double latitude;
+  final double longitude;
+  final AttendanceType type;
+
+  const MarkAttendanceRequest({
+    required this.latitude,
+    required this.longitude,
+    required this.type,
+  });
+
+  static const fromMap = MarkAttendanceRequestMapper.fromMap;
+  static const fromJson = MarkAttendanceRequestMapper.fromJson;
+}
