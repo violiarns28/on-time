@@ -4,7 +4,7 @@ import 'package:on_time/data/models/user_model.dart';
 part 'auth_model.mapper.dart';
 
 @MappableClass()
-abstract class LoginRequest with LoginRequestMappable {
+class LoginRequest with LoginRequestMappable {
   final String email;
   final String password;
 
@@ -18,7 +18,7 @@ abstract class LoginRequest with LoginRequestMappable {
 }
 
 @MappableClass()
-abstract class LoginResponse with LoginResponseMappable {
+class LoginResponse with LoginResponseMappable {
   final UserModel user;
   final String token;
   const LoginResponse({
@@ -31,7 +31,7 @@ abstract class LoginResponse with LoginResponseMappable {
 }
 
 @MappableClass()
-abstract class RegisterRequest with RegisterRequestMappable {
+class RegisterRequest with RegisterRequestMappable {
   final String email;
   final String password;
   final String name;
@@ -48,7 +48,7 @@ abstract class RegisterRequest with RegisterRequestMappable {
 }
 
 @MappableClass()
-abstract class RegisterResponse with RegisterResponseMappable {
+class RegisterResponse with RegisterResponseMappable {
   final UserModel user;
   final String token;
   const RegisterResponse({

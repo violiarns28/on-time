@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
 import 'package:on_time/ui/screens/sign_up/sign_up_controller.dart';
@@ -143,9 +142,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               width: 200,
                               height: 42,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  Get.toNamed(Routes.SIGN_IN);
-                                },
+                                onPressed: controller.signUp,
                                 style: ButtonStyle(
                                   backgroundColor:
                                       WidgetStateProperty.all<Color>(

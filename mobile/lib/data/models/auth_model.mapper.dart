@@ -33,7 +33,8 @@ class LoginRequestMapper extends ClassMapperBase<LoginRequest> {
   };
 
   static LoginRequest _instantiate(DecodingData data) {
-    throw MapperException.missingConstructor('LoginRequest');
+    return LoginRequest(
+        email: data.dec(_f$email), password: data.dec(_f$password));
   }
 
   @override
@@ -49,15 +50,71 @@ class LoginRequestMapper extends ClassMapperBase<LoginRequest> {
 }
 
 mixin LoginRequestMappable {
-  String toJson();
-  Map<String, dynamic> toMap();
-  LoginRequestCopyWith<LoginRequest, LoginRequest, LoginRequest> get copyWith;
+  String toJson() {
+    return LoginRequestMapper.ensureInitialized()
+        .encodeJson<LoginRequest>(this as LoginRequest);
+  }
+
+  Map<String, dynamic> toMap() {
+    return LoginRequestMapper.ensureInitialized()
+        .encodeMap<LoginRequest>(this as LoginRequest);
+  }
+
+  LoginRequestCopyWith<LoginRequest, LoginRequest, LoginRequest> get copyWith =>
+      _LoginRequestCopyWithImpl(this as LoginRequest, $identity, $identity);
+  @override
+  String toString() {
+    return LoginRequestMapper.ensureInitialized()
+        .stringifyValue(this as LoginRequest);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return LoginRequestMapper.ensureInitialized()
+        .equalsValue(this as LoginRequest, other);
+  }
+
+  @override
+  int get hashCode {
+    return LoginRequestMapper.ensureInitialized()
+        .hashValue(this as LoginRequest);
+  }
+}
+
+extension LoginRequestValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, LoginRequest, $Out> {
+  LoginRequestCopyWith<$R, LoginRequest, $Out> get $asLoginRequest =>
+      $base.as((v, t, t2) => _LoginRequestCopyWithImpl(v, t, t2));
 }
 
 abstract class LoginRequestCopyWith<$R, $In extends LoginRequest, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   $R call({String? email, String? password});
   LoginRequestCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _LoginRequestCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, LoginRequest, $Out>
+    implements LoginRequestCopyWith<$R, LoginRequest, $Out> {
+  _LoginRequestCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<LoginRequest> $mapper =
+      LoginRequestMapper.ensureInitialized();
+  @override
+  $R call({String? email, String? password}) => $apply(FieldCopyWithData({
+        if (email != null) #email: email,
+        if (password != null) #password: password
+      }));
+  @override
+  LoginRequest $make(CopyWithData data) => LoginRequest(
+      email: data.get(#email, or: $value.email),
+      password: data.get(#password, or: $value.password));
+
+  @override
+  LoginRequestCopyWith<$R2, LoginRequest, $Out2> $chain<$R2, $Out2>(
+          Then<$Out2, $R2> t) =>
+      _LoginRequestCopyWithImpl($value, $cast, t);
 }
 
 class LoginResponseMapper extends ClassMapperBase<LoginResponse> {
@@ -87,7 +144,7 @@ class LoginResponseMapper extends ClassMapperBase<LoginResponse> {
   };
 
   static LoginResponse _instantiate(DecodingData data) {
-    throw MapperException.missingConstructor('LoginResponse');
+    return LoginResponse(user: data.dec(_f$user), token: data.dec(_f$token));
   }
 
   @override
@@ -103,10 +160,42 @@ class LoginResponseMapper extends ClassMapperBase<LoginResponse> {
 }
 
 mixin LoginResponseMappable {
-  String toJson();
-  Map<String, dynamic> toMap();
+  String toJson() {
+    return LoginResponseMapper.ensureInitialized()
+        .encodeJson<LoginResponse>(this as LoginResponse);
+  }
+
+  Map<String, dynamic> toMap() {
+    return LoginResponseMapper.ensureInitialized()
+        .encodeMap<LoginResponse>(this as LoginResponse);
+  }
+
   LoginResponseCopyWith<LoginResponse, LoginResponse, LoginResponse>
-      get copyWith;
+      get copyWith => _LoginResponseCopyWithImpl(
+          this as LoginResponse, $identity, $identity);
+  @override
+  String toString() {
+    return LoginResponseMapper.ensureInitialized()
+        .stringifyValue(this as LoginResponse);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return LoginResponseMapper.ensureInitialized()
+        .equalsValue(this as LoginResponse, other);
+  }
+
+  @override
+  int get hashCode {
+    return LoginResponseMapper.ensureInitialized()
+        .hashValue(this as LoginResponse);
+  }
+}
+
+extension LoginResponseValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, LoginResponse, $Out> {
+  LoginResponseCopyWith<$R, LoginResponse, $Out> get $asLoginResponse =>
+      $base.as((v, t, t2) => _LoginResponseCopyWithImpl(v, t, t2));
 }
 
 abstract class LoginResponseCopyWith<$R, $In extends LoginResponse, $Out>
@@ -114,6 +203,31 @@ abstract class LoginResponseCopyWith<$R, $In extends LoginResponse, $Out>
   UserModelCopyWith<$R, UserModel, UserModel> get user;
   $R call({UserModel? user, String? token});
   LoginResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _LoginResponseCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, LoginResponse, $Out>
+    implements LoginResponseCopyWith<$R, LoginResponse, $Out> {
+  _LoginResponseCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<LoginResponse> $mapper =
+      LoginResponseMapper.ensureInitialized();
+  @override
+  UserModelCopyWith<$R, UserModel, UserModel> get user =>
+      $value.user.copyWith.$chain((v) => call(user: v));
+  @override
+  $R call({UserModel? user, String? token}) => $apply(FieldCopyWithData(
+      {if (user != null) #user: user, if (token != null) #token: token}));
+  @override
+  LoginResponse $make(CopyWithData data) => LoginResponse(
+      user: data.get(#user, or: $value.user),
+      token: data.get(#token, or: $value.token));
+
+  @override
+  LoginResponseCopyWith<$R2, LoginResponse, $Out2> $chain<$R2, $Out2>(
+          Then<$Out2, $R2> t) =>
+      _LoginResponseCopyWithImpl($value, $cast, t);
 }
 
 class RegisterRequestMapper extends ClassMapperBase<RegisterRequest> {
@@ -151,7 +265,11 @@ class RegisterRequestMapper extends ClassMapperBase<RegisterRequest> {
   };
 
   static RegisterRequest _instantiate(DecodingData data) {
-    throw MapperException.missingConstructor('RegisterRequest');
+    return RegisterRequest(
+        email: data.dec(_f$email),
+        password: data.dec(_f$password),
+        name: data.dec(_f$name),
+        deviceId: data.dec(_f$deviceId));
   }
 
   @override
@@ -167,10 +285,42 @@ class RegisterRequestMapper extends ClassMapperBase<RegisterRequest> {
 }
 
 mixin RegisterRequestMappable {
-  String toJson();
-  Map<String, dynamic> toMap();
+  String toJson() {
+    return RegisterRequestMapper.ensureInitialized()
+        .encodeJson<RegisterRequest>(this as RegisterRequest);
+  }
+
+  Map<String, dynamic> toMap() {
+    return RegisterRequestMapper.ensureInitialized()
+        .encodeMap<RegisterRequest>(this as RegisterRequest);
+  }
+
   RegisterRequestCopyWith<RegisterRequest, RegisterRequest, RegisterRequest>
-      get copyWith;
+      get copyWith => _RegisterRequestCopyWithImpl(
+          this as RegisterRequest, $identity, $identity);
+  @override
+  String toString() {
+    return RegisterRequestMapper.ensureInitialized()
+        .stringifyValue(this as RegisterRequest);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return RegisterRequestMapper.ensureInitialized()
+        .equalsValue(this as RegisterRequest, other);
+  }
+
+  @override
+  int get hashCode {
+    return RegisterRequestMapper.ensureInitialized()
+        .hashValue(this as RegisterRequest);
+  }
+}
+
+extension RegisterRequestValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, RegisterRequest, $Out> {
+  RegisterRequestCopyWith<$R, RegisterRequest, $Out> get $asRegisterRequest =>
+      $base.as((v, t, t2) => _RegisterRequestCopyWithImpl(v, t, t2));
 }
 
 abstract class RegisterRequestCopyWith<$R, $In extends RegisterRequest, $Out>
@@ -178,6 +328,35 @@ abstract class RegisterRequestCopyWith<$R, $In extends RegisterRequest, $Out>
   $R call({String? email, String? password, String? name, String? deviceId});
   RegisterRequestCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
+}
+
+class _RegisterRequestCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, RegisterRequest, $Out>
+    implements RegisterRequestCopyWith<$R, RegisterRequest, $Out> {
+  _RegisterRequestCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<RegisterRequest> $mapper =
+      RegisterRequestMapper.ensureInitialized();
+  @override
+  $R call({String? email, String? password, String? name, String? deviceId}) =>
+      $apply(FieldCopyWithData({
+        if (email != null) #email: email,
+        if (password != null) #password: password,
+        if (name != null) #name: name,
+        if (deviceId != null) #deviceId: deviceId
+      }));
+  @override
+  RegisterRequest $make(CopyWithData data) => RegisterRequest(
+      email: data.get(#email, or: $value.email),
+      password: data.get(#password, or: $value.password),
+      name: data.get(#name, or: $value.name),
+      deviceId: data.get(#deviceId, or: $value.deviceId));
+
+  @override
+  RegisterRequestCopyWith<$R2, RegisterRequest, $Out2> $chain<$R2, $Out2>(
+          Then<$Out2, $R2> t) =>
+      _RegisterRequestCopyWithImpl($value, $cast, t);
 }
 
 class RegisterResponseMapper extends ClassMapperBase<RegisterResponse> {
@@ -209,7 +388,7 @@ class RegisterResponseMapper extends ClassMapperBase<RegisterResponse> {
   };
 
   static RegisterResponse _instantiate(DecodingData data) {
-    throw MapperException.missingConstructor('RegisterResponse');
+    return RegisterResponse(user: data.dec(_f$user), token: data.dec(_f$token));
   }
 
   @override
@@ -225,10 +404,43 @@ class RegisterResponseMapper extends ClassMapperBase<RegisterResponse> {
 }
 
 mixin RegisterResponseMappable {
-  String toJson();
-  Map<String, dynamic> toMap();
+  String toJson() {
+    return RegisterResponseMapper.ensureInitialized()
+        .encodeJson<RegisterResponse>(this as RegisterResponse);
+  }
+
+  Map<String, dynamic> toMap() {
+    return RegisterResponseMapper.ensureInitialized()
+        .encodeMap<RegisterResponse>(this as RegisterResponse);
+  }
+
   RegisterResponseCopyWith<RegisterResponse, RegisterResponse, RegisterResponse>
-      get copyWith;
+      get copyWith => _RegisterResponseCopyWithImpl(
+          this as RegisterResponse, $identity, $identity);
+  @override
+  String toString() {
+    return RegisterResponseMapper.ensureInitialized()
+        .stringifyValue(this as RegisterResponse);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return RegisterResponseMapper.ensureInitialized()
+        .equalsValue(this as RegisterResponse, other);
+  }
+
+  @override
+  int get hashCode {
+    return RegisterResponseMapper.ensureInitialized()
+        .hashValue(this as RegisterResponse);
+  }
+}
+
+extension RegisterResponseValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, RegisterResponse, $Out> {
+  RegisterResponseCopyWith<$R, RegisterResponse, $Out>
+      get $asRegisterResponse =>
+          $base.as((v, t, t2) => _RegisterResponseCopyWithImpl(v, t, t2));
 }
 
 abstract class RegisterResponseCopyWith<$R, $In extends RegisterResponse, $Out>
@@ -237,4 +449,29 @@ abstract class RegisterResponseCopyWith<$R, $In extends RegisterResponse, $Out>
   $R call({UserModel? user, String? token});
   RegisterResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
+}
+
+class _RegisterResponseCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, RegisterResponse, $Out>
+    implements RegisterResponseCopyWith<$R, RegisterResponse, $Out> {
+  _RegisterResponseCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<RegisterResponse> $mapper =
+      RegisterResponseMapper.ensureInitialized();
+  @override
+  UserModelCopyWith<$R, UserModel, UserModel> get user =>
+      $value.user.copyWith.$chain((v) => call(user: v));
+  @override
+  $R call({UserModel? user, String? token}) => $apply(FieldCopyWithData(
+      {if (user != null) #user: user, if (token != null) #token: token}));
+  @override
+  RegisterResponse $make(CopyWithData data) => RegisterResponse(
+      user: data.get(#user, or: $value.user),
+      token: data.get(#token, or: $value.token));
+
+  @override
+  RegisterResponseCopyWith<$R2, RegisterResponse, $Out2> $chain<$R2, $Out2>(
+          Then<$Out2, $R2> t) =>
+      _RegisterResponseCopyWithImpl($value, $cast, t);
 }

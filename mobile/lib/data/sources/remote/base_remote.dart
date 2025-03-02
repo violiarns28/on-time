@@ -3,14 +3,14 @@ import 'package:on_time/core/constants.dart';
 import 'package:on_time/data/sources/local/dao/user_dao.dart';
 
 base class BaseRemote extends GetConnect {
-  final UserDao userLocal;
+  final UserDao userDao;
 
-  BaseRemote(this.userLocal);
+  BaseRemote(this.userDao);
 
   @override
   Future<void> onInit() async {
     httpClient.baseUrl = Constants.baseUrl;
-    final token = await userLocal.getToken();
+    final token = await userDao.getToken();
     if (token != null) {
       httpClient.addRequestModifier<Object?>((request) {
         request.headers['Authorization'] = 'Bearer $token';

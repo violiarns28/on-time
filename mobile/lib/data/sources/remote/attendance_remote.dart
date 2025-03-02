@@ -4,8 +4,8 @@ import 'package:on_time/data/sources/local/dao/attendance_dao.dart';
 import 'package:on_time/data/sources/remote/base_remote.dart';
 
 final class AttendanceRemote extends BaseRemote {
-  final AttendanceDao attendanceLocal;
-  AttendanceRemote(super.userLocal, this.attendanceLocal);
+  final AttendanceDao attendanceDao;
+  AttendanceRemote(super.userLocal, this.attendanceDao);
 
   @override
   Future<void> onInit() async {
@@ -23,7 +23,7 @@ final class AttendanceRemote extends BaseRemote {
     final processed = handleStatusCode(response);
 
     if (processed is AttendanceModel) {
-      await attendanceLocal.saveAttendance(processed);
+      await attendanceDao.saveAttendance(processed);
     } else {
       throw Exception('Something went wrong');
     }
@@ -40,7 +40,7 @@ final class AttendanceRemote extends BaseRemote {
     final processed = handleStatusCode(response);
 
     if (processed is List<AttendanceModel>) {
-      await attendanceLocal.saveAttendances(processed);
+      await attendanceDao.saveAttendances(processed);
       return processed;
     } else {
       throw Exception('Something went wrong');

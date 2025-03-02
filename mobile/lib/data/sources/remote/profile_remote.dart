@@ -3,7 +3,7 @@ import 'package:on_time/data/models/user_model.dart';
 import 'package:on_time/data/sources/remote/base_remote.dart';
 
 final class ProfileRemote extends BaseRemote {
-  ProfileRemote(super.userLocal);
+  ProfileRemote(super.userDao);
 
   @override
   Future<void> onInit() async {
@@ -20,7 +20,7 @@ final class ProfileRemote extends BaseRemote {
     final processed = handleStatusCode(response);
 
     if (processed is UserModel) {
-      await userLocal.saveUser(processed);
+      await userDao.saveUser(processed);
       return processed;
     } else {
       throw Exception('Something went wrong');
@@ -37,7 +37,7 @@ final class ProfileRemote extends BaseRemote {
     final processed = handleStatusCode(response);
 
     if (processed is UserModel) {
-      await userLocal.saveUser(processed);
+      await userDao.saveUser(processed);
       return processed;
     } else {
       throw Exception('Something went wrong');
