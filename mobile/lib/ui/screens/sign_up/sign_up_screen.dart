@@ -71,33 +71,39 @@ class SignUpScreen extends GetView<SignUpController> {
                           child: Form(
                             child: Column(
                               children: [
-                                TextInput(
-                                  focusNode: controller.nameFocusNode,
-                                  controller: controller.nameController,
-                                  label: "Name",
-                                  hint: "Enter your name",
-                                  icon: Icons.person_2_rounded,
+                                Obx(
+                                  () => TextInput(
+                                    focusNode: controller.nameFocusNode,
+                                    controller: controller.nameController,
+                                    label: "Name",
+                                    hint: "Enter your name",
+                                    icon: Icons.person_2_rounded,
+                                  ),
                                 ),
-                                const SizedBox(height: 16.0),
-                                TextInput(
-                                  focusNode: controller.emailFocusNode,
-                                  controller: controller.emailController,
-                                  label: "Email",
-                                  hint: "Enter your email",
-                                  icon: Icons.mail_rounded,
+                                SizedBox(height: 16.0),
+                                Obx(
+                                  () => TextInput(
+                                    focusNode: controller.emailFocusNode,
+                                    controller: controller.emailController,
+                                    label: "Email",
+                                    hint: "Enter your email",
+                                    icon: Icons.mail_rounded,
+                                  ),
                                 ),
-                                const SizedBox(height: 16.0),
-                                TextInput(
-                                  focusNode: controller.passwordFocusNode,
-                                  controller: controller.passwordController,
-                                  label: "Password",
-                                  hint: "Enter your password",
-                                  icon: Icons.lock_rounded,
-                                  isPassword: true,
-                                  isPasswordVisible:
-                                      controller.isPasswordVisible,
-                                  toggleVisibility:
-                                      controller.togglePasswordVisibility,
+                                SizedBox(height: 16.0),
+                                Obx(
+                                  () => TextInput(
+                                    focusNode: controller.passwordFocusNode,
+                                    controller: controller.passwordController,
+                                    label: "Password",
+                                    hint: "Enter your password",
+                                    icon: Icons.lock_rounded,
+                                    isPassword: true,
+                                    isPasswordVisible:
+                                        controller.isPasswordVisible,
+                                    toggleVisibility:
+                                        controller.togglePasswordVisibility,
+                                  ),
                                 ),
                               ],
                             ),

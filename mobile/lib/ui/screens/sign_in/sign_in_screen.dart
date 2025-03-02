@@ -69,24 +69,28 @@ class SignInScreen extends GetView<SignInController> {
                       child: Form(
                         child: Column(
                           children: [
-                            TextInput(
-                              focusNode: controller.emailFocusNode,
-                              controller: controller.emailController,
-                              label: "Email",
-                              hint: "Enter your email",
-                              icon: Icons.mail_rounded,
+                            Obx(
+                              () => TextInput(
+                                focusNode: controller.emailFocusNode,
+                                controller: controller.emailController,
+                                label: "Email",
+                                hint: "Enter your email",
+                                icon: Icons.mail_rounded,
+                              ),
                             ),
                             const SizedBox(height: 16.0),
-                            TextInput(
-                              focusNode: controller.passwordFocusNode,
-                              controller: controller.passwordController,
-                              label: "Password",
-                              hint: "Enter your password",
-                              icon: Icons.lock_rounded,
-                              isPassword: true,
-                              isPasswordVisible: controller.isPasswordVisible,
-                              toggleVisibility:
-                                  controller.togglePasswordVisibility,
+                            Obx(
+                              () => TextInput(
+                                focusNode: controller.passwordFocusNode,
+                                controller: controller.passwordController,
+                                label: "Password",
+                                hint: "Enter your password",
+                                icon: Icons.lock_rounded,
+                                isPassword: true,
+                                isPasswordVisible: controller.isPasswordVisible,
+                                toggleVisibility:
+                                    controller.togglePasswordVisibility,
+                              ),
                             ),
                           ],
                         ),
