@@ -4,7 +4,7 @@ import 'package:on_time/core/constants.dart';
 import 'package:on_time/data/models/user_model.dart';
 import 'package:on_time/data/sources/local/base_local.dart';
 
-final class UserLocal extends BaseLocal {
+final class UserLocal extends BasePrefsLocal {
   Future<void> saveToken(String token) {
     return prefs.setString(PrefKeys.token, token);
   }
