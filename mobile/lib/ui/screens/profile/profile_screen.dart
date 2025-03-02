@@ -37,7 +37,7 @@ class ProfileScreen extends GetView<ProfileController> {
                   Obx(
                     () => Text(
                       controller.user.name,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: 18.0,
                         fontWeight: FontWeight.w600,
@@ -60,7 +60,7 @@ class ProfileScreen extends GetView<ProfileController> {
                         Obx(
                           () => Text(
                             controller.user.deviceId,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.black,
                               fontSize: 16.0,
                               fontWeight: FontWeight.w500,

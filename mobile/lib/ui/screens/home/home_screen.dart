@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:on_time/ui/screens/home/home_controller.dart';
 import 'package:random_avatar/random_avatar.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
 
   @override
@@ -41,28 +43,32 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8.0),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Hello, Violia!",
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.w600),
+                          Obx(
+                            () => Text(
+                              "Hello, ${controller.user.name}",
+                              style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w600),
+                            ),
                           ),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.calendar_month_rounded, size: 20.0),
-                              SizedBox(width: 4.0),
-                              Text(
-                                "Monday, February 17th 2025",
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.w500),
+                              const Icon(Icons.calendar_month_rounded, size: 20.0),
+                              const SizedBox(width: 4.0),
+                              Obx(
+                                () => Text(
+                                  controller.now,
+                                  style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w500),
+                                ),
                               ),
                             ],
                           ),
