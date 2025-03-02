@@ -46,27 +46,6 @@ export const AttendanceRouter = new Elysia({
     },
   )
   .get(
-    '/me',
-    async ({ db, getUser }) => {
-      const user = await getUser();
-      const userId = user.id;
-      const data = blockchain.getChain();
-      const attendances = data.filter((attendance) => attendance.userId === userId);
-      return {
-        message: 'Find attendances success',
-        data: attendances,
-      };
-    },
-    {
-      response: {
-        200: {
-          description: 'Find attendances success',
-          ...OkResponseSchema(t.Array(SelectAttendanceSchema)),
-        },
-      },
-    },
-  ).
-  get(
     '/me/latest',
     async ({ db, getUser }) => {
       const user = await getUser();
@@ -100,11 +79,8 @@ export const AttendanceRouter = new Elysia({
       const user = await getUser();
       console.log('user', user);
       const userId = user.id;
-      const { timestamp, type, deviceId } = body;
-      if (!timestamp) {
-        throw new BadRequestError('Timestamp is required');
-      }
-
+      const { type, deviceId } = body;
+   
       if (!type) {
         throw new BadRequestError('Type is required');
       }
@@ -112,8 +88,10 @@ export const AttendanceRouter = new Elysia({
       if (deviceId !== user.deviceId) {
         throw new BadRequestError('Invalid device');
       }
+      
+      const now = new Date();
 
-      const date = new Date(timestamp).toISOString().split('T')[0];
+      const date = now.toISOString().split('T')[0];
 
       const findAttendance = await db.query.attendance.findFirst({
         where(fields, operators) {
@@ -138,6 +116,7 @@ export const AttendanceRouter = new Elysia({
             type: 'CLOCK_OUT',
             date,
             userId,
+            timestamp: now.getTime(),
           });
 
           return {
@@ -157,6 +136,7 @@ export const AttendanceRouter = new Elysia({
         type: 'CLOCK_IN',
         date,
         userId,
+        timestamp: now.getTime(),
       });
 
       return {
@@ -172,6 +152,7 @@ export const AttendanceRouter = new Elysia({
           'date',
           'hash',
           'previousHash',
+          'timestamp',
           'nonce',
         ]),
         t.Object({
