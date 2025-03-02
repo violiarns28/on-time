@@ -11,13 +11,18 @@ class SignInController extends GetxController {
   final UserDao userDao = Get.find();
   late TextEditingController emailController;
   late TextEditingController passwordController;
+  late FocusNode emailFocusNode;
+  late FocusNode passwordFocusNode;
 
-  var isPasswordVisible = false.obs;
+  final _isPasswordVisible = false.obs;
+  bool get isPasswordVisible => _isPasswordVisible.value;
 
   @override
   void onInit() {
     emailController = TextEditingController();
     passwordController = TextEditingController();
+    emailFocusNode = FocusNode();
+    passwordFocusNode = FocusNode();
 
     authRemote.onInit();
     super.onInit();
@@ -27,11 +32,15 @@ class SignInController extends GetxController {
   void onClose() {
     emailController.dispose();
     passwordController.dispose();
+
+    emailFocusNode.dispose();
+    passwordFocusNode.dispose();
+
     super.onClose();
   }
 
   void togglePasswordVisibility() {
-    isPasswordVisible.value = !isPasswordVisible.value;
+    _isPasswordVisible.value = !_isPasswordVisible.value;
   }
 
   void signIn() async {

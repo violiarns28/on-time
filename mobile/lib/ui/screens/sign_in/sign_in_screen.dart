@@ -1,42 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
-import 'package:on_time/ui/screens/sign_up/sign_up_controller.dart';
+import 'package:on_time/ui/screens/sign_in/sign_in_controller.dart';
+import 'package:on_time/ui/widgets/text_input.dart';
 
-class SignInScreen extends StatefulWidget {
+class SignInScreen extends GetView<SignInController> {
   const SignInScreen({super.key});
-
-  @override
-  State<SignInScreen> createState() => _SignInScreenState();
-}
-
-class _SignInScreenState extends State<SignInScreen> {
-  final FocusNode _emailFocusNode = FocusNode();
-  final FocusNode _passwordFocusNode = FocusNode();
-
-  bool _isPasswordVisible = false;
-  late SignUpController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _emailFocusNode.addListener(() => setState(() {}));
-    _passwordFocusNode.addListener(() => setState(() {}));
-    Get.put(SignUpController());
-    controller = Get.find<SignUpController>();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _emailFocusNode.dispose();
-    _passwordFocusNode.dispose();
-    super.dispose();
-  }
-
-  Color _getFocusColor(FocusNode focusNode) {
-    return focusNode.hasFocus ? const Color(0xFF4098AA) : Colors.black;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,27 +69,24 @@ class _SignInScreenState extends State<SignInScreen> {
                       child: Form(
                         child: Column(
                           children: [
-                            _buildTextField(
-                              focusNode: _emailFocusNode,
-                              controller: controller.email,
+                            TextInput(
+                              focusNode: controller.emailFocusNode,
+                              controller: controller.emailController,
                               label: "Email",
                               hint: "Enter your email",
                               icon: Icons.mail_rounded,
                             ),
                             const SizedBox(height: 16.0),
-                            _buildTextField(
-                              focusNode: _passwordFocusNode,
-                              controller: controller.password,
+                            TextInput(
+                              focusNode: controller.passwordFocusNode,
+                              controller: controller.passwordController,
                               label: "Password",
                               hint: "Enter your password",
                               icon: Icons.lock_rounded,
                               isPassword: true,
-                              isPasswordVisible: _isPasswordVisible,
-                              toggleVisibility: () {
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
+                              isPasswordVisible: controller.isPasswordVisible,
+                              toggleVisibility:
+                                  controller.togglePasswordVisibility,
                             ),
                           ],
                         ),
@@ -183,73 +149,6 @@ class _SignInScreenState extends State<SignInScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required FocusNode focusNode,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required TextEditingController controller,
-    bool isPassword = false,
-    bool isPasswordVisible = false,
-    VoidCallback? toggleVisibility,
-  }) {
-    return TextFormField(
-      focusNode: focusNode,
-      controller: controller,
-      obscureText: isPassword ? !isPasswordVisible : false,
-      keyboardType:
-          isPassword ? TextInputType.visiblePassword : TextInputType.text,
-      decoration: InputDecoration(
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          borderSide: const BorderSide(color: Color(0xFF4098AA), width: 2.0),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        prefixIcon: Container(
-          width: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: _getFocusColor(focusNode),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                height: 24,
-                width: 1,
-                color: _getFocusColor(focusNode),
-              ),
-            ],
-          ),
-        ),
-        prefixIconConstraints: const BoxConstraints(minWidth: 60),
-        labelText: label,
-        labelStyle: TextStyle(
-          color: _getFocusColor(focusNode),
-          fontWeight: FontWeight.w500,
-        ),
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        suffixIcon: isPassword
-            ? IconButton(
-                onPressed: toggleVisibility,
-                icon: Icon(
-                  isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                  color: _getFocusColor(focusNode),
-                ),
-              )
-            : null,
       ),
     );
   }

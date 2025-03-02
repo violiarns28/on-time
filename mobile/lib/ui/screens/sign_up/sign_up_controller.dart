@@ -9,17 +9,26 @@ import 'package:on_time/utils/logger.dart';
 class SignUpController extends GetxController {
   final AuthRemote authRemote = Get.find();
   final UserDao userDao = Get.find();
-  late TextEditingController name;
-  late TextEditingController email;
-  late TextEditingController password;
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+  late TextEditingController passwordController;
 
-  var isPasswordVisible = false.obs;
+  late FocusNode nameFocusNode;
+  late FocusNode emailFocusNode;
+  late FocusNode passwordFocusNode;
+
+  final _isPasswordVisible = false.obs;
+  bool get isPasswordVisible => _isPasswordVisible.value;
 
   @override
   void onInit() {
-    name = TextEditingController();
-    email = TextEditingController();
-    password = TextEditingController();
+    nameController = TextEditingController();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+
+    nameFocusNode = FocusNode();
+    emailFocusNode = FocusNode();
+    passwordFocusNode = FocusNode();
 
     authRemote.onInit();
     super.onInit();
@@ -27,14 +36,18 @@ class SignUpController extends GetxController {
 
   @override
   void onClose() {
-    name.dispose();
-    email.dispose();
-    password.dispose();
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+
+    nameFocusNode.dispose();
+    emailFocusNode.dispose();
+    passwordFocusNode.dispose();
     super.onClose();
   }
 
   void togglePasswordVisibility() {
-    isPasswordVisible.value = !isPasswordVisible.value;
+    _isPasswordVisible.value = !_isPasswordVisible.value;
   }
 
   void signUp() async {
@@ -42,9 +55,9 @@ class SignUpController extends GetxController {
     try {
       final response = await authRemote.register(
         RegisterRequest(
-          name: name.text,
-          email: email.text,
-          password: password.text,
+          name: nameController.text,
+          email: emailController.text,
+          password: passwordController.text,
           deviceId: (await userDao.getDeviceId() ?? ''),
         ),
       );

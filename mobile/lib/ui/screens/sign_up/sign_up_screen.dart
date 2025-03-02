@@ -2,42 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
 import 'package:on_time/ui/screens/sign_up/sign_up_controller.dart';
+import 'package:on_time/ui/widgets/text_input.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends GetView<SignUpController> {
   const SignUpScreen({super.key});
-
-  @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
-}
-
-class _SignUpScreenState extends State<SignUpScreen> {
-  final FocusNode _nameFocusNode = FocusNode();
-  final FocusNode _emailFocusNode = FocusNode();
-  final FocusNode _passwordFocusNode = FocusNode();
-
-  bool _isPasswordVisible = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameFocusNode.addListener(() => setState(() {}));
-    _emailFocusNode.addListener(() => setState(() {}));
-
-    _passwordFocusNode.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _nameFocusNode.dispose();
-    _emailFocusNode.dispose();
-    _passwordFocusNode.dispose();
-
-    super.dispose();
-  }
-
-  Color _getFocusColor(FocusNode focusNode) {
-    return focusNode.hasFocus ? const Color(0xFF4098AA) : Colors.black;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,32 +71,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           child: Form(
                             child: Column(
                               children: [
-                                _buildTextField(
-                                  focusNode: _nameFocusNode,
+                                TextInput(
+                                  focusNode: controller.nameFocusNode,
+                                  controller: controller.nameController,
                                   label: "Name",
                                   hint: "Enter your name",
                                   icon: Icons.person_2_rounded,
                                 ),
                                 const SizedBox(height: 16.0),
-                                _buildTextField(
-                                  focusNode: _emailFocusNode,
+                                TextInput(
+                                  focusNode: controller.emailFocusNode,
+                                  controller: controller.emailController,
                                   label: "Email",
                                   hint: "Enter your email",
                                   icon: Icons.mail_rounded,
                                 ),
                                 const SizedBox(height: 16.0),
-                                _buildTextField(
-                                  focusNode: _passwordFocusNode,
+                                TextInput(
+                                  focusNode: controller.passwordFocusNode,
+                                  controller: controller.passwordController,
                                   label: "Password",
                                   hint: "Enter your password",
                                   icon: Icons.lock_rounded,
                                   isPassword: true,
-                                  isPasswordVisible: _isPasswordVisible,
-                                  toggleVisibility: () {
-                                    setState(() {
-                                      _isPasswordVisible = !_isPasswordVisible;
-                                    });
-                                  },
+                                  isPasswordVisible:
+                                      controller.isPasswordVisible,
+                                  toggleVisibility:
+                                      controller.togglePasswordVisibility,
                                 ),
                               ],
                             ),
@@ -193,71 +162,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildTextField({
-    required FocusNode focusNode,
-    required String label,
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-    bool isPasswordVisible = false,
-    VoidCallback? toggleVisibility,
-  }) {
-    return TextFormField(
-      focusNode: focusNode,
-      obscureText: isPassword ? !isPasswordVisible : false,
-      keyboardType:
-          isPassword ? TextInputType.visiblePassword : TextInputType.text,
-      decoration: InputDecoration(
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          borderSide: const BorderSide(color: Color(0xFF4098AA), width: 2.0),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        prefixIcon: Container(
-          width: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: _getFocusColor(focusNode),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                height: 24,
-                width: 1,
-                color: _getFocusColor(focusNode),
-              ),
-            ],
-          ),
-        ),
-        prefixIconConstraints: const BoxConstraints(minWidth: 60),
-        labelText: label,
-        labelStyle: TextStyle(
-          color: _getFocusColor(focusNode),
-          fontWeight: FontWeight.w500,
-        ),
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        suffixIcon: isPassword
-            ? IconButton(
-                onPressed: toggleVisibility,
-                icon: Icon(
-                  isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                  color: _getFocusColor(focusNode),
-                ),
-              )
-            : null,
-      ),
     );
   }
 }
