@@ -25,16 +25,22 @@ class LoginRequestMapper extends ClassMapperBase<LoginRequest> {
   static String _$password(LoginRequest v) => v.password;
   static const Field<LoginRequest, String> _f$password =
       Field('password', _$password);
+  static String _$deviceId(LoginRequest v) => v.deviceId;
+  static const Field<LoginRequest, String> _f$deviceId =
+      Field('deviceId', _$deviceId);
 
   @override
   final MappableFields<LoginRequest> fields = const {
     #email: _f$email,
     #password: _f$password,
+    #deviceId: _f$deviceId,
   };
 
   static LoginRequest _instantiate(DecodingData data) {
     return LoginRequest(
-        email: data.dec(_f$email), password: data.dec(_f$password));
+        email: data.dec(_f$email),
+        password: data.dec(_f$password),
+        deviceId: data.dec(_f$deviceId));
   }
 
   @override
@@ -89,7 +95,7 @@ extension LoginRequestValueCopy<$R, $Out>
 
 abstract class LoginRequestCopyWith<$R, $In extends LoginRequest, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({String? email, String? password});
+  $R call({String? email, String? password, String? deviceId});
   LoginRequestCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -102,14 +108,17 @@ class _LoginRequestCopyWithImpl<$R, $Out>
   late final ClassMapperBase<LoginRequest> $mapper =
       LoginRequestMapper.ensureInitialized();
   @override
-  $R call({String? email, String? password}) => $apply(FieldCopyWithData({
+  $R call({String? email, String? password, String? deviceId}) =>
+      $apply(FieldCopyWithData({
         if (email != null) #email: email,
-        if (password != null) #password: password
+        if (password != null) #password: password,
+        if (deviceId != null) #deviceId: deviceId
       }));
   @override
   LoginRequest $make(CopyWithData data) => LoginRequest(
       email: data.get(#email, or: $value.email),
-      password: data.get(#password, or: $value.password));
+      password: data.get(#password, or: $value.password),
+      deviceId: data.get(#deviceId, or: $value.deviceId));
 
   @override
   LoginRequestCopyWith<$R2, LoginRequest, $Out2> $chain<$R2, $Out2>(

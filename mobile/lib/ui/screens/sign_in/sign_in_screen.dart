@@ -102,6 +102,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           children: [
                             _buildTextField(
                               focusNode: _emailFocusNode,
+                              controller: controller.email,
                               label: "Email",
                               hint: "Enter your email",
                               icon: Icons.mail_rounded,
@@ -109,6 +110,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             const SizedBox(height: 16.0),
                             _buildTextField(
                               focusNode: _passwordFocusNode,
+                              controller: controller.password,
                               label: "Password",
                               hint: "Enter your password",
                               icon: Icons.lock_rounded,
@@ -190,12 +192,14 @@ class _SignInScreenState extends State<SignInScreen> {
     required String label,
     required String hint,
     required IconData icon,
+    required TextEditingController controller,
     bool isPassword = false,
     bool isPasswordVisible = false,
     VoidCallback? toggleVisibility,
   }) {
     return TextFormField(
       focusNode: focusNode,
+      controller: controller,
       obscureText: isPassword ? !isPasswordVisible : false,
       keyboardType:
           isPassword ? TextInputType.visiblePassword : TextInputType.text,
