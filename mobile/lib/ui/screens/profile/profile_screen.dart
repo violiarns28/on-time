@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:on_time/core/routes/app_pages.dart';
 import 'package:on_time/ui/screens/edit_profile/edit_profile_screen.dart';
 import 'package:on_time/ui/screens/profile/profile_controller.dart';
 import 'package:random_avatar/random_avatar.dart';
@@ -35,12 +34,14 @@ class ProfileScreen extends GetView<ProfileController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Violia",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.w600,
+                  Obx(
+                    () => Text(
+                      controller.user.name,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16.0),
@@ -56,16 +57,18 @@ class ProfileScreen extends GetView<ProfileController> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          "Device ID : UP1A.231005.007",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500,
+                        Obx(
+                          () => Text(
+                            controller.user.deviceId,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                         IconButton(
-                          onPressed: () {},
+                          onPressed: controller.copyDeviceId,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           icon: const Icon(Icons.copy_rounded),
@@ -123,9 +126,7 @@ class ProfileScreen extends GetView<ProfileController> {
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                       ),
-                      onPressed: () {
-                        Get.toNamed(Routes.SIGN_IN);
-                      },
+                      onPressed: controller.signOut,
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

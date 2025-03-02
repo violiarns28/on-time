@@ -7,10 +7,6 @@ import 'package:random_avatar/random_avatar.dart';
 class EditProfileScreen extends GetView<EditProfileController> {
   const EditProfileScreen({super.key});
 
-  Color _getFocusColor(FocusNode focusNode) {
-    return focusNode.hasFocus ? const Color(0xFF4098AA) : Colors.black;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

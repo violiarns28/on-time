@@ -32,6 +32,10 @@ final class UserDao extends BasePrefsLocal {
     }
   }
 
+  Future<void> clearUser() {
+    return prefs.remove(PrefKeys.user);
+  }
+
   Future<void> saveDeviceId(String deviceId) {
     return prefs.setString(PrefKeys.deviceId, deviceId);
   }
