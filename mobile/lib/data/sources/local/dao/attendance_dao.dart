@@ -17,6 +17,21 @@ class AttendanceDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  Future<void> saveAttendances(List<AttendanceModel> attendances) {
+    return batch((batch) {
+      final List<AttendanceTableData> mapped = [];
+      for (final attendance in attendances) {
+        mapped.add(attendance.toLocal());
+      }
+
+      batch.insertAll(
+        attendanceTable,
+        mapped,
+        mode: InsertMode.insertOrReplace,
+      );
+    });
+  }
+
   Future<List<AttendanceModel>> getAttendances() async {
     final result = await select(attendanceTable).get();
     return result.map((e) => AttendanceModel.fromLocal(e)).toList();
