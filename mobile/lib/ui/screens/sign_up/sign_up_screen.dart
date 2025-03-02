@@ -80,7 +80,7 @@ class SignUpScreen extends GetView<SignUpController> {
                                     icon: Icons.person_2_rounded,
                                   ),
                                 ),
-                                SizedBox(height: 16.0),
+                                const SizedBox(height: 16.0),
                                 Obx(
                                   () => TextInput(
                                     focusNode: controller.emailFocusNode,
@@ -90,7 +90,7 @@ class SignUpScreen extends GetView<SignUpController> {
                                     icon: Icons.mail_rounded,
                                   ),
                                 ),
-                                SizedBox(height: 16.0),
+                                const SizedBox(height: 16.0),
                                 Obx(
                                   () => TextInput(
                                     focusNode: controller.passwordFocusNode,
