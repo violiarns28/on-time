@@ -10,7 +10,7 @@ class RootScreen extends GetView<RootController> {
   Widget build(BuildContext context) {
     return GetRouterOutlet(
       initialRoute: Routes.SPLASH,
-      anchorRoute: "/",
+      anchorRoute: Routes.ROOT,
     );
   }
 }

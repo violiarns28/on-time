@@ -6,14 +6,14 @@ import 'package:on_time/data/sources/local/dao/attendance_dao.dart';
 import 'package:on_time/data/sources/remote/attendance_remote.dart';
 
 class HistoryDetailController extends GetxController {
-  final AttendanceDao _attendanceDao = Get.find();
-  final AttendanceRemote _attendanceRemote = Get.find();
-  late StreamController<List<AttendanceModel>> _attendancesController;
+  final _attendanceDao = Get.find<AttendanceDao>();
+  final _attendanceRemote = Get.find<AttendanceRemote>();
+  StreamController<List<AttendanceModel>>? _attendancesController;
 
-  Stream<List<AttendanceModel>> get attendancesStream =>
-      _attendancesController.stream;
+  Stream<List<AttendanceModel>>? get attendancesStream =>
+      _attendancesController?.stream;
 
-  late Timer scheduler;
+  Timer? scheduler;
 
   @override
   Future<void> onInit() async {
@@ -31,7 +31,7 @@ class HistoryDetailController extends GetxController {
   void onClose() {
     _attendanceRemote.onClose();
 
-    _attendancesController.close();
+    _attendancesController?.close();
 
     super.onClose();
   }
@@ -39,7 +39,7 @@ class HistoryDetailController extends GetxController {
   void _listenToAttendances() {
     _attendancesController =
         StreamController<List<AttendanceModel>>.broadcast();
-    _attendancesController.addStream(_attendanceDao.watchAttendances());
+    _attendancesController?.addStream(_attendanceDao.watchAttendances());
   }
 
   Future<void> _fetchAttendances() async {

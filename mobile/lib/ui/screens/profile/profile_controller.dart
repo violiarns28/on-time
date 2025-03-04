@@ -7,7 +7,9 @@ import 'package:on_time/data/sources/local/dao/user_dao.dart';
 class ProfileController extends GetxController {
   final _userDao = Get.find<UserDao>();
 
-  late UserModel user;
+  final _user = Rx(UserModel.placeholder());
+  UserModel get user => _user.value;
+  set user(UserModel v) => _user.value = v;
 
   @override
   Future<void> onInit() async {

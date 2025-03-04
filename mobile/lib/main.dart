@@ -32,11 +32,11 @@ void setupLocator() {
 
   // Local
   Get.put(AppDatabase());
-  Get.lazyPut(() => UserDao());
-  Get.lazyPut(() => AttendanceDao(sl()));
+  Get.put(UserDao(), permanent: true);
+  Get.put(AttendanceDao(sl()), permanent: true);
 
   // Remote
-  Get.lazyPut(() => AuthRemote(sl()));
-  Get.lazyPut(() => AttendanceRemote(sl(), sl()));
-  Get.lazyPut(() => ProfileRemote(sl()));
+  Get.put(AuthRemote(sl()), permanent: true);
+  Get.put(AttendanceRemote(sl(), sl()), permanent: true);
+  Get.put(ProfileRemote(sl()), permanent: true);
 }

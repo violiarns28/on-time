@@ -30,6 +30,13 @@ export class NotFoundError extends Error {
     super(message);
   }
 }
+export class ConflictError extends Error {
+  public status = 409;
+  public type = 'conflict';
+  constructor(public message: string) {
+    super(message);
+  }
+}
 
 export class StorageError extends Error {
   public status = 500;
@@ -58,6 +65,7 @@ export class UnsupportedMediaTypeError extends Error {
 export const ERROR_CODE_STATUS_MAP = new MapWithDefault<string, number>([
   ['PARSE', 400],
   ['BAD_REQUEST', 400],
+  ['CONFLICT', 409],
   ['UNSUPPORTED_MEDIA_TYPE', 415],
   ['VALIDATION', 422],
   ['NOT_FOUND', 404],

@@ -41,16 +41,14 @@ export const ProfileRouter = new Elysia({
       },
     },
   )
-  .post(
+  .put(
     '/me',
     async ({ body, db, getUser }) =>
       await db.transaction(async (trx) => {
         console.log('body', body);
         const user = await getUser();
-        if (body.email) user.email = body.email;
         if (body.name) user.name = body.name;
         if (body.password) user.password = body.password;
-        if (body.deviceId) user.deviceId = body.deviceId;
         user.updatedAt = new Date();
 
         await trx

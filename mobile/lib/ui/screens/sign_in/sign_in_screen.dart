@@ -90,6 +90,7 @@ class SignInScreen extends GetView<SignInController> {
                                 isPasswordVisible: controller.isPasswordVisible,
                                 toggleVisibility:
                                     controller.togglePasswordVisibility,
+                                textInputAction: TextInputAction.done,
                               ),
                             ),
                           ],

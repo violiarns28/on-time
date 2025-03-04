@@ -5,19 +5,20 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:on_time/data/models/attendance_model.dart';
 import 'package:on_time/data/sources/local/dao/attendance_dao.dart';
+import 'package:on_time/data/sources/local/dao/user_dao.dart';
 import 'package:on_time/data/sources/remote/attendance_remote.dart';
 import 'package:on_time/utils/logger.dart';
 
 class AttendanceController extends GetxController {
-  final AttendanceDao _attendanceDao = Get.find();
-  final AttendanceRemote _attendanceRemote = Get.find();
+  final _attendanceDao = Get.find<AttendanceDao>();
+  final _attendanceRemote = Get.find<AttendanceRemote>();
+  final _userDao = Get.find<UserDao>();
   final LatLng center = const LatLng(-7.341591059504343, 112.736106577182336);
 
-  late GoogleMapController mapController;
-  late StreamController<List<AttendanceModel>> _attendancesController;
+  GoogleMapController? mapController;
 
-  Stream<List<AttendanceModel>> get attendancesStream =>
-      _attendancesController.stream;
+  final _attendances = <AttendanceModel>[].obs;
+  List<AttendanceModel> get attendances => _attendances;
 
   Timer? _allAttendanceTimer;
   Timer? _myAttendanceTimer;
@@ -31,7 +32,7 @@ class AttendanceController extends GetxController {
   String get latestClockIn {
     final attendance = clockInAttendance.value;
     if (attendance == null || attendance.type != AttendanceType.CLOCK_IN) {
-      return "";
+      return "--:--";
     }
     return _formatTime(attendance.timestamp);
   }
@@ -39,7 +40,7 @@ class AttendanceController extends GetxController {
   String get latestClockOut {
     final attendance = clockOutAttendance.value;
     if (attendance == null || attendance.type != AttendanceType.CLOCK_OUT) {
-      return "";
+      return "--:--";
     }
     return _formatTime(attendance.timestamp);
   }
@@ -67,7 +68,6 @@ class AttendanceController extends GetxController {
   @override
   void onClose() {
     _attendanceRemote.onClose();
-    _attendancesController.close();
     _allAttendanceTimer?.cancel();
     _myAttendanceTimer?.cancel();
     super.onClose();
@@ -78,9 +78,10 @@ class AttendanceController extends GetxController {
   }
 
   void _initAttendancesStream() {
-    _attendancesController =
-        StreamController<List<AttendanceModel>>.broadcast();
-    _attendancesController.addStream(_attendanceDao.watchAttendances());
+    final attendancesStream = _attendanceDao.watchAttendances();
+    attendancesStream.listen((attendances) {
+      _attendances.value = attendances;
+    });
   }
 
   Future<void> _fetchAttendances() async {
@@ -115,7 +116,7 @@ class AttendanceController extends GetxController {
         clockInAttendance.value = response;
       }
     } on Exception catch (e, st) {
-      log.e('Failed to fetch clock-in', error: e, stackTrace: st);
+      // log.e('Failed to fetch clock-in', error: e, stackTrace: st);
     }
   }
 
@@ -128,11 +129,11 @@ class AttendanceController extends GetxController {
         clockOutAttendance.value = response;
       }
     } on Exception catch (e, st) {
-      log.e('Failed to fetch clock-out', error: e, stackTrace: st);
+      // log.e('Failed to fetch clock-out', error: e, stackTrace: st);
     }
   }
 
-  String _formatTime(BigInt timestamp) {
+  String _formatTime(int timestamp) {
     final DateTime dateTime =
         DateTime.fromMillisecondsSinceEpoch(timestamp.toInt());
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
@@ -209,6 +210,7 @@ class AttendanceController extends GetxController {
           latitude: position.latitude,
           longitude: position.longitude,
           type: attendanceType,
+          deviceId: await _userDao.getDeviceId() ?? 'unknown',
         ),
       );
 

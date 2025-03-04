@@ -7,12 +7,18 @@ import 'package:on_time/data/sources/remote/auth_remote.dart';
 import 'package:on_time/utils/logger.dart';
 
 class SignInController extends GetxController {
-  final AuthRemote authRemote = Get.find();
-  final UserDao userDao = Get.find();
-  late TextEditingController emailController;
-  late TextEditingController passwordController;
-  late FocusNode emailFocusNode;
-  late FocusNode passwordFocusNode;
+  final authRemote = Get.find<AuthRemote>();
+  final userDao = Get.find<UserDao>();
+
+  final _emailController = Rx(TextEditingController());
+  TextEditingController get emailController => _emailController.value;
+  final _passwordController = Rx(TextEditingController());
+  TextEditingController get passwordController => _passwordController.value;
+
+  final _emailFocusNode = Rx(FocusNode());
+  FocusNode get emailFocusNode => _emailFocusNode.value;
+  final _passwordFocusNode = Rx(FocusNode());
+  FocusNode get passwordFocusNode => _passwordFocusNode.value;
 
   final _isPasswordVisible = false.obs;
   bool get isPasswordVisible => _isPasswordVisible.value;
@@ -21,11 +27,6 @@ class SignInController extends GetxController {
 
   @override
   void onInit() {
-    emailController = TextEditingController();
-    passwordController = TextEditingController();
-    emailFocusNode = FocusNode();
-    passwordFocusNode = FocusNode();
-
     authRemote.onInit();
     super.onInit();
   }
@@ -46,6 +47,8 @@ class SignInController extends GetxController {
   }
 
   void signIn() async {
+    _emailFocusNode.value.unfocus();
+    _passwordFocusNode.value.unfocus();
     _isLoading.value = true;
     log.d("[SignInController] signIn");
     try {
@@ -62,7 +65,7 @@ class SignInController extends GetxController {
           'Welcome back, ${response.name}',
           snackPosition: SnackPosition.BOTTOM,
         );
-        Get.offAllNamed(Routes.HOME);
+        Get.offAllNamed(Routes.BOTTOM_NAV_BAR);
       } else {
         throw Exception('Something went wrong');
       }

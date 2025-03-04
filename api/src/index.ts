@@ -3,6 +3,7 @@ import {
   AuthenticationError,
   AuthorizationError,
   BadRequestError,
+  ConflictError,
   ServerError,
   StorageError,
   UnsupportedMediaTypeError,
@@ -22,8 +23,9 @@ const app = new Elysia({
     AUTHORIZATION: AuthorizationError,
     BAD_REQUEST: BadRequestError,
     VALIDATION: ValidationError,
-    STORAGE_ERROR: StorageError,
-    SERVER_ERROR: ServerError,
+    CONFLICT: ConflictError,
+    STORAGE: StorageError,
+    SERVER: ServerError,
     UNKNOWN: ServerError,
     INVALID_OPERATION: BadRequestError,
     UNSUPPORTED_MEDIA_TYPE: UnsupportedMediaTypeError,
@@ -41,6 +43,9 @@ const app = new Elysia({
         case 'PARSE':
         case 'BAD_REQUEST':
           httpCode = 400;
+          break;
+        case 'CONFLICT':
+          httpCode= 409;
           break;
         case 'UNSUPPORTED_MEDIA_TYPE':
           httpCode = 415;
@@ -67,7 +72,7 @@ const app = new Elysia({
       set.status = httpCode;
       const errorType = 'type' in error ? error.type : 'internal';
       if (code == 'VALIDATION') {
-        return { errors: error.all };
+        return { errors: error.all.map((e)=> e.summary) };
       }
       return Response.json(
         {

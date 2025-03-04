@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:on_time/data/models/attendance_model.dart';
 import 'package:on_time/data/sources/local/db/app_database.dart';
 import 'package:on_time/data/sources/local/db/attendance_table.dart';
+import 'package:on_time/utils/logger.dart';
 
 part 'attendance_dao.g.dart';
 
@@ -17,19 +18,22 @@ class AttendanceDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
-  Future<void> saveAttendances(List<AttendanceModel> attendances) {
-    return batch((batch) {
+  Future<void> saveAttendances(List<AttendanceModel> attendances) async {
+    final initial = await getAttendances();
+    log.i('Initial: ${initial.length}');
+    await batch((batch) {
       final List<AttendanceTableData> mapped = [];
       for (final attendance in attendances) {
         mapped.add(attendance.toLocal());
       }
 
-      batch.insertAll(
+      batch.insertAllOnConflictUpdate(
         attendanceTable,
         mapped,
-        mode: InsertMode.insertOrReplace,
       );
     });
+    final after = await getAttendances();
+    log.i('After: ${after.length}');
   }
 
   Future<List<AttendanceModel>> getAttendances() async {

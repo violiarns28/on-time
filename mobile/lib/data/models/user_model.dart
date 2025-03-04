@@ -22,6 +22,13 @@ class UserModel with UserModelMappable {
 
   static const fromMap = UserModelMapper.fromMap;
   static const fromJson = UserModelMapper.fromJson;
+
+  static UserModel placeholder() => const UserModel(
+        id: 1,
+        name: 'John Doe',
+        email: 'john@gmail.com',
+        deviceId: '0000-1111-2222-3333',
+      );
 }
 
 @MappableClass()

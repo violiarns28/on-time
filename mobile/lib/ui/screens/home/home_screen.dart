@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:on_time/ui/screens/attendance/attendance_controller.dart';
 import 'package:on_time/ui/screens/home/home_controller.dart';
 import 'package:random_avatar/random_avatar.dart';
 
@@ -10,6 +11,7 @@ class HomeScreen extends GetView<HomeController> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final formHeight = height - 205;
+    final attendanceController = Get.find<AttendanceController>();
     return Scaffold(
       backgroundColor: const Color(0xFF96D4E1),
       body: Stack(
@@ -59,7 +61,8 @@ class HomeScreen extends GetView<HomeController> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.calendar_month_rounded, size: 20.0),
+                              const Icon(Icons.calendar_month_rounded,
+                                  size: 20.0),
                               const SizedBox(width: 4.0),
                               Obx(
                                 () => Text(
@@ -150,21 +153,23 @@ class HomeScreen extends GetView<HomeController> {
                                               fontSize: 18.0,
                                               fontWeight: FontWeight.w500),
                                         ),
-                                        const Text(
-                                          "07:49",
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w600),
+                                        Obx(
+                                          () => Text(
+                                            attendanceController.latestClockIn,
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.w600),
+                                          ),
                                         ),
-                                        Text(
-                                          "On Time",
-                                          style: TextStyle(
-                                              color:
-                                                  Colors.black.withOpacity(0.5),
-                                              fontSize: 14.0,
-                                              fontWeight: FontWeight.w500),
-                                        ),
+                                        // Text(
+                                        //   "On Time",
+                                        //   style: TextStyle(
+                                        //       color:
+                                        //           Colors.black.withOpacity(0.5),
+                                        //       fontSize: 14.0,
+                                        //       fontWeight: FontWeight.w500),
+                                        // ),
                                       ],
                                     ),
                                   ],
@@ -214,21 +219,23 @@ class HomeScreen extends GetView<HomeController> {
                                               fontSize: 18.0,
                                               fontWeight: FontWeight.w500),
                                         ),
-                                        const Text(
-                                          "18:00",
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 18.0,
-                                              fontWeight: FontWeight.w600),
+                                        Obx(
+                                          () => Text(
+                                            attendanceController.latestClockOut,
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.w600),
+                                          ),
                                         ),
-                                        Text(
-                                          "Late",
-                                          style: TextStyle(
-                                              color:
-                                                  Colors.black.withOpacity(0.5),
-                                              fontSize: 14.0,
-                                              fontWeight: FontWeight.w500),
-                                        ),
+                                        // Text(
+                                        //   "Late",
+                                        //   style: TextStyle(
+                                        //       color:
+                                        //           Colors.black.withOpacity(0.5),
+                                        //       fontSize: 14.0,
+                                        //       fontWeight: FontWeight.w500),
+                                        // ),
                                       ],
                                     ),
                                   ],

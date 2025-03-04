@@ -7,25 +7,35 @@ import 'package:on_time/core/routes/routes.dart';
 import 'package:on_time/data/models/user_model.dart';
 import 'package:on_time/data/sources/local/dao/user_dao.dart';
 import 'package:on_time/data/sources/remote/profile_remote.dart';
+import 'package:on_time/ui/screens/home/home_controller.dart';
+import 'package:on_time/ui/screens/profile/profile_controller.dart';
 import 'package:on_time/utils/logger.dart';
 
 class EditProfileController extends GetxController {
-  final ProfileRemote profileRemote = Get.find();
-  final UserDao userDao = Get.find();
+  final profileRemote = Get.find<ProfileRemote>();
+  final userDao = Get.find<UserDao>();
 
   File? imageFile;
 
-  late TextEditingController nameController;
-  late TextEditingController oldPasswordController;
-  late TextEditingController newPasswordController;
-  late TextEditingController confirmPasswordController;
+  final _nameController = Rx(TextEditingController());
+  TextEditingController get nameController => _nameController.value;
+  set nameController(TextEditingController v) => _nameController.value = v;
+  final _oldPasswordController = Rx(TextEditingController());
+  TextEditingController get oldPasswordController =>
+      _oldPasswordController.value;
+  final _newPasswordController = Rx(TextEditingController());
+  TextEditingController get newPasswordController =>
+      _newPasswordController.value;
+  final _confirmPasswordController = Rx(TextEditingController());
+  TextEditingController get confirmPasswordController =>
+      _confirmPasswordController.value;
 
-  late FocusNode nameFocusNode;
-  late FocusNode oldPasswordFocusNode;
-  late FocusNode newPasswordFocusNode;
-  late FocusNode confirmPasswordFocusNode;
+  final nameFocusNode = FocusNode();
+  final oldPasswordFocusNode = FocusNode();
+  final newPasswordFocusNode = FocusNode();
+  final confirmPasswordFocusNode = FocusNode();
 
-  late UserModel user;
+  UserModel user = UserModel.placeholder();
 
   final _isPasswordVisible = false.obs;
   bool get isPasswordVisible => _isPasswordVisible.value;
@@ -42,14 +52,6 @@ class EditProfileController extends GetxController {
       return Get.offAllNamed(Routes.SIGN_IN);
     }
     nameController = TextEditingController(text: user.name);
-    oldPasswordController = TextEditingController();
-    newPasswordController = TextEditingController();
-    confirmPasswordController = TextEditingController();
-
-    nameFocusNode = FocusNode();
-    oldPasswordFocusNode = FocusNode();
-    newPasswordFocusNode = FocusNode();
-    confirmPasswordFocusNode = FocusNode();
 
     super.onInit();
   }
@@ -86,6 +88,9 @@ class EditProfileController extends GetxController {
         ),
       );
       if (response.createdAt != null) {
+        user = response;
+        Get.find<ProfileController>().user = response;
+        Get.find<HomeController>().user = response;
         Get.snackbar(
           'Success',
           'Profile updated successfully',

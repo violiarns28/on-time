@@ -14,9 +14,11 @@ class TextInput extends TextFormField {
     bool isPassword = false,
     bool isPasswordVisible = false,
     VoidCallback? toggleVisibility,
+    TextInputAction textInputAction = TextInputAction.next,
     required TextEditingController controller,
   }) : super(
           focusNode: focusNode,
+          textInputAction: textInputAction,
           obscureText: isPassword ? !isPasswordVisible : false,
           keyboardType:
               isPassword ? TextInputType.visiblePassword : TextInputType.text,

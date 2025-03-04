@@ -4,8 +4,22 @@ import 'package:on_time/ui/screens/edit_profile/edit_profile_controller.dart';
 import 'package:on_time/ui/widgets/text_input.dart';
 import 'package:random_avatar/random_avatar.dart';
 
-class EditProfileScreen extends GetView<EditProfileController> {
+class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
+
+  @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
+  late EditProfileController controller;
+
+  @override
+  void initState() {
+    Get.put(EditProfileController());
+    controller = Get.find<EditProfileController>();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

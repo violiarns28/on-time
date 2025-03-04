@@ -7,8 +7,13 @@ import 'package:on_time/data/sources/local/dao/user_dao.dart';
 class HomeController extends GetxController {
   final _userDao = Get.find<UserDao>();
 
-  late UserModel user;
-  late String now;
+  final _user = Rx(UserModel.placeholder());
+  UserModel get user => _user.value;
+  set user(UserModel v) => _user.value = v;
+
+  final _now = ''.obs;
+  String get now => _now.value;
+  set now(String v) => _now.value = v;
 
   @override
   Future<void> onInit() async {

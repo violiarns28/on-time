@@ -1,4 +1,4 @@
-import { BadRequestError, ServerError } from '@/core/errors';
+import { BadRequestError, ConflictError, ServerError } from '@/core/errors';
 import { AuthMiddleware } from '@/core/middleware/auth';
 import { DatabaseService } from '@/core/services/db';
 import {
@@ -11,7 +11,6 @@ import {
 import { OkResponseSchema } from '@/schemas/response';
 import { SelectUserSchema } from '@/schemas/user';
 import { table } from '@/tables';
-import { sanitize } from '@/utils';
 import { password as pw } from 'bun';
 import Elysia from 'elysia';
 
@@ -80,7 +79,7 @@ export const AuthRouter = new Elysia({
         });
 
         if (findUser) {
-          throw new BadRequestError('Email already registered');
+          throw new ConflictError('Email already registered');
         }
 
         if (!body.password || body.password.length < 8) {
@@ -107,7 +106,7 @@ export const AuthRouter = new Elysia({
         return {
           message: 'Register success',
           data: {
-            user: sanitize(user, ['password']),
+            user,
             token,
           },
         };

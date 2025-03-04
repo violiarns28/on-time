@@ -1,29 +1,31 @@
-import 'package:on_time/core/constants.dart';
 import 'package:on_time/data/models/auth_model.dart';
 import 'package:on_time/data/models/user_model.dart';
 import 'package:on_time/data/sources/remote/base_remote.dart';
+import 'package:on_time/utils/logger.dart';
 
 final class AuthRemote extends BaseRemote {
   AuthRemote(super.userDao);
 
-  @override
-  Future<void> onInit() async {
-    httpClient.baseUrl = '${Constants.baseUrl}/auth';
-    super.onInit();
-  }
-
   Future<UserModel> login(LoginRequest arg) async {
     final response = await post(
-      '/login',
+      '/auth/login',
       arg.toJson(),
-      decoder: (obj) => LoginResponse.fromJson(obj['data']),
+      decoder: (obj) {
+        if (obj['errors'] != null) {
+          return obj;
+        }
+        return LoginResponse.fromMap(obj['data']);
+      },
     );
 
     final processed = handleStatusCode(response);
+
     if (processed is LoginResponse) {
       await userDao.saveToken(processed.token);
       await userDao.saveUser(processed.user);
       return processed.user;
+    } else if (processed is Exception) {
+      throw processed;
     } else {
       throw Exception('Something went wrong');
     }
@@ -31,9 +33,15 @@ final class AuthRemote extends BaseRemote {
 
   Future<UserModel> register(RegisterRequest arg) async {
     final response = await post(
-      '/register',
+      '/auth/register',
       arg.toJson(),
-      decoder: (obj) => RegisterResponse.fromJson(obj['data']),
+      decoder: (obj) {
+        log.i(obj);
+        if (obj['errors'] != null) {
+          return obj;
+        }
+        return RegisterResponse.fromMap(obj['data']);
+      },
     );
 
     final processed = handleStatusCode(response);
@@ -42,6 +50,8 @@ final class AuthRemote extends BaseRemote {
       await userDao.saveToken(processed.token);
       await userDao.saveUser(processed.user);
       return processed.user;
+    } else if (processed is Exception) {
+      throw processed;
     } else {
       throw Exception('Something went wrong');
     }
@@ -49,8 +59,13 @@ final class AuthRemote extends BaseRemote {
 
   Future<bool> authenticate() async {
     final response = await get(
-      '/authenticate',
-      decoder: (obj) => UserModel.fromJson(obj['data']),
+      '/auth/authenticate',
+      decoder: (obj) {
+        if (obj['errors'] != null) {
+          return obj;
+        }
+        return UserModel.fromMap(obj['data']);
+      },
     );
 
     final processed = handleStatusCode(response);

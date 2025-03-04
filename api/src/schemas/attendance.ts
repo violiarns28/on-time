@@ -13,6 +13,10 @@ export const SelectAttendanceSchema = createSelectSchema(
 const InsertAttendanceSchema = createInsertSchema(
   table.attendance,
   // attendanceOverride,
+  {
+    latitude: t.Number(),
+    longitude:t.Number()
+  }
 );
 
 export const CreateAttendanceSchema = t.Omit(InsertAttendanceSchema, []);

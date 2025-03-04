@@ -3,7 +3,6 @@ import { BlockData, SelectAttendance } from '@/schemas/attendance';
 import { attendancesTable } from '@/tables/attendance';
 import { createHash } from 'crypto';
 import { gte } from 'drizzle-orm';
-import cron from 'node-cron';
 
 class Blockchain {
   private chain: SelectAttendance[] = [];
@@ -27,10 +26,6 @@ class Blockchain {
     }
 
     await this.loadChainFromDb();
-
-    cron.schedule('*/10 * * * *', async () => {
-      await this.cleanInvalidBlocks();
-    });
 
     this.initialized = true;
   }
@@ -72,8 +67,8 @@ class Blockchain {
       await this.loadChainFromDb();
     }
 
-    const previousBlock = this.getLatestBlock();
-    const newBlock = this.createNewBlock(previousBlock, data);
+    const latest = this.getLatestBlock();
+    const newBlock = this.createNewBlock(latest, data);
 
     try {
       await this.persistBlock(newBlock);

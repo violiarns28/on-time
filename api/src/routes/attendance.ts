@@ -121,6 +121,8 @@ export const AttendanceRouter = new Elysia({
             date,
             userId,
             timestamp: now.getTime(),
+            latitude: body.latitude.toString(),
+            longitude: body.longitude.toString(),
           });
 
           return {
@@ -141,6 +143,8 @@ export const AttendanceRouter = new Elysia({
         date,
         userId,
         timestamp: now.getTime(),
+        latitude: body.latitude.toString(),
+        longitude: body.longitude.toString(),
       });
 
       return {

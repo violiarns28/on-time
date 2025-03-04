@@ -73,7 +73,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
                           ),
                           const SizedBox(height: 24),
                           SizedBox(
-                            width: 240,
+                            width: 300,
                             height: 42,
                             child: ElevatedButton(
                               onPressed: controller.isLoading
@@ -158,45 +158,23 @@ class AttendanceScreen extends GetView<AttendanceController> {
                             ],
                           ),
                           Expanded(
-                            child: StreamBuilder<List<AttendanceModel>>(
-                              stream: controller.attendancesStream,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                                if (snapshot.hasError) {
-                                  return Center(
-                                    child: Text(snapshot.error.toString()),
-                                  );
-                                }
-
-                                final attendances = snapshot.data;
-                                if (attendances == null ||
-                                    attendances.isEmpty) {
-                                  return const Center(
-                                    child: Text("No history found"),
-                                  );
-                                }
-
-                                return SingleChildScrollView(
-                                  child: Column(
-                                    children: attendances.map((attendance) {
-                                      return _buildHistoryItem(
-                                        attendance.type.name,
-                                        attendance.previousHash,
-                                        attendance.hash,
-                                        showClockIn: attendance.type ==
-                                            AttendanceType.CLOCK_IN,
-                                        showClockOut: attendance.type ==
-                                            AttendanceType.CLOCK_OUT,
-                                      );
-                                    }).toList(),
-                                  ),
-                                );
-                              },
+                            child: Obx(
+                              () => SingleChildScrollView(
+                                child: Column(
+                                  children:
+                                      controller.attendances.map((attendance) {
+                                    return _buildHistoryItem(
+                                      attendance.type.name,
+                                      attendance.previousHash,
+                                      attendance.hash,
+                                      showClockIn: attendance.type ==
+                                          AttendanceType.CLOCK_IN,
+                                      showClockOut: attendance.type ==
+                                          AttendanceType.CLOCK_OUT,
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
                             ),
                           ),
                         ],

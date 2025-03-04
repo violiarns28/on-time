@@ -14,7 +14,7 @@ class AttendanceModel with AttendanceModelMappable {
   final double longitude;
   final AttendanceType type;
   final String date;
-  final BigInt timestamp;
+  final int timestamp;
   final String hash;
   final String previousHash;
   final int nonce;
@@ -43,7 +43,7 @@ class AttendanceModel with AttendanceModelMappable {
         longitude: data.longitude,
         type: data.type,
         date: data.date,
-        timestamp: data.timestamp,
+        timestamp: data.timestamp.toInt(),
         hash: data.hash,
         previousHash: data.previousHash,
         nonce: data.nonce,
@@ -56,7 +56,7 @@ class AttendanceModel with AttendanceModelMappable {
         longitude: longitude,
         type: type,
         date: date,
-        timestamp: timestamp,
+        timestamp: BigInt.from(timestamp),
         hash: hash,
         previousHash: previousHash,
         nonce: nonce,
@@ -71,11 +71,13 @@ class MarkAttendanceRequest with MarkAttendanceRequestMappable {
   final double latitude;
   final double longitude;
   final AttendanceType type;
+  final String deviceId;
 
   const MarkAttendanceRequest({
     required this.latitude,
     required this.longitude,
     required this.type,
+    required this.deviceId,
   });
 
   static const fromMap = MarkAttendanceRequestMapper.fromMap;
