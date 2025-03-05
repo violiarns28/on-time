@@ -68,7 +68,7 @@ class SignUpController extends GetxController {
         ),
       );
       if (response.createdAt != null) {
-        final snackBar = SnackBar(
+        const snackBar = SnackBar(
           elevation: 0,
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.transparent,

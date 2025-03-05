@@ -63,6 +63,7 @@ class ProfileScreen extends GetView<ProfileController> {
                             style: const TextStyle(
                               color: Colors.black,
                               fontSize: 16.0,
+                              overflow: TextOverflow.ellipsis,
                               fontWeight: FontWeight.w500,
                             ),
                           ),

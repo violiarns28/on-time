@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,11 @@ class AttendanceController extends GetxController {
   final _attendanceDao = Get.find<AttendanceDao>();
   final _attendanceRemote = Get.find<AttendanceRemote>();
   final _userDao = Get.find<UserDao>();
-  final LatLng center = const LatLng(-7.341591059504343, 112.736106577182336);
+  final targetLocation = const LatLng(-7.316345651960165, 112.72535138895527);
+  final _currentLocation =
+      Rx(const LatLng(-7.316345651960165, 112.72535138895527));
+  LatLng get currentLocation => _currentLocation.value;
+  set currentLocation(LatLng value) => _currentLocation.value = value;
 
   GoogleMapController? mapController;
   final now = DateTime.now();
@@ -56,7 +61,10 @@ class AttendanceController extends GetxController {
   Future<void> onInit() async {
     super.onInit();
 
-    await _attendanceRemote.onInit();
+    await Future.wait([
+      _attendanceRemote.onInit(),
+      _getMyLocation(),
+    ]);
     _initAttendancesStream();
 
     await Future.wait([
@@ -186,7 +194,48 @@ class AttendanceController extends GetxController {
     return true;
   }
 
+  Future<void> _getMyLocation() async {
+    final position = await Geolocator.getCurrentPosition(
+      locationSettings: AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    );
+    currentLocation = LatLng(position.latitude, position.longitude);
+  }
+
+  Future<double> calculateDistance(double lat1, double lon1) async {
+    final loc = await Geolocator.getCurrentPosition(
+      locationSettings: AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    );
+
+    double lat2 = loc.latitude;
+    double lon2 = loc.longitude;
+    const p = 0.017453292519943295;
+    var a = 0.5 -
+        cos((lat2 - lat1) * p) / 2 +
+        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
+    final res = 12742 * asin(sqrt(a));
+    log.e('====== YOUR DISTANCE ========\n $res');
+    return res;
+  }
+
   Future<void> saveAttendance(BuildContext context) async {
+    final isValidLocation = await calculateDistance(
+        targetLocation.latitude, targetLocation.longitude);
+    if (isValidLocation > 0.5) {
+      _showSnackBar(
+        context,
+        'Attendance Error',
+        'You are not in the office area',
+        ContentType.failure,
+      );
+      return;
+    }
+
     if (todayClockIn.value != null && todayClockOut.value != null) {
       _showSnackBar(
         context,

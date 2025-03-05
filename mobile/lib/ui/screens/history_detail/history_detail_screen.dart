@@ -76,7 +76,7 @@ Widget _buildHistoryItem(
       "${date.day}-${date.month}-${date.year} at ${date.hour}:${date.minute} WIB";
 
   return Container(
-    margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     padding: const EdgeInsets.all(8.0),
     decoration: BoxDecoration(
       color: const Color(0xFFE8F2F4),
@@ -126,7 +126,7 @@ Widget _buildHistoryItem(
               child: Center(
                 child: Text(
                   "CLOCK IN : $prettyDate",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 12.0,
                     fontWeight: FontWeight.w500,
@@ -147,7 +147,7 @@ Widget _buildHistoryItem(
               child: Center(
                 child: Text(
                   "CLOCK OUT : $prettyDate",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 12.0,
                     fontWeight: FontWeight.w500,

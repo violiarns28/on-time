@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:on_time/core/constants.dart';
@@ -45,9 +44,6 @@ final class UserDao extends BasePrefsLocal {
     deviceId = await prefs.getString(PrefKeys.deviceId);
     if (deviceId != null) {
       return deviceId;
-    } else if (Platform.isAndroid) {
-      final androidInfo = await deviceInfo.androidInfo;
-      deviceId = androidInfo.id;
     } else {
       deviceId = const Uuid().v7();
     }

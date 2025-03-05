@@ -21,13 +21,22 @@ class AttendanceScreen extends GetView<AttendanceController> {
           GoogleMap(
             onMapCreated: controller.onMapCreated,
             initialCameraPosition: CameraPosition(
-              target: controller.center,
+              target: controller.targetLocation,
               zoom: 11.0,
             ),
             markers: {
-              const Marker(
-                markerId: MarkerId('currentLocation'),
-                position: LatLng(-7.341591059504343, 112.73610657718233),
+              Marker(
+                markerId: const MarkerId('currentLocation'),
+                position: controller.currentLocation,
+              ),
+            },
+            circles: {
+              Circle(
+                circleId: const CircleId('targetLocation'),
+                center: controller.targetLocation,
+                radius: 500,
+                fillColor: const Color(0xFF3C94A5).withOpacity(0.3),
+                strokeWidth: 0,
               ),
             },
           ),
@@ -306,7 +315,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
         "${date.day}-${date.month}-${date.year} at ${date.hour}:${date.minute} WIB";
 
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         color: const Color(0xFFE8F2F4),
@@ -356,7 +365,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
                 child: Center(
                   child: Text(
                     "CLOCK IN : $prettyDate",
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 12.0,
                       fontWeight: FontWeight.w500,
@@ -377,7 +386,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
                 child: Center(
                   child: Text(
                     "CLOCK OUT : $prettyDate",
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 12.0,
                       fontWeight: FontWeight.w500,
