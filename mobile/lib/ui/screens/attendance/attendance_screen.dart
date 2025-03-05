@@ -295,6 +295,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
     bool showClockOut = false,
   }) {
     return Container(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         color: const Color(0xFFE8F2F4),

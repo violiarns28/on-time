@@ -70,6 +70,7 @@ Widget _buildHistoryItem(
   bool showClockOut = false,
 }) {
   return Container(
+    margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     padding: const EdgeInsets.all(8.0),
     decoration: BoxDecoration(
       color: const Color(0xFFE8F2F4),
