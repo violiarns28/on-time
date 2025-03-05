@@ -1,6 +1,7 @@
 import { Database } from '@/core/services/db';
 import { BlockData, SelectAttendance } from '@/schemas/attendance';
 import { attendancesTable } from '@/tables/attendance';
+import { usersTable } from '@/tables/user';
 import { createHash } from 'crypto';
 import { gte } from 'drizzle-orm';
 
@@ -16,6 +17,7 @@ class Blockchain {
 
   public async init(): Promise<void> {
     if (this.initialized) return;
+    await this.createSystemUser();
 
     const genesisBlock = await this.db.query.attendance.findFirst({
       where: (fields, operators) => operators.eq(fields.id, 0),
@@ -30,14 +32,37 @@ class Blockchain {
     this.initialized = true;
   }
 
+  private async createSystemUser() {
+    const user = await this.db.query.user.findFirst({
+      where: (fields, operators) => operators.eq(fields.id, 0),
+    });
+
+    if (!user) {
+      const ops = await this.db
+        .insert(usersTable)
+        .values({
+          id: 0,
+          name: 'GENESIS',
+          email: 'genesis@ontime.com',
+          password: await Bun.password.hash('genesis', 'bcrypt'),
+          deviceId: 'genesis',
+        })
+        .$returningId()
+        .execute();
+      return ops[0].id;
+    }
+    return user.id;
+  }
+
   private async createGenesisBlock(): Promise<void> {
     const date = new Date();
     const genesisBlock: SelectAttendance = {
       id: 0,
-      userId: 0,
+      userId: await this.createSystemUser(),
       latitude: '0',
       longitude: '0',
       type: 'GENESIS',
+      userName: 'SYSTEM',
       timestamp: date.getTime(),
       date: date.toISOString().split('T')[0],
       hash: '0000000000000000000000000000000000000000000000000000000000000000',
@@ -212,9 +237,19 @@ class Blockchain {
         orderBy(fields, operators) {
           return operators.asc(fields.id);
         },
+        with: {
+          user: {
+            columns: {
+              name: true,
+            },
+          },
+        },
       });
 
-      this.chain = blocks;
+      this.chain = blocks.map((block) => ({
+        ...block,
+        userName: block.user.name,
+      }));
 
       console.log(`Loaded ${this.chain.length} blocks from database`);
       return this.chain;

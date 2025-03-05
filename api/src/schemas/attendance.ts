@@ -6,17 +6,20 @@ import { Static, t } from 'elysia';
 //   date: t.String({ format: 'date' }),
 // };
 
-export const SelectAttendanceSchema = createSelectSchema(
-  table.attendance,
-  // attendanceOverride,
-);
+const _SelectAttendanceSchema = createSelectSchema(table.attendance);
+export const SelectAttendanceSchema = t.Composite([
+  _SelectAttendanceSchema,
+  t.Object({
+    userName: t.String(),
+  }),
+]);
 const InsertAttendanceSchema = createInsertSchema(
   table.attendance,
   // attendanceOverride,
   {
     latitude: t.Number(),
-    longitude:t.Number()
-  }
+    longitude: t.Number(),
+  },
 );
 
 export const CreateAttendanceSchema = t.Omit(InsertAttendanceSchema, []);

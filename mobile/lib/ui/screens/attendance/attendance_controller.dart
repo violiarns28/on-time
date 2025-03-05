@@ -144,13 +144,17 @@ class AttendanceController extends GetxController {
   Future<bool> _handleLocationPermission(BuildContext context) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      _showSnackBar(
-        context,
-        'Location Error',
-        'Location services are disabled on your device',
-        ContentType.failure,
-      );
-      return false;
+      // activate location service
+      serviceEnabled = await Geolocator.openLocationSettings();
+      if (!serviceEnabled) {
+        _showSnackBar(
+          context,
+          'Location Service Error',
+          'Location services are disabled',
+          ContentType.warning,
+        );
+        return false;
+      }
     }
 
     LocationPermission permission = await Geolocator.checkPermission();

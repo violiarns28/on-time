@@ -47,7 +47,7 @@ export const AttendanceRouter = new Elysia({
   )
   .get(
     '/me/latest',
-    async ({ db, getUser, query }) => {
+    async ({ getUser, query }) => {
       const user = await getUser();
       const userId = user.id;
       const data = blockchain.getChain();
@@ -121,6 +121,7 @@ export const AttendanceRouter = new Elysia({
             date,
             userId,
             timestamp: now.getTime(),
+            userName: user.name,
             latitude: body.latitude.toString(),
             longitude: body.longitude.toString(),
           });
@@ -142,6 +143,7 @@ export const AttendanceRouter = new Elysia({
         type: 'CLOCK_IN',
         date,
         userId,
+        userName: user.name,
         timestamp: now.getTime(),
         latitude: body.latitude.toString(),
         longitude: body.longitude.toString(),

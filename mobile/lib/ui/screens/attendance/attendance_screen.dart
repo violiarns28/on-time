@@ -99,16 +99,18 @@ class AttendanceScreen extends GetView<AttendanceController> {
                                                 Colors.white),
                                       ),
                                     )
-                                  : Text(
-                                      controller.isAlreadyClockInAndOut
-                                          ? "Already Presence Today"
-                                          : controller.isAlreadyClockIn
-                                              ? "Clock Out"
-                                              : "Clock In",
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.w600,
+                                  : Obx(
+                                      () => Text(
+                                        controller.isAlreadyClockInAndOut
+                                            ? "Already Presence Today"
+                                            : controller.isAlreadyClockIn
+                                                ? "Clock Out"
+                                                : "Clock In",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                             ),

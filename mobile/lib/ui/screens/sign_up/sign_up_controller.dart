@@ -53,9 +53,12 @@ class SignUpController extends GetxController {
   }
 
   void signUp() async {
-    _isLoading.value = true;
     log.d("[SignUpController] signUp");
+    _nameFocusNode.value.unfocus();
+    _emailFocusNode.value.unfocus();
+    _passwordFocusNode.value.unfocus();
     try {
+      _isLoading.value = true;
       final response = await authRemote.register(
         RegisterRequest(
           name: nameController.text,

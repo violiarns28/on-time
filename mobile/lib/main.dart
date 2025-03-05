@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:on_time/core/routes/routes.dart';
@@ -11,6 +12,8 @@ import 'package:on_time/data/sources/remote/profile_remote.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChannels.textInput.invokeMethod('TextInput.hide');
 
   setupLocator();
 

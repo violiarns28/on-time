@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   bigint,
   date,
@@ -7,6 +8,7 @@ import {
   mysqlTable,
   varchar,
 } from 'drizzle-orm/mysql-core';
+import { usersTable } from './user';
 
 const attendanceType = mysqlEnum('attendance_type', [
   'GENESIS',
@@ -26,3 +28,10 @@ export const attendancesTable = mysqlTable('attendances', {
   previousHash: varchar('previous_hash', { length: 64 }).notNull(),
   nonce: int().notNull(),
 });
+
+export const attendanceRelation = relations(attendancesTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [attendancesTable.userId],
+    references: [usersTable.id],
+  }),
+}));

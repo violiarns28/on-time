@@ -76,16 +76,32 @@ class EditProfileController extends GetxController {
   }
 
   void updateProfile() async {
-    _isLoading.value = true;
+    final un = nameController.text;
+    final np = newPasswordController.text;
+    final cp = confirmPasswordController.text;
+    if (np.isNotEmpty && cp.isNotEmpty) {
+      if (np != cp) {
+        Get.snackbar("Error", "Passwords do not match");
+        return;
+      }
+    } else {
+      Get.snackbar("Error", "Password cannot be empty");
+      return;
+    }
+    if (un.isEmpty) {
+      Get.snackbar("Error", "Name cannot be empty");
+      return;
+    }
     log.d("[EditProfileController] updateProfile");
     try {
+      _isLoading.value = true;
       final response = await profileRemote.updateProfile(
         UpdateProfileRequest(
           id: user.id,
-          name: nameController.text,
+          name: un,
           email: user.email,
           deviceId: user.deviceId,
-          password: newPasswordController.text,
+          password: np,
         ),
       );
 
@@ -94,7 +110,7 @@ class EditProfileController extends GetxController {
         Get.find<ProfileController>().user = response;
         Get.find<HomeController>().user = response;
 
-        final snackBar = SnackBar(
+        const snackBar = SnackBar(
           elevation: 0,
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.transparent,

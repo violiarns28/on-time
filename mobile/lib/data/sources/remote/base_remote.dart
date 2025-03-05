@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:on_time/core/constants.dart';
 import 'package:on_time/data/sources/local/dao/user_dao.dart';
+import 'package:on_time/utils/logger.dart';
 
 base class BaseRemote extends GetConnect {
   final UserDao userDao;
@@ -14,7 +15,26 @@ base class BaseRemote extends GetConnect {
     httpClient.addRequestModifier<Object?>((request) async {
       final token = await userDao.getToken();
       request.headers['Authorization'] = 'Bearer $token';
+      log.d(
+        '''
+        [BaseRemote] Request
+        url: ${request.url}
+        method: ${request.method}
+        headers: ${request.headers}
+        ''',
+      );
       return request;
+    });
+
+    httpClient.addResponseModifier((request, response) {
+      log.d(
+        '''
+        [BaseRemote] Response
+        statusCode: ${response.statusCode}
+        body: ${response.body}
+        ''',
+      );
+      return response;
     });
 
     super.onInit();
