@@ -12,4 +12,5 @@ class AttendanceTable extends Table {
   TextColumn get hash => text()();
   TextColumn get previousHash => text()();
   IntColumn get nonce => integer()();
+  TextColumn get userName => text()();
 }

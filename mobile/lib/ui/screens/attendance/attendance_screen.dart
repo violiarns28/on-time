@@ -60,14 +60,14 @@ class AttendanceScreen extends GetView<AttendanceController> {
                               Obx(
                                 () => _buildClockContainer(
                                     "Clock In",
-                                    controller.latestClockIn,
+                                    controller.todayClockInTime,
                                     const Color(0xFF2DBF4D)),
                               ),
                               const SizedBox(width: 16.0),
                               Obx(
                                 () => _buildClockContainer(
                                     "Clock Out",
-                                    controller.latestClockOut,
+                                    controller.todayClockOutTime,
                                     const Color(0xFFE74C3C)),
                               ),
                             ],
@@ -84,7 +84,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
                               },
                               style: ButtonStyle(
                                 backgroundColor: WidgetStateProperty.all<Color>(
-                                  controller.isAlreadyClockInAndOut
+                                  controller.isTodayClockInAndOut
                                       ? const Color(0xFF4098AA).withOpacity(0.5)
                                       : const Color(0xFF4098AA),
                                 ),
@@ -101,9 +101,9 @@ class AttendanceScreen extends GetView<AttendanceController> {
                                     )
                                   : Obx(
                                       () => Text(
-                                        controller.isAlreadyClockInAndOut
+                                        controller.isTodayClockInAndOut
                                             ? "Already Presence Today"
-                                            : controller.isAlreadyClockIn
+                                            : controller.isTodayClockIn
                                                 ? "Clock Out"
                                                 : "Clock In",
                                         style: const TextStyle(
@@ -166,13 +166,14 @@ class AttendanceScreen extends GetView<AttendanceController> {
                                   children:
                                       controller.attendances.map((attendance) {
                                     return _buildHistoryItem(
-                                      attendance.type.name,
+                                      attendance.userName,
                                       attendance.previousHash,
                                       attendance.hash,
                                       showClockIn: attendance.type ==
                                           AttendanceType.CLOCK_IN,
                                       showClockOut: attendance.type ==
                                           AttendanceType.CLOCK_OUT,
+                                      timestamp: attendance.timestamp,
                                     );
                                   }).toList(),
                                 ),
@@ -298,7 +299,12 @@ class AttendanceScreen extends GetView<AttendanceController> {
     String blockchainHash, {
     bool showClockIn = false,
     bool showClockOut = false,
+    int timestamp = 0,
   }) {
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final prettyDate =
+        "${date.day}-${date.month}-${date.year} at ${date.hour}:${date.minute} WIB";
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(8.0),
@@ -347,9 +353,9 @@ class AttendanceScreen extends GetView<AttendanceController> {
                   color: const Color(0xFFB9E5CA),
                   borderRadius: BorderRadius.circular(16.0),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    "CLOCK IN : 07-11-2024 at 07:49 WIB",
+                    "CLOCK IN : $prettyDate",
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 12.0,
@@ -368,9 +374,9 @@ class AttendanceScreen extends GetView<AttendanceController> {
                   color: const Color(0xFFEEB5B7),
                   borderRadius: BorderRadius.circular(16.0),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    "CLOCK OUT : 07-11-2024 at 17:49 WIB",
+                    "CLOCK OUT : $prettyDate",
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 12.0,

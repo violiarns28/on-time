@@ -18,6 +18,7 @@ class AttendanceModel with AttendanceModelMappable {
   final String hash;
   final String previousHash;
   final int nonce;
+  final String userName;
 
   const AttendanceModel({
     required this.id,
@@ -30,6 +31,7 @@ class AttendanceModel with AttendanceModelMappable {
     required this.hash,
     required this.previousHash,
     required this.nonce,
+    required this.userName,
   });
 
   static const fromMap = AttendanceModelMapper.fromMap;
@@ -47,6 +49,7 @@ class AttendanceModel with AttendanceModelMappable {
         hash: data.hash,
         previousHash: data.previousHash,
         nonce: data.nonce,
+        userName: data.userName,
       );
 
   AttendanceTableData toLocal() => AttendanceTableData(
@@ -60,6 +63,7 @@ class AttendanceModel with AttendanceModelMappable {
         hash: hash,
         previousHash: previousHash,
         nonce: nonce,
+        userName: userName,
       );
 
   Future<void> upsert() => AppDatabase().attendanceDao.saveAttendance(this);

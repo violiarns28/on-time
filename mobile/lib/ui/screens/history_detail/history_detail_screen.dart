@@ -47,11 +47,12 @@ class HistoryDetailScreen extends GetView<HistoryDetailController> {
             child: Column(
               children: attendances.map((attendance) {
                 return _buildHistoryItem(
-                  attendance.type.name,
+                  attendance.userName,
                   attendance.previousHash,
                   attendance.hash,
                   showClockIn: attendance.type == AttendanceType.CLOCK_IN,
                   showClockOut: attendance.type == AttendanceType.CLOCK_OUT,
+                  timestamp: attendance.timestamp,
                 );
               }).toList(),
             ),
@@ -68,7 +69,12 @@ Widget _buildHistoryItem(
   String blockchainHash, {
   bool showClockIn = false,
   bool showClockOut = false,
+  int timestamp = 0,
 }) {
+  final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+  final prettyDate =
+      "${date.day}-${date.month}-${date.year} at ${date.hour}:${date.minute} WIB";
+
   return Container(
     margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     padding: const EdgeInsets.all(8.0),
@@ -117,9 +123,9 @@ Widget _buildHistoryItem(
                 color: const Color(0xFFB9E5CA),
                 borderRadius: BorderRadius.circular(16.0),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  "CLOCK IN : 07-11-2024 at 07:49 WIB",
+                  "CLOCK IN : $prettyDate",
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 12.0,
@@ -138,9 +144,9 @@ Widget _buildHistoryItem(
                 color: const Color(0xFFEEB5B7),
                 borderRadius: BorderRadius.circular(16.0),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  "CLOCK OUT : 07-11-2024 at 17:49 WIB",
+                  "CLOCK OUT : $prettyDate",
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 12.0,

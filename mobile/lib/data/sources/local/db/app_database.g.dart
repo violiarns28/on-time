@@ -68,6 +68,12 @@ class $AttendanceTableTable extends AttendanceTable
   late final GeneratedColumn<int> nonce = GeneratedColumn<int>(
       'nonce', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _userNameMeta =
+      const VerificationMeta('userName');
+  @override
+  late final GeneratedColumn<String> userName = GeneratedColumn<String>(
+      'user_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -79,7 +85,8 @@ class $AttendanceTableTable extends AttendanceTable
         timestamp,
         hash,
         previousHash,
-        nonce
+        nonce,
+        userName
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -146,6 +153,12 @@ class $AttendanceTableTable extends AttendanceTable
     } else if (isInserting) {
       context.missing(_nonceMeta);
     }
+    if (data.containsKey('user_name')) {
+      context.handle(_userNameMeta,
+          userName.isAcceptableOrUnknown(data['user_name']!, _userNameMeta));
+    } else if (isInserting) {
+      context.missing(_userNameMeta);
+    }
     return context;
   }
 
@@ -176,6 +189,8 @@ class $AttendanceTableTable extends AttendanceTable
           .read(DriftSqlType.string, data['${effectivePrefix}previous_hash'])!,
       nonce: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}nonce'])!,
+      userName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_name'])!,
     );
   }
 
@@ -200,6 +215,7 @@ class AttendanceTableData extends DataClass
   final String hash;
   final String previousHash;
   final int nonce;
+  final String userName;
   const AttendanceTableData(
       {required this.id,
       required this.userId,
@@ -210,7 +226,8 @@ class AttendanceTableData extends DataClass
       required this.timestamp,
       required this.hash,
       required this.previousHash,
-      required this.nonce});
+      required this.nonce,
+      required this.userName});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -227,6 +244,7 @@ class AttendanceTableData extends DataClass
     map['hash'] = Variable<String>(hash);
     map['previous_hash'] = Variable<String>(previousHash);
     map['nonce'] = Variable<int>(nonce);
+    map['user_name'] = Variable<String>(userName);
     return map;
   }
 
@@ -242,6 +260,7 @@ class AttendanceTableData extends DataClass
       hash: Value(hash),
       previousHash: Value(previousHash),
       nonce: Value(nonce),
+      userName: Value(userName),
     );
   }
 
@@ -260,6 +279,7 @@ class AttendanceTableData extends DataClass
       hash: serializer.fromJson<String>(json['hash']),
       previousHash: serializer.fromJson<String>(json['previousHash']),
       nonce: serializer.fromJson<int>(json['nonce']),
+      userName: serializer.fromJson<String>(json['userName']),
     );
   }
   @override
@@ -277,6 +297,7 @@ class AttendanceTableData extends DataClass
       'hash': serializer.toJson<String>(hash),
       'previousHash': serializer.toJson<String>(previousHash),
       'nonce': serializer.toJson<int>(nonce),
+      'userName': serializer.toJson<String>(userName),
     };
   }
 
@@ -290,7 +311,8 @@ class AttendanceTableData extends DataClass
           BigInt? timestamp,
           String? hash,
           String? previousHash,
-          int? nonce}) =>
+          int? nonce,
+          String? userName}) =>
       AttendanceTableData(
         id: id ?? this.id,
         userId: userId ?? this.userId,
@@ -302,6 +324,7 @@ class AttendanceTableData extends DataClass
         hash: hash ?? this.hash,
         previousHash: previousHash ?? this.previousHash,
         nonce: nonce ?? this.nonce,
+        userName: userName ?? this.userName,
       );
   AttendanceTableData copyWithCompanion(AttendanceTableCompanion data) {
     return AttendanceTableData(
@@ -317,6 +340,7 @@ class AttendanceTableData extends DataClass
           ? data.previousHash.value
           : this.previousHash,
       nonce: data.nonce.present ? data.nonce.value : this.nonce,
+      userName: data.userName.present ? data.userName.value : this.userName,
     );
   }
 
@@ -332,14 +356,15 @@ class AttendanceTableData extends DataClass
           ..write('timestamp: $timestamp, ')
           ..write('hash: $hash, ')
           ..write('previousHash: $previousHash, ')
-          ..write('nonce: $nonce')
+          ..write('nonce: $nonce, ')
+          ..write('userName: $userName')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, userId, latitude, longitude, type, date,
-      timestamp, hash, previousHash, nonce);
+      timestamp, hash, previousHash, nonce, userName);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -353,7 +378,8 @@ class AttendanceTableData extends DataClass
           other.timestamp == this.timestamp &&
           other.hash == this.hash &&
           other.previousHash == this.previousHash &&
-          other.nonce == this.nonce);
+          other.nonce == this.nonce &&
+          other.userName == this.userName);
 }
 
 class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
@@ -367,6 +393,7 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
   final Value<String> hash;
   final Value<String> previousHash;
   final Value<int> nonce;
+  final Value<String> userName;
   const AttendanceTableCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
@@ -378,6 +405,7 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     this.hash = const Value.absent(),
     this.previousHash = const Value.absent(),
     this.nonce = const Value.absent(),
+    this.userName = const Value.absent(),
   });
   AttendanceTableCompanion.insert({
     this.id = const Value.absent(),
@@ -390,6 +418,7 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     required String hash,
     required String previousHash,
     required int nonce,
+    required String userName,
   })  : userId = Value(userId),
         latitude = Value(latitude),
         longitude = Value(longitude),
@@ -398,7 +427,8 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
         timestamp = Value(timestamp),
         hash = Value(hash),
         previousHash = Value(previousHash),
-        nonce = Value(nonce);
+        nonce = Value(nonce),
+        userName = Value(userName);
   static Insertable<AttendanceTableData> custom({
     Expression<int>? id,
     Expression<int>? userId,
@@ -410,6 +440,7 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     Expression<String>? hash,
     Expression<String>? previousHash,
     Expression<int>? nonce,
+    Expression<String>? userName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -422,6 +453,7 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
       if (hash != null) 'hash': hash,
       if (previousHash != null) 'previous_hash': previousHash,
       if (nonce != null) 'nonce': nonce,
+      if (userName != null) 'user_name': userName,
     });
   }
 
@@ -435,7 +467,8 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
       Value<BigInt>? timestamp,
       Value<String>? hash,
       Value<String>? previousHash,
-      Value<int>? nonce}) {
+      Value<int>? nonce,
+      Value<String>? userName}) {
     return AttendanceTableCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
@@ -447,6 +480,7 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
       hash: hash ?? this.hash,
       previousHash: previousHash ?? this.previousHash,
       nonce: nonce ?? this.nonce,
+      userName: userName ?? this.userName,
     );
   }
 
@@ -484,6 +518,9 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     if (nonce.present) {
       map['nonce'] = Variable<int>(nonce.value);
     }
+    if (userName.present) {
+      map['user_name'] = Variable<String>(userName.value);
+    }
     return map;
   }
 
@@ -499,7 +536,8 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
           ..write('timestamp: $timestamp, ')
           ..write('hash: $hash, ')
           ..write('previousHash: $previousHash, ')
-          ..write('nonce: $nonce')
+          ..write('nonce: $nonce, ')
+          ..write('userName: $userName')
           ..write(')'))
         .toString();
   }
@@ -530,6 +568,7 @@ typedef $$AttendanceTableTableCreateCompanionBuilder = AttendanceTableCompanion
   required String hash,
   required String previousHash,
   required int nonce,
+  required String userName,
 });
 typedef $$AttendanceTableTableUpdateCompanionBuilder = AttendanceTableCompanion
     Function({
@@ -543,6 +582,7 @@ typedef $$AttendanceTableTableUpdateCompanionBuilder = AttendanceTableCompanion
   Value<String> hash,
   Value<String> previousHash,
   Value<int> nonce,
+  Value<String> userName,
 });
 
 class $$AttendanceTableTableFilterComposer
@@ -585,6 +625,9 @@ class $$AttendanceTableTableFilterComposer
 
   ColumnFilters<int> get nonce => $composableBuilder(
       column: $table.nonce, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userName => $composableBuilder(
+      column: $table.userName, builder: (column) => ColumnFilters(column));
 }
 
 class $$AttendanceTableTableOrderingComposer
@@ -626,6 +669,9 @@ class $$AttendanceTableTableOrderingComposer
 
   ColumnOrderings<int> get nonce => $composableBuilder(
       column: $table.nonce, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userName => $composableBuilder(
+      column: $table.userName, builder: (column) => ColumnOrderings(column));
 }
 
 class $$AttendanceTableTableAnnotationComposer
@@ -666,6 +712,9 @@ class $$AttendanceTableTableAnnotationComposer
 
   GeneratedColumn<int> get nonce =>
       $composableBuilder(column: $table.nonce, builder: (column) => column);
+
+  GeneratedColumn<String> get userName =>
+      $composableBuilder(column: $table.userName, builder: (column) => column);
 }
 
 class $$AttendanceTableTableTableManager extends RootTableManager<
@@ -705,6 +754,7 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
             Value<String> hash = const Value.absent(),
             Value<String> previousHash = const Value.absent(),
             Value<int> nonce = const Value.absent(),
+            Value<String> userName = const Value.absent(),
           }) =>
               AttendanceTableCompanion(
             id: id,
@@ -717,6 +767,7 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
             hash: hash,
             previousHash: previousHash,
             nonce: nonce,
+            userName: userName,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -729,6 +780,7 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
             required String hash,
             required String previousHash,
             required int nonce,
+            required String userName,
           }) =>
               AttendanceTableCompanion.insert(
             id: id,
@@ -741,6 +793,7 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
             hash: hash,
             previousHash: previousHash,
             nonce: nonce,
+            userName: userName,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

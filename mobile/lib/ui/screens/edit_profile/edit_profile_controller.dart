@@ -79,6 +79,7 @@ class EditProfileController extends GetxController {
     final un = nameController.text;
     final np = newPasswordController.text;
     final cp = confirmPasswordController.text;
+    final op = oldPasswordController.text;
     if (np.isNotEmpty && cp.isNotEmpty) {
       if (np != cp) {
         Get.snackbar("Error", "Passwords do not match");
@@ -90,6 +91,10 @@ class EditProfileController extends GetxController {
     }
     if (un.isEmpty) {
       Get.snackbar("Error", "Name cannot be empty");
+      return;
+    }
+    if (op.isEmpty) {
+      Get.snackbar("Error", "Old password cannot be empty");
       return;
     }
     log.d("[EditProfileController] updateProfile");

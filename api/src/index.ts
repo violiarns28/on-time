@@ -15,6 +15,8 @@ import { swagger } from '@elysiajs/swagger';
 import { Elysia, ValidationError } from 'elysia';
 import { AppRouter } from './routes/_router';
 
+process.env.TZ = "Asia/Jakarta";
+
 const app = new Elysia({
   name: Config.NAME,
 })

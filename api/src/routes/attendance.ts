@@ -94,9 +94,9 @@ export const AttendanceRouter = new Elysia({
       }
 
       const now = new Date();
-
+      
       const date = now.toISOString().split('T')[0];
-
+s
       const findAttendance = await db.query.attendance.findFirst({
         where(fields, operators) {
           return operators.and(

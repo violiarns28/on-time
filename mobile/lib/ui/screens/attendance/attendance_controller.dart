@@ -18,6 +18,7 @@ class AttendanceController extends GetxController {
   final LatLng center = const LatLng(-7.341591059504343, 112.736106577182336);
 
   GoogleMapController? mapController;
+  final now = DateTime.now();
 
   final _attendances = <AttendanceModel>[].obs;
   List<AttendanceModel> get attendances => _attendances;
@@ -28,28 +29,28 @@ class AttendanceController extends GetxController {
   final _isLoading = false.obs;
   bool get isLoading => _isLoading.value;
 
-  final clockInAttendance = Rx<AttendanceModel?>(null);
-  final clockOutAttendance = Rx<AttendanceModel?>(null);
+  final todayClockIn = Rx<AttendanceModel?>(null);
+  final todayClockOut = Rx<AttendanceModel?>(null);
 
-  String get latestClockIn {
-    final attendance = clockInAttendance.value;
+  String get todayClockInTime {
+    final attendance = todayClockIn.value;
     if (attendance == null || attendance.type != AttendanceType.CLOCK_IN) {
       return "--:--";
     }
     return _formatTime(attendance.timestamp);
   }
 
-  String get latestClockOut {
-    final attendance = clockOutAttendance.value;
+  String get todayClockOutTime {
+    final attendance = todayClockOut.value;
     if (attendance == null || attendance.type != AttendanceType.CLOCK_OUT) {
       return "--:--";
     }
     return _formatTime(attendance.timestamp);
   }
 
-  bool get isAlreadyClockIn => clockInAttendance.value != null;
-  bool get isAlreadyClockOut => clockOutAttendance.value != null;
-  bool get isAlreadyClockInAndOut => isAlreadyClockIn && isAlreadyClockOut;
+  bool get isTodayClockIn => todayClockIn.value != null;
+  bool get isTodayClockOut => todayClockOut.value != null;
+  bool get isTodayClockInAndOut => isTodayClockIn && isTodayClockOut;
 
   @override
   Future<void> onInit() async {
@@ -114,8 +115,9 @@ class AttendanceController extends GetxController {
     try {
       final response = await _attendanceRemote
           .getMyLatestAttendance(AttendanceType.CLOCK_IN);
-      if (response.type == AttendanceType.CLOCK_IN) {
-        clockInAttendance.value = response;
+      final date = DateTime.fromMillisecondsSinceEpoch(response.timestamp);
+      if (response.type == AttendanceType.CLOCK_IN && date.day == now.day) {
+        todayClockIn.value = response;
       }
     } on Exception catch (e) {
       // log.e('Failed to fetch clock-in', error: e, stackTrace: st);
@@ -127,8 +129,9 @@ class AttendanceController extends GetxController {
     try {
       final response = await _attendanceRemote
           .getMyLatestAttendance(AttendanceType.CLOCK_OUT);
-      if (response.type == AttendanceType.CLOCK_OUT) {
-        clockOutAttendance.value = response;
+      final date = DateTime.fromMillisecondsSinceEpoch(response.timestamp);
+      if (response.type == AttendanceType.CLOCK_OUT && date.day == now.day) {
+        todayClockOut.value = response;
       }
     } on Exception catch (e) {
       // log.e('Failed to fetch clock-out', error: e, stackTrace: st);
@@ -184,7 +187,7 @@ class AttendanceController extends GetxController {
   }
 
   Future<void> saveAttendance(BuildContext context) async {
-    if (clockInAttendance.value != null && clockOutAttendance.value != null) {
+    if (todayClockIn.value != null && todayClockOut.value != null) {
       _showSnackBar(
         context,
         'Attendance Error',
@@ -207,7 +210,7 @@ class AttendanceController extends GetxController {
         ),
       );
 
-      final attendanceType = clockInAttendance.value == null
+      final attendanceType = todayClockIn.value == null
           ? AttendanceType.CLOCK_IN
           : AttendanceType.CLOCK_OUT;
 
@@ -229,9 +232,9 @@ class AttendanceController extends GetxController {
         );
 
         if (attendanceType == AttendanceType.CLOCK_IN) {
-          clockInAttendance.value = response;
+          todayClockIn.value = response;
         } else {
-          clockOutAttendance.value = response;
+          todayClockOut.value = response;
         }
         _fetchAttendances();
       } else {

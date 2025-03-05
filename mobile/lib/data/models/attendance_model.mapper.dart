@@ -97,6 +97,9 @@ class AttendanceModelMapper extends ClassMapperBase<AttendanceModel> {
       Field('previousHash', _$previousHash);
   static int _$nonce(AttendanceModel v) => v.nonce;
   static const Field<AttendanceModel, int> _f$nonce = Field('nonce', _$nonce);
+  static String _$userName(AttendanceModel v) => v.userName;
+  static const Field<AttendanceModel, String> _f$userName =
+      Field('userName', _$userName);
 
   @override
   final MappableFields<AttendanceModel> fields = const {
@@ -110,6 +113,7 @@ class AttendanceModelMapper extends ClassMapperBase<AttendanceModel> {
     #hash: _f$hash,
     #previousHash: _f$previousHash,
     #nonce: _f$nonce,
+    #userName: _f$userName,
   };
 
   static AttendanceModel _instantiate(DecodingData data) {
@@ -123,7 +127,8 @@ class AttendanceModelMapper extends ClassMapperBase<AttendanceModel> {
         timestamp: data.dec(_f$timestamp),
         hash: data.dec(_f$hash),
         previousHash: data.dec(_f$previousHash),
-        nonce: data.dec(_f$nonce));
+        nonce: data.dec(_f$nonce),
+        userName: data.dec(_f$userName));
   }
 
   @override
@@ -189,7 +194,8 @@ abstract class AttendanceModelCopyWith<$R, $In extends AttendanceModel, $Out>
       int? timestamp,
       String? hash,
       String? previousHash,
-      int? nonce});
+      int? nonce,
+      String? userName});
   AttendanceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -213,7 +219,8 @@ class _AttendanceModelCopyWithImpl<$R, $Out>
           int? timestamp,
           String? hash,
           String? previousHash,
-          int? nonce}) =>
+          int? nonce,
+          String? userName}) =>
       $apply(FieldCopyWithData({
         if (id != null) #id: id,
         if (userId != null) #userId: userId,
@@ -224,7 +231,8 @@ class _AttendanceModelCopyWithImpl<$R, $Out>
         if (timestamp != null) #timestamp: timestamp,
         if (hash != null) #hash: hash,
         if (previousHash != null) #previousHash: previousHash,
-        if (nonce != null) #nonce: nonce
+        if (nonce != null) #nonce: nonce,
+        if (userName != null) #userName: userName
       }));
   @override
   AttendanceModel $make(CopyWithData data) => AttendanceModel(
@@ -237,7 +245,8 @@ class _AttendanceModelCopyWithImpl<$R, $Out>
       timestamp: data.get(#timestamp, or: $value.timestamp),
       hash: data.get(#hash, or: $value.hash),
       previousHash: data.get(#previousHash, or: $value.previousHash),
-      nonce: data.get(#nonce, or: $value.nonce));
+      nonce: data.get(#nonce, or: $value.nonce),
+      userName: data.get(#userName, or: $value.userName));
 
   @override
   AttendanceModelCopyWith<$R2, AttendanceModel, $Out2> $chain<$R2, $Out2>(
