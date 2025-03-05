@@ -115,7 +115,7 @@ class AttendanceController extends GetxController {
       if (response.type == AttendanceType.CLOCK_IN) {
         clockInAttendance.value = response;
       }
-    } on Exception catch (e, st) {
+    } on Exception catch (e) {
       // log.e('Failed to fetch clock-in', error: e, stackTrace: st);
     }
   }
@@ -128,7 +128,7 @@ class AttendanceController extends GetxController {
       if (response.type == AttendanceType.CLOCK_OUT) {
         clockOutAttendance.value = response;
       }
-    } on Exception catch (e, st) {
+    } on Exception catch (e) {
       // log.e('Failed to fetch clock-out', error: e, stackTrace: st);
     }
   }

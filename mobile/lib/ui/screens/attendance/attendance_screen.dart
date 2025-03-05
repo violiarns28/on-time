@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:on_time/data/models/attendance_model.dart';
 import 'package:on_time/ui/screens/attendance/attendance_controller.dart';
+import 'package:on_time/ui/screens/history_detail/history_detail_binding.dart';
 import 'package:on_time/ui/screens/history_detail/history_detail_screen.dart';
 
 class AttendanceScreen extends GetView<AttendanceController> {
@@ -129,12 +130,8 @@ class AttendanceScreen extends GetView<AttendanceController> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const HistoryDetailScreen()),
-                                  );
+                                  Get.to(() => const HistoryDetailScreen(),
+                                      binding: HistoryDetailBinding());
                                 },
                                 child: const Row(
                                   children: [

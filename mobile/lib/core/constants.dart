@@ -1,6 +1,6 @@
 final class Constants {
   static const String appName = 'OnTime';
-  static const String baseUrl = 'http://192.168.1.16:3000';
+  static const String baseUrl = 'http://192.168.1.7:3000';
 }
 
 final class PrefKeys {

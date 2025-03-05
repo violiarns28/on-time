@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:on_time/core/constants.dart';
 import 'package:on_time/data/sources/local/dao/user_dao.dart';
-import 'package:on_time/utils/logger.dart';
 
 base class BaseRemote extends GetConnect {
   final UserDao userDao;

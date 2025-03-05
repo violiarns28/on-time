@@ -156,7 +156,7 @@ class HomeScreen extends GetView<HomeController> {
                                         Obx(
                                           () => Text(
                                             attendanceController.latestClockIn,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                                 color: Colors.black,
                                                 fontSize: 18.0,
                                                 fontWeight: FontWeight.w600),
@@ -222,7 +222,7 @@ class HomeScreen extends GetView<HomeController> {
                                         Obx(
                                           () => Text(
                                             attendanceController.latestClockOut,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                                 color: Colors.black,
                                                 fontSize: 18.0,
                                                 fontWeight: FontWeight.w600),

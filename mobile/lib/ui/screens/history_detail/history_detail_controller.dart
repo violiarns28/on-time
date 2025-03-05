@@ -39,7 +39,14 @@ class HistoryDetailController extends GetxController {
   void _listenToAttendances() {
     _attendancesController =
         StreamController<List<AttendanceModel>>.broadcast();
-    _attendancesController?.addStream(_attendanceDao.watchAttendances());
+
+    _attendanceDao.watchAttendances().listen((data) {
+      if (!_attendancesController!.isClosed) {
+        _attendancesController?.add(data);
+      }
+    }, onError: (error) {
+      print("Error listening to attendances: $error");
+    });
   }
 
   Future<void> _fetchAttendances() async {
