@@ -1,3 +1,4 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
@@ -64,22 +65,42 @@ class SignUpController extends GetxController {
         ),
       );
       if (response.createdAt != null) {
-        Get.snackbar(
-          'Success',
-          "You've successfully registered",
-          snackPosition: SnackPosition.BOTTOM,
+        final snackBar = SnackBar(
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          content: AwesomeSnackbarContent(
+            title: 'Success',
+            message: "You've successfully registered",
+            contentType: ContentType.success,
+          ),
         );
+
+        ScaffoldMessenger.of(Get.context!)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(snackBar);
+
         Get.offAllNamed(Routes.BOTTOM_NAV_BAR);
       } else {
         throw Exception('Something went wrong');
       }
     } on Exception catch (e, st) {
       log.e(e.toString(), stackTrace: st);
-      Get.snackbar(
-        'Error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
+
+      final snackBar = SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        content: AwesomeSnackbarContent(
+          title: 'Error',
+          message: e.toString(),
+          contentType: ContentType.failure,
+        ),
       );
+
+      ScaffoldMessenger.of(Get.context!)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(snackBar);
     } finally {
       _isLoading.value = false;
     }

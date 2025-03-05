@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -87,27 +88,44 @@ class EditProfileController extends GetxController {
           password: newPasswordController.text,
         ),
       );
+
       if (response.createdAt != null) {
         user = response;
         Get.find<ProfileController>().user = response;
         Get.find<HomeController>().user = response;
-        Get.snackbar(
-          'Success',
-          'Profile updated successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+
+        final snackBar = SnackBar(
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          content: AwesomeSnackbarContent(
+            title: 'Success',
+            message: 'Profile updated successfully!',
+            contentType: ContentType.success,
+          ),
         );
+
+        ScaffoldMessenger.of(Get.context!)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(snackBar);
       }
     } on Exception catch (e, st) {
       log.e(e.toString(), stackTrace: st);
-      Get.snackbar(
-        'Error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+
+      final snackBar = SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        content: AwesomeSnackbarContent(
+          title: 'Error',
+          message: e.toString(),
+          contentType: ContentType.failure,
+        ),
       );
+
+      ScaffoldMessenger.of(Get.context!)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(snackBar);
     } finally {
       _isLoading.value = false;
     }

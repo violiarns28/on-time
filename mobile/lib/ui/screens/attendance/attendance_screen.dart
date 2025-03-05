@@ -77,10 +77,11 @@ class AttendanceScreen extends GetView<AttendanceController> {
                             width: 300,
                             height: 42,
                             child: ElevatedButton(
-                              onPressed: controller.isLoading ||
-                                      controller.isAlreadyClockInAndOut
-                                  ? null
-                                  : controller.saveAttendance,
+                              onPressed: () {
+                                final controller =
+                                    Get.find<AttendanceController>();
+                                controller.saveAttendance(context);
+                              },
                               style: ButtonStyle(
                                 backgroundColor: WidgetStateProperty.all<Color>(
                                   controller.isAlreadyClockInAndOut

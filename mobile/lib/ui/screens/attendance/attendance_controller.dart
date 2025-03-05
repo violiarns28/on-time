@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -139,59 +141,58 @@ class AttendanceController extends GetxController {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  Future<bool> _handleLocationPermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  Future<bool> _handleLocationPermission(BuildContext context) async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      Get.snackbar(
-        'Error',
+      _showSnackBar(
+        context,
+        'Location Error',
         'Location services are disabled on your device',
-        snackPosition: SnackPosition.BOTTOM,
+        ContentType.failure,
       );
       return false;
     }
 
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        Get.snackbar(
-          'Error',
+        _showSnackBar(
+          context,
+          'Permission Denied',
           'Location permissions are denied',
-          snackPosition: SnackPosition.BOTTOM,
+          ContentType.warning,
         );
         return false;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      Get.snackbar(
-        'Error',
-        'Location permissions are permanently denied, we cannot request permissions',
-        snackPosition: SnackPosition.BOTTOM,
+      _showSnackBar(
+        context,
+        'Permission Error',
+        'Location permissions are permanently denied',
+        ContentType.failure,
       );
       return false;
     }
-
     return true;
   }
 
-  Future<void> saveAttendance() async {
-    if (isAlreadyClockIn && isAlreadyClockOut) {
-      Get.snackbar(
-        'Error',
+  Future<void> saveAttendance(BuildContext context) async {
+    if (clockInAttendance.value != null && clockOutAttendance.value != null) {
+      _showSnackBar(
+        context,
+        'Attendance Error',
         'You have already clocked in and out today',
-        snackPosition: SnackPosition.BOTTOM,
+        ContentType.failure,
       );
       return;
     }
 
-    final isLocationPermissionGranted = await _handleLocationPermission();
-    if (!isLocationPermissionGranted) {
-      return;
-    }
+    final isLocationPermissionGranted =
+        await _handleLocationPermission(context);
+    if (!isLocationPermissionGranted) return;
 
     try {
       _isLoading.value = true;
@@ -202,8 +203,9 @@ class AttendanceController extends GetxController {
         ),
       );
 
-      final attendanceType =
-          isAlreadyClockIn ? AttendanceType.CLOCK_OUT : AttendanceType.CLOCK_IN;
+      final attendanceType = clockInAttendance.value == null
+          ? AttendanceType.CLOCK_IN
+          : AttendanceType.CLOCK_OUT;
 
       final response = await _attendanceRemote.saveAttendance(
         MarkAttendanceRequest(
@@ -215,10 +217,11 @@ class AttendanceController extends GetxController {
       );
 
       if (response is AttendanceModel) {
-        Get.snackbar(
+        _showSnackBar(
+          context,
           'Success',
           '${attendanceType == AttendanceType.CLOCK_IN ? 'Clock-in' : 'Clock-out'} saved successfully',
-          snackPosition: SnackPosition.BOTTOM,
+          ContentType.success,
         );
 
         if (attendanceType == AttendanceType.CLOCK_IN) {
@@ -226,24 +229,43 @@ class AttendanceController extends GetxController {
         } else {
           clockOutAttendance.value = response;
         }
-
         _fetchAttendances();
       } else {
-        Get.snackbar(
+        _showSnackBar(
+          context,
           'Error',
           'Failed to save attendance',
-          snackPosition: SnackPosition.BOTTOM,
+          ContentType.failure,
         );
       }
     } catch (e, st) {
       log.e('Error saving attendance', error: e, stackTrace: st);
-      Get.snackbar(
+      _showSnackBar(
+        context,
         'Error',
         'An error occurred while saving attendance',
-        snackPosition: SnackPosition.BOTTOM,
+        ContentType.failure,
       );
     } finally {
       _isLoading.value = false;
     }
+  }
+
+  void _showSnackBar(
+      BuildContext context, String title, String message, ContentType type) {
+    final snackBar = SnackBar(
+      elevation: 0,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.transparent,
+      content: AwesomeSnackbarContent(
+        title: title,
+        message: message,
+        contentType: type,
+      ),
+    );
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
   }
 }
