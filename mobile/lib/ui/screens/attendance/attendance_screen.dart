@@ -77,14 +77,16 @@ class AttendanceScreen extends GetView<AttendanceController> {
                             width: 300,
                             height: 42,
                             child: ElevatedButton(
-                              onPressed: controller.isLoading
+                              onPressed: controller.isLoading ||
+                                      controller.isAlreadyClockInAndOut
                                   ? null
-                                  : controller.isAlreadyClockInAndOut
-                                      ? null
-                                      : controller.saveAttendance,
+                                  : controller.saveAttendance,
                               style: ButtonStyle(
                                 backgroundColor: WidgetStateProperty.all<Color>(
-                                    const Color(0xFF4098AA)),
+                                  controller.isAlreadyClockInAndOut
+                                      ? const Color(0xFF4098AA).withOpacity(0.5)
+                                      : const Color(0xFF4098AA),
+                                ),
                               ),
                               child: controller.isLoading
                                   ? const SizedBox(
@@ -98,7 +100,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
                                     )
                                   : Text(
                                       controller.isAlreadyClockInAndOut
-                                          ? "Already clocked in and out"
+                                          ? "Already Presence Today"
                                           : controller.isAlreadyClockIn
                                               ? "Clock Out"
                                               : "Clock In",
