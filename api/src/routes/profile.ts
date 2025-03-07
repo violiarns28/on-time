@@ -48,7 +48,7 @@ export const ProfileRouter = new Elysia({
         console.log('body', body);
         const user = await getUser();
         if (body.name) user.name = body.name;
-        if (body.password){
+        if (body.password) {
           const hash = await Bun.password.hash(body.password, 'bcrypt');
           user.password = hash;
         }

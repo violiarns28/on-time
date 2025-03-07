@@ -28,6 +28,11 @@ export const Database = {
   MAX: 20,
 } as const;
 
+export const Redis = {
+  HOST: env.REDIS_HOST || 'localhost',
+  PORT: parseInt(env.REDIS_PORT || '6379'),
+} as const;
+
 export const Config = {
   NAME: normalizeMetaString(meta.name),
   VERSION: meta.version,
@@ -35,5 +40,6 @@ export const Config = {
   JWT_SECRET: env.JWT_SECRET || 'secret',
   JWT_EXPIRES_IN: Math.floor(Date.now() / 1000) + 30 * 86400, // 30 days
   DB: Database,
+  Redis,
   Logger: LoggerOptions,
 } as const;

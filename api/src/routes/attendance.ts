@@ -2,15 +2,18 @@ import { BadRequestError } from '@/core/errors';
 import { AuthWithUserMiddleware } from '@/core/middleware/auth';
 import { BlockchainService } from '@/core/services/blockchain';
 import { DatabaseService, drizzleClient } from '@/core/services/db';
+import { redisClient } from '@/core/services/redis';
 import {
   CreateAttendanceSchema,
   SelectAttendanceSchema,
 } from '@/schemas/attendance';
 import { OkResponseSchema } from '@/schemas/response';
+import { table } from '@/tables';
+import { sql } from 'drizzle-orm';
 import Elysia, { t } from 'elysia';
 
 const blockchainService = BlockchainService.getInstance();
-blockchainService.initializeBlockchain(drizzleClient);
+blockchainService.initializeBlockchain(drizzleClient, redisClient);
 const blockchain = blockchainService.getBlockchain();
 
 export const AttendanceRouter = new Elysia({
@@ -94,7 +97,7 @@ export const AttendanceRouter = new Elysia({
       }
 
       const now = new Date();
-      
+
       const date = now.toISOString().split('T')[0];
 
       const findAttendance = await db.query.attendance.findFirst({
@@ -114,6 +117,104 @@ export const AttendanceRouter = new Elysia({
             `You have already clocked ${type === 'CLOCK_IN' ? 'in' : 'out'} today`,
           );
         }
+        if (findAttendance.type === 'CLOCK_IN' && type === 'CLOCK_OUT') {
+          const result = await blockchainService.recordAttendanceAction({
+            ...body,
+            type: 'CLOCK_OUT',
+            date,
+            userId,
+            timestamp: now.getTime(),
+            userName: user.name,
+            latitude: body.latitude.toString(),
+            longitude: body.longitude.toString(),
+          });
+
+          return {
+            message: 'Clock out successfully',
+            data: result,
+          };
+        }
+
+        return {
+          message: 'You have already presence today',
+          status: 'error',
+        };
+      }
+
+      const result = await blockchainService.recordAttendanceAction({
+        ...body,
+        type: 'CLOCK_IN',
+        date,
+        userId,
+        userName: user.name,
+        timestamp: now.getTime(),
+        latitude: body.latitude.toString(),
+        longitude: body.longitude.toString(),
+      });
+
+      return {
+        message: 'Clock in successfully',
+        data: result,
+      };
+    },
+    {
+      body: t.Intersect([
+        t.Omit(CreateAttendanceSchema, [
+          'id',
+          'userId',
+          'date',
+          'hash',
+          'previousHash',
+          'timestamp',
+          'nonce',
+        ]),
+        t.Object({
+          deviceId: t.String(),
+        }),
+      ]),
+      response: {
+        200: {
+          description: 'Clock in successfully',
+          ...OkResponseSchema(SelectAttendanceSchema),
+        },
+      },
+    },
+  )
+  .post(
+    '/simulate',
+    async ({ body, db }) => {
+      const user = (
+        await db
+          .select()
+          .from(table.user)
+          .orderBy(sql`RAND()`)
+          .limit(1)
+          .execute()
+      )[0];
+      console.log('user', user);
+      const userId = user.id;
+      const { type } = body;
+
+      if (!type) {
+        throw new BadRequestError('Type is required');
+      }
+
+      const now = new Date();
+
+      const date = now.toISOString().split('T')[0];
+
+      const findAttendance = await db.query.attendance.findFirst({
+        where(fields, operators) {
+          return operators.and(
+            operators.eq(fields.userId, userId),
+            operators.eq(fields.date, date),
+          );
+        },
+      });
+
+      console.log('findAttendance', findAttendance);
+
+      if (findAttendance) {
         if (findAttendance.type === 'CLOCK_IN' && type === 'CLOCK_OUT') {
           const result = await blockchainService.recordAttendanceAction({
             ...body,

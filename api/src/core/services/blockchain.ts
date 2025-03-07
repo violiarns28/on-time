@@ -3,45 +3,52 @@ import { BlockData, SelectAttendance } from '@/schemas/attendance';
 import { attendancesTable } from '@/tables/attendance';
 import { usersTable } from '@/tables/user';
 import { createHash } from 'crypto';
-import { gte } from 'drizzle-orm';
+import { Redis } from 'ioredis'; // Import Redis
+
+// Define Redis queue constants
+const MINING_QUEUE_KEY = 'blockchain:mining:queue';
+const MINING_LOCK_KEY = 'blockchain:mining:lock';
+const LOCK_EXPIRY = 30000; // 30 seconds in ms
 
 class Blockchain {
   private chain: SelectAttendance[] = [];
   private difficulty: number = 2;
   private db: Database;
+  private redis: Redis;
   private initialized: boolean = false;
 
-  constructor(db: Database) {
+  constructor(db: Database, redis: Redis) {
     this.db = db;
+    this.redis = redis;
   }
 
   public async init(): Promise<void> {
     if (this.initialized) return;
-    await this.createSystemUser();
+
+    const systemUserId = await this.createSystemUser();
 
     const genesisBlock = await this.db.query.attendance.findFirst({
-      where: (fields, operators) => operators.eq(fields.id, 0),
+      where: (fields, operators) => operators.eq(fields.id, 1),
     });
 
     if (!genesisBlock) {
-      await this.createGenesisBlock();
+      await this.createGenesisBlock(systemUserId);
     }
 
     await this.loadChainFromDb();
-
     this.initialized = true;
   }
 
-  private async createSystemUser() {
+  private async createSystemUser(): Promise<number> {
     const user = await this.db.query.user.findFirst({
-      where: (fields, operators) => operators.eq(fields.id, 0),
+      where: (fields, operators) => operators.eq(fields.id, 1),
     });
 
     if (!user) {
       const ops = await this.db
         .insert(usersTable)
         .values({
-          id: 0,
+          id: 1,
           name: 'GENESIS',
           email: 'genesis@ontime.com',
           password: await Bun.password.hash('genesis', 'bcrypt'),
@@ -54,15 +61,15 @@ class Blockchain {
     return user.id;
   }
 
-  private async createGenesisBlock(): Promise<void> {
+  private async createGenesisBlock(userId: number): Promise<void> {
     const date = new Date();
     const genesisBlock: SelectAttendance = {
-      id: 0,
-      userId: await this.createSystemUser(),
+      id: 1,
+      userId,
       latitude: '0',
       longitude: '0',
       type: 'GENESIS',
-      userName: 'SYSTEM',
+      userName: 'GENESIS',
       timestamp: date.getTime(),
       date: date.toISOString().split('T')[0],
       hash: '0000000000000000000000000000000000000000000000000000000000000000',
@@ -72,7 +79,6 @@ class Blockchain {
 
     try {
       await this.db.insert(attendancesTable).values(genesisBlock).execute();
-
       console.log('Genesis block created');
     } catch (error) {
       console.error('Error creating genesis block:', error);
@@ -88,20 +94,117 @@ class Blockchain {
   }
 
   public async addBlock(data: BlockData): Promise<SelectAttendance> {
-    if (this.chain.length === 0) {
-      await this.loadChainFromDb();
+    if (!this.initialized) {
+      await this.init();
     }
 
-    const latest = this.getLatestBlock();
-    const newBlock = this.createNewBlock(latest, data);
+    // Add the block mining task to the queue
+    const jobId = `job:${Date.now()}:${Math.random().toString(36).substring(2, 10)}`;
+    const jobData = JSON.stringify({
+      id: jobId,
+      data,
+      timestamp: Date.now(),
+    });
+
+    // Push the job to the Redis queue
+    await this.redis.rpush(MINING_QUEUE_KEY, jobData);
+
+    // Try to acquire the lock and process the queue
+    await this.processQueue();
+
+    // Wait for the block to be mined and return it
+    return await this.waitForJobCompletion(jobId);
+  }
+
+  private async waitForJobCompletion(jobId: string): Promise<SelectAttendance> {
+    const resultKey = `blockchain:result:${jobId}`;
+    let attempts = 0;
+    const maxAttempts = 60; // 30 seconds (60 * 500ms)
+
+    while (attempts < maxAttempts) {
+      const result = await this.redis.get(resultKey);
+      if (result) {
+        // Clean up the result
+        await this.redis.del(resultKey);
+        return JSON.parse(result);
+      }
+
+      // Wait 500ms before checking again
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      attempts++;
+    }
+
+    throw new Error('Block mining timed out');
+  }
+
+  private async processQueue(): Promise<void> {
+    // Try to acquire lock using ioredis set options format
+    const acquireLock = await this.redis.set(
+      MINING_LOCK_KEY,
+      'locked',
+      'EX',
+      Math.floor(LOCK_EXPIRY / 1000),
+      'NX',
+    );
+
+    // If we didn't get the lock, another process is already handling the queue
+    if (!acquireLock) return;
 
     try {
-      await this.persistBlock(newBlock);
-      this.chain.push(newBlock);
-      return newBlock;
+      // Process the queue while there are jobs
+      let jobData = await this.redis.lpop(MINING_QUEUE_KEY);
+
+      while (jobData) {
+        const job = JSON.parse(jobData);
+
+        try {
+          // Get the latest block (need to reload from DB to ensure consistency)
+          await this.loadChainFromDb();
+          const latest = this.getLatestBlock();
+
+          // Create and mine the new block
+          const newBlock = this.createNewBlock(latest, job.data);
+
+          // Persist the block to the database
+          await this.persistBlock(newBlock);
+
+          // Update our local chain
+          this.chain.push(newBlock);
+
+          // Store the result for the client that submitted the job
+          const resultKey = `blockchain:result:${job.id}`;
+          await this.redis.set(resultKey, JSON.stringify(newBlock), 'EX', 60); // Expire after 60 seconds
+
+          console.log(`Processed block job ${job.id}`);
+        } catch (error) {
+          console.error(`Error processing block job ${job.id}:`, error);
+          // Store the error for the client
+          const resultKey = `blockchain:result:${job.id}`;
+          await this.redis.set(
+            resultKey,
+            JSON.stringify({
+              error: error instanceof Error ? error.message : error,
+            }),
+            'EX',
+            60,
+          );
+        }
+
+        // Get the next job
+        jobData = await this.redis.lpop(MINING_QUEUE_KEY);
+      }
     } catch (error) {
-      console.error('Error adding block:', error);
-      throw new Error('Failed to add block to blockchain');
+      console.error('Error in queue processor:', error);
+    } finally {
+      // Release the lock regardless of the outcome
+      await this.redis.del(MINING_LOCK_KEY);
+
+      // Check if new jobs were added while we were processing
+      const queueLength = await this.redis.llen(MINING_QUEUE_KEY);
+      if (queueLength > 0) {
+        // Trigger another round of processing
+        setTimeout(() => this.processQueue(), 0);
+      }
     }
   }
 
@@ -122,17 +225,13 @@ class Blockchain {
   }
 
   private calculateHash(block: SelectAttendance): string {
-    const blockForHashing = {
-      ...block,
-      hash: '',
-    };
-
-    const dataString = JSON.stringify(blockForHashing);
+    const blockHash = { ...block, hash: '' };
+    const dataString = JSON.stringify(blockHash);
     return createHash('sha256').update(dataString).digest('hex');
   }
 
   private mineBlock(block: SelectAttendance): SelectAttendance {
-    const target = Array(this.difficulty + 1).join('0');
+    const target = '0'.repeat(this.difficulty);
 
     do {
       block.nonce++;
@@ -189,46 +288,12 @@ class Blockchain {
       return false;
     }
 
-    const target = Array(this.difficulty + 1).join('0');
+    const target = '0'.repeat(this.difficulty);
     if (currentBlock.hash.substring(0, this.difficulty) !== target) {
       return false;
     }
 
     return true;
-  }
-
-  private async cleanInvalidBlocks(): Promise<void> {
-    console.log('Checking blockchain integrity...');
-
-    await this.loadChainFromDb();
-    const validationResult = this.isChainValid();
-
-    if (!validationResult.valid && validationResult.invalidBlock) {
-      console.warn('Invalid blocks detected, cleaning up...');
-      const invalidBlock = validationResult.invalidBlock.current;
-
-      this.chain = this.chain.filter((block) => block.id < invalidBlock.id);
-
-      await this.deleteInvalidBlocks(invalidBlock.id);
-
-      console.log(
-        `Removed invalid blocks starting from index ${invalidBlock.id}`,
-      );
-    } else {
-      console.log('Blockchain is valid');
-    }
-  }
-
-  private async deleteInvalidBlocks(fromIndex: number): Promise<void> {
-    try {
-      await this.db
-        .delete(attendancesTable)
-        .where(gte(attendancesTable.id, fromIndex))
-        .execute();
-    } catch (error) {
-      console.error('Error deleting invalid blocks:', error);
-      throw new Error('Failed to delete invalid blocks');
-    }
   }
 
   public async loadChainFromDb(): Promise<SelectAttendance[]> {
@@ -275,10 +340,11 @@ export class BlockchainService {
     return BlockchainService.instance;
   }
 
-  public async initializeBlockchain(db: Database): Promise<void> {
+  public async initializeBlockchain(db: Database, redis: Redis): Promise<void> {
     if (!this.blockchain) {
-      this.blockchain = new Blockchain(db);
+      this.blockchain = new Blockchain(db, redis);
     }
+
     await this.blockchain.init();
   }
 

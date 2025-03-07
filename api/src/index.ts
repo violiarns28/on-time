@@ -15,7 +15,7 @@ import { swagger } from '@elysiajs/swagger';
 import { Elysia, ValidationError } from 'elysia';
 import { AppRouter } from './routes/_router';
 
-process.env.TZ = "Asia/Jakarta";
+process.env.TZ = 'Asia/Jakarta';
 
 const app = new Elysia({
   name: Config.NAME,
@@ -47,7 +47,7 @@ const app = new Elysia({
           httpCode = 400;
           break;
         case 'CONFLICT':
-          httpCode= 409;
+          httpCode = 409;
           break;
         case 'UNSUPPORTED_MEDIA_TYPE':
           httpCode = 415;
@@ -74,7 +74,7 @@ const app = new Elysia({
       set.status = httpCode;
       const errorType = 'type' in error ? error.type : 'internal';
       if (code == 'VALIDATION') {
-        return { errors: error.all.map((e)=> e.summary) };
+        return { errors: error.all.map((e) => e.summary) };
       }
       return Response.json(
         {
