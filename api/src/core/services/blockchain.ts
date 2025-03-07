@@ -3,12 +3,11 @@ import { BlockData, SelectAttendance } from '@/schemas/attendance';
 import { attendancesTable } from '@/tables/attendance';
 import { usersTable } from '@/tables/user';
 import { createHash } from 'crypto';
-import { Redis } from 'ioredis'; // Import Redis
+import { Redis } from 'ioredis';
 
-// Define Redis queue constants
 const MINING_QUEUE_KEY = 'blockchain:mining:queue';
 const MINING_LOCK_KEY = 'blockchain:mining:lock';
-const LOCK_EXPIRY = 30000; // 30 seconds in ms
+const LOCK_EXPIRY = 30000;
 
 class Blockchain {
   private chain: SelectAttendance[] = [];
@@ -98,7 +97,6 @@ class Blockchain {
       await this.init();
     }
 
-    // Add the block mining task to the queue
     const jobId = `job:${Date.now()}:${Math.random().toString(36).substring(2, 10)}`;
     const jobData = JSON.stringify({
       id: jobId,
@@ -106,13 +104,10 @@ class Blockchain {
       timestamp: Date.now(),
     });
 
-    // Push the job to the Redis queue
     await this.redis.rpush(MINING_QUEUE_KEY, jobData);
 
-    // Try to acquire the lock and process the queue
     await this.processQueue();
 
-    // Wait for the block to be mined and return it
     return await this.waitForJobCompletion(jobId);
   }
 
@@ -124,12 +119,10 @@ class Blockchain {
     while (attempts < maxAttempts) {
       const result = await this.redis.get(resultKey);
       if (result) {
-        // Clean up the result
         await this.redis.del(resultKey);
         return JSON.parse(result);
       }
 
-      // Wait 500ms before checking again
       await new Promise((resolve) => setTimeout(resolve, 500));
       attempts++;
     }
@@ -138,7 +131,6 @@ class Blockchain {
   }
 
   private async processQueue(): Promise<void> {
-    // Try to acquire lock using ioredis set options format
     const acquireLock = await this.redis.set(
       MINING_LOCK_KEY,
       'locked',
@@ -147,38 +139,30 @@ class Blockchain {
       'NX',
     );
 
-    // If we didn't get the lock, another process is already handling the queue
     if (!acquireLock) return;
 
     try {
-      // Process the queue while there are jobs
       let jobData = await this.redis.lpop(MINING_QUEUE_KEY);
 
       while (jobData) {
         const job = JSON.parse(jobData);
 
         try {
-          // Get the latest block (need to reload from DB to ensure consistency)
           await this.loadChainFromDb();
           const latest = this.getLatestBlock();
 
-          // Create and mine the new block
           const newBlock = this.createNewBlock(latest, job.data);
 
-          // Persist the block to the database
           await this.persistBlock(newBlock);
 
-          // Update our local chain
           this.chain.push(newBlock);
 
-          // Store the result for the client that submitted the job
           const resultKey = `blockchain:result:${job.id}`;
           await this.redis.set(resultKey, JSON.stringify(newBlock), 'EX', 60); // Expire after 60 seconds
 
           console.log(`Processed block job ${job.id}`);
         } catch (error) {
           console.error(`Error processing block job ${job.id}:`, error);
-          // Store the error for the client
           const resultKey = `blockchain:result:${job.id}`;
           await this.redis.set(
             resultKey,
@@ -190,19 +174,15 @@ class Blockchain {
           );
         }
 
-        // Get the next job
         jobData = await this.redis.lpop(MINING_QUEUE_KEY);
       }
     } catch (error) {
       console.error('Error in queue processor:', error);
     } finally {
-      // Release the lock regardless of the outcome
       await this.redis.del(MINING_LOCK_KEY);
 
-      // Check if new jobs were added while we were processing
       const queueLength = await this.redis.llen(MINING_QUEUE_KEY);
       if (queueLength > 0) {
-        // Trigger another round of processing
         setTimeout(() => this.processQueue(), 0);
       }
     }
