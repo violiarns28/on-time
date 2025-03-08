@@ -1,5 +1,4 @@
 import { BlockchainService } from '@/core/services/blockchain';
-import { Database } from '@/core/services/db';
 import { SelectAttendance } from '@/schemas/attendance';
 import crypto from 'crypto';
 import { EventEmitter } from 'events';
@@ -93,7 +92,6 @@ export class P2PNetworkService extends EventEmitter {
 
   public async initialize(
     blockchain: BlockchainService,
-    db: Database,
     redis: Redis,
     port: number = 6001,
   ): Promise<void> {
