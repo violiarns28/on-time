@@ -45,4 +45,8 @@ class AttendanceDao extends DatabaseAccessor<AppDatabase>
   Future<void> deleteAttendance(AttendanceModel attendance) {
     return delete(attendanceTable).delete(attendance.toLocal());
   }
+
+  Future<void> clearAttendances() {
+    return delete(attendanceTable).go();
+  }
 }

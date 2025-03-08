@@ -11,9 +11,9 @@ class SignInController extends GetxController {
   final authRemote = Get.find<AuthRemote>();
   final userDao = Get.find<UserDao>();
 
-  final _emailController = Rx(TextEditingController());
+  final _emailController = Rx(TextEditingController(text: 'john@gmail.com'));
   TextEditingController get emailController => _emailController.value;
-  final _passwordController = Rx(TextEditingController());
+  final _passwordController = Rx(TextEditingController(text: 'password'));
   TextEditingController get passwordController => _passwordController.value;
 
   final _emailFocusNode = Rx(FocusNode());

@@ -6,10 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
 import 'package:on_time/data/models/user_model.dart';
+import 'package:on_time/data/sources/local/dao/attendance_dao.dart';
 import 'package:on_time/data/sources/local/dao/user_dao.dart';
 
 class ProfileController extends GetxController {
   final _userDao = Get.find<UserDao>();
+  final _attendanceDao = Get.find<AttendanceDao>();
 
   final _user = Rx(UserModel.placeholder());
   UserModel get user => _user.value;
@@ -47,7 +49,10 @@ class ProfileController extends GetxController {
   }
 
   Future<void> signOut() async {
-    await _userDao.clearUser();
+    await Future.wait([
+      _userDao.clearUser(),
+      _attendanceDao.clearAttendances(),
+    ]);
 
     const snackBar = SnackBar(
       elevation: 0,

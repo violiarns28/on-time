@@ -34,11 +34,15 @@ class AttendanceController extends GetxController {
   final _isLoading = false.obs;
   bool get isLoading => _isLoading.value;
 
-  final todayClockIn = Rx<AttendanceModel?>(null);
-  final todayClockOut = Rx<AttendanceModel?>(null);
+  final _todayClockIn = Rx<AttendanceModel?>(null);
+  AttendanceModel? get todayClockIn => _todayClockIn.value;
+  set todayClockIn(AttendanceModel? value) => _todayClockIn.value = value;
+  final _todayClockOut = Rx<AttendanceModel?>(null);
+  AttendanceModel? get todayClockOut => _todayClockOut.value;
+  set todayClockOut(AttendanceModel? value) => _todayClockOut.value = value;
 
   String get todayClockInTime {
-    final attendance = todayClockIn.value;
+    final attendance = todayClockIn;
     if (attendance == null || attendance.type != AttendanceType.CLOCK_IN) {
       return "--:--";
     }
@@ -46,15 +50,15 @@ class AttendanceController extends GetxController {
   }
 
   String get todayClockOutTime {
-    final attendance = todayClockOut.value;
+    final attendance = todayClockOut;
     if (attendance == null || attendance.type != AttendanceType.CLOCK_OUT) {
       return "--:--";
     }
     return _formatTime(attendance.timestamp);
   }
 
-  bool get isTodayClockIn => todayClockIn.value != null;
-  bool get isTodayClockOut => todayClockOut.value != null;
+  bool get isTodayClockIn => todayClockIn != null;
+  bool get isTodayClockOut => todayClockOut != null;
   bool get isTodayClockInAndOut => isTodayClockIn && isTodayClockOut;
 
   @override
@@ -125,7 +129,7 @@ class AttendanceController extends GetxController {
           .getMyLatestAttendance(AttendanceType.CLOCK_IN);
       final date = DateTime.fromMillisecondsSinceEpoch(response.timestamp);
       if (response.type == AttendanceType.CLOCK_IN && date.day == now.day) {
-        todayClockIn.value = response;
+        todayClockIn = response;
       }
     } on Exception catch (e) {
       // log.e('Failed to fetch clock-in', error: e, stackTrace: st);
@@ -139,7 +143,7 @@ class AttendanceController extends GetxController {
           .getMyLatestAttendance(AttendanceType.CLOCK_OUT);
       final date = DateTime.fromMillisecondsSinceEpoch(response.timestamp);
       if (response.type == AttendanceType.CLOCK_OUT && date.day == now.day) {
-        todayClockOut.value = response;
+        todayClockOut = response;
       }
     } on Exception catch (e) {
       // log.e('Failed to fetch clock-out', error: e, stackTrace: st);
@@ -224,19 +228,19 @@ class AttendanceController extends GetxController {
   }
 
   Future<void> saveAttendance(BuildContext context) async {
-    final isValidLocation = await calculateDistance(
-        targetLocation.latitude, targetLocation.longitude);
-    if (isValidLocation > 0.5) {
-      _showSnackBar(
-        context,
-        'Attendance Error',
-        'You are not in the office area',
-        ContentType.failure,
-      );
-      return;
-    }
+    // final isValidLocation = await calculateDistance(
+    //     targetLocation.latitude, targetLocation.longitude);
+    // if (isValidLocation > 0.5) {
+    //   _showSnackBar(
+    //     context,
+    //     'Attendance Error',
+    //     'You are not in the office area',
+    //     ContentType.failure,
+    //   );
+    //   return;
+    // }
 
-    if (todayClockIn.value != null && todayClockOut.value != null) {
+    if (todayClockIn != null && todayClockOut != null) {
       _showSnackBar(
         context,
         'Attendance Error',
@@ -259,7 +263,7 @@ class AttendanceController extends GetxController {
         ),
       );
 
-      final attendanceType = todayClockIn.value == null
+      final attendanceType = todayClockIn == null
           ? AttendanceType.CLOCK_IN
           : AttendanceType.CLOCK_OUT;
 
@@ -272,28 +276,20 @@ class AttendanceController extends GetxController {
         ),
       );
 
-      if (response is AttendanceModel) {
-        _showSnackBar(
-          context,
-          'Success',
-          '${attendanceType == AttendanceType.CLOCK_IN ? 'Clock-in' : 'Clock-out'} saved successfully',
-          ContentType.success,
-        );
-
+      _showSnackBar(
+        context,
+        'Success',
+        '${attendanceType == AttendanceType.CLOCK_IN ? 'Clock-in' : 'Clock-out'} saved successfully',
+        ContentType.success,
+      );
+      if (response != null) {
         if (attendanceType == AttendanceType.CLOCK_IN) {
-          todayClockIn.value = response;
+          todayClockIn = response;
         } else {
-          todayClockOut.value = response;
+          todayClockOut = response;
         }
-        _fetchAttendances();
-      } else {
-        _showSnackBar(
-          context,
-          'Error',
-          'Failed to save attendance',
-          ContentType.failure,
-        );
       }
+      _fetchAttendances();
     } catch (e, st) {
       log.e('Error saving attendance', error: e, stackTrace: st);
       _showSnackBar(

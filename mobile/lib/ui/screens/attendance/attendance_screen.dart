@@ -85,31 +85,36 @@ class AttendanceScreen extends GetView<AttendanceController> {
                           SizedBox(
                             width: 300,
                             height: 42,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                final controller =
-                                    Get.find<AttendanceController>();
-                                controller.saveAttendance(context);
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all<Color>(
-                                  controller.isTodayClockInAndOut
-                                      ? const Color(0xFF4098AA).withOpacity(0.5)
-                                      : const Color(0xFF4098AA),
+                            child: Obx(
+                              () => ElevatedButton(
+                                onPressed: (controller.isLoading ||
+                                        controller.isTodayClockInAndOut)
+                                    ? null
+                                    : () {
+                                        final controller =
+                                            Get.find<AttendanceController>();
+                                        controller.saveAttendance(context);
+                                      },
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.all<Color>(
+                                    controller.isTodayClockInAndOut
+                                        ? const Color(0xFF4098AA)
+                                            .withOpacity(0.5)
+                                        : const Color(0xFF4098AA),
+                                  ),
                                 ),
-                              ),
-                              child: controller.isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                                Colors.white),
-                                      ),
-                                    )
-                                  : Obx(
-                                      () => Text(
+                                child: controller.isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                        ),
+                                      )
+                                    : Text(
                                         controller.isTodayClockInAndOut
                                             ? "Already Presence Today"
                                             : controller.isTodayClockIn
@@ -121,7 +126,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                    ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),

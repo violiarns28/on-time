@@ -343,21 +343,7 @@ class Blockchain {
   }
 
   private async loadChain(): Promise<void> {
-    // Try to load from Redis cache first
-    const cachedChain = await this.redis.get(BLOCKCHAIN_CACHE_KEY);
-
-    if (cachedChain) {
-      try {
-        this.chain = JSON.parse(cachedChain);
-        console.log(`Loaded ${this.chain.length} blocks from Redis cache`);
-        return;
-      } catch (error) {
-        console.error(
-          'Error parsing cached blockchain, loading from DB instead:',
-          error,
-        );
-      }
-    }
+    await this.redis.del(BLOCKCHAIN_CACHE_KEY);
 
     // If not in cache or error, load from database
     await this.loadChainFromDb();
