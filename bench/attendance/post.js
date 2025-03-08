@@ -27,14 +27,8 @@ export default function () {
         deviceId: 'k6',
     });
 
-    const params = {
-        headers: {
-            'Content-Type': 'application/json',
-            // 'Authorization': 'Bearer ' + __ENV.ACCESS_TOKEN,
-        },
-    };
 
-    const res = http.post('http://localhost:3000/attendances/simulate', payload, params);
+    const res = http.post('http://localhost:3000/attendances/simulate', payload);
     totalRequests.add(1);
 
     const success = check(res, {

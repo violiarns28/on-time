@@ -191,7 +191,6 @@ export const AttendanceRouter = new Elysia({
           .limit(1)
           .execute()
       )[0];
-      console.log('user', user);
       const userId = user.id;
       const { type } = body;
 
@@ -211,8 +210,6 @@ export const AttendanceRouter = new Elysia({
           );
         },
       });
-
-      console.log('findAttendance', findAttendance);
 
       if (findAttendance) {
         if (findAttendance.type === 'CLOCK_IN' && type === 'CLOCK_OUT') {

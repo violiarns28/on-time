@@ -4,9 +4,12 @@ import { attendancesTable } from '@/tables/attendance';
 import { usersTable } from '@/tables/user';
 import { createHash } from 'crypto';
 import { Redis } from 'ioredis';
+import { P2PNetworkService } from './p2p';
 
 const MINING_QUEUE_KEY = 'blockchain:mining:queue';
 const MINING_LOCK_KEY = 'blockchain:mining:lock';
+const BLOCKCHAIN_CACHE_KEY = 'blockchain:chain';
+const DB_WRITE_QUEUE_KEY = 'blockchain:db:queue';
 const LOCK_EXPIRY = 30000;
 
 class Blockchain {
@@ -15,6 +18,7 @@ class Blockchain {
   private db: Database;
   private redis: Redis;
   private initialized: boolean = false;
+  private dbWriterInterval: NodeJS.Timeout | null = null;
 
   constructor(db: Database, redis: Redis) {
     this.db = db;
@@ -34,8 +38,63 @@ class Blockchain {
       await this.createGenesisBlock(systemUserId);
     }
 
-    await this.loadChainFromDb();
+    await this.loadChain();
+    this.startDbWriter();
     this.initialized = true;
+  }
+
+  private startDbWriter(): void {
+    if (this.dbWriterInterval) {
+      clearInterval(this.dbWriterInterval);
+    }
+
+    // @ts-ignore
+    this.dbWriterInterval = setInterval(async () => {
+      await this.processDbWriteQueue();
+    }, 5000); // Process DB writes every 5 seconds
+  }
+
+  private async processDbWriteQueue(): Promise<void> {
+    const lockKey = 'blockchain:db:writer:lock';
+    const acquireLock = await this.redis.set(
+      lockKey,
+      'locked',
+      'EX',
+      10, // 10 seconds lock
+      'NX',
+    );
+
+    if (!acquireLock) return;
+
+    try {
+      let queuedBlock = await this.redis.lpop(DB_WRITE_QUEUE_KEY);
+      let processedCount = 0;
+      const batchSize = 10; // Process up to 10 blocks at a time
+
+      while (queuedBlock && processedCount < batchSize) {
+        try {
+          const block = JSON.parse(queuedBlock);
+          await this.db.insert(attendancesTable).values(block).execute();
+          processedCount++;
+          console.log(`Persisted block #${block.id} to database`);
+        } catch (error) {
+          console.error('Error persisting block to database:', error);
+          // Put the block back in the queue for retry
+          await this.redis.rpush(DB_WRITE_QUEUE_KEY, queuedBlock);
+          break;
+        }
+
+        queuedBlock = await this.redis.lpop(DB_WRITE_QUEUE_KEY);
+      }
+
+      if (processedCount > 0) {
+        console.log(`Processed ${processedCount} database writes`);
+      }
+    } catch (error) {
+      console.error('Error in database writer process:', error);
+    } finally {
+      await this.redis.del(lockKey);
+    }
   }
 
   private async createSystemUser(): Promise<number> {
@@ -87,7 +146,7 @@ class Blockchain {
 
   public getLatestBlock(): SelectAttendance {
     if (this.chain.length === 0) {
-      throw new Error('Blockchain not loaded. Call loadChainFromDb first.');
+      throw new Error('Blockchain not loaded. Call loadChain first.');
     }
     return this.chain[this.chain.length - 1];
   }
@@ -148,14 +207,18 @@ class Blockchain {
         const job = JSON.parse(jobData);
 
         try {
-          await this.loadChainFromDb();
+          // Use the in-memory chain or get from cache
+          await this.syncChainWithCache();
           const latest = this.getLatestBlock();
 
           const newBlock = this.createNewBlock(latest, job.data);
 
-          await this.persistBlock(newBlock);
+          // Queue the block for persistence instead of immediate DB write
+          await this.queueBlockForPersistence(newBlock);
 
+          // Update the chain and cache it immediately
           this.chain.push(newBlock);
+          await this.cacheChain();
 
           const resultKey = `blockchain:result:${job.id}`;
           await this.redis.set(resultKey, JSON.stringify(newBlock), 'EX', 60); // Expire after 60 seconds
@@ -185,6 +248,18 @@ class Blockchain {
       if (queueLength > 0) {
         setTimeout(() => this.processQueue(), 0);
       }
+    }
+  }
+
+  private async queueBlockForPersistence(
+    block: SelectAttendance,
+  ): Promise<void> {
+    try {
+      await this.redis.rpush(DB_WRITE_QUEUE_KEY, JSON.stringify(block));
+      console.log(`Queued block #${block.id} for database persistence`);
+    } catch (error) {
+      console.error('Error queueing block for persistence:', error);
+      throw error;
     }
   }
 
@@ -220,15 +295,6 @@ class Blockchain {
 
     console.log(`Block mined: ${block.hash}`);
     return block;
-  }
-
-  private async persistBlock(block: SelectAttendance): Promise<void> {
-    try {
-      await this.db.insert(attendancesTable).values(block).execute();
-    } catch (error) {
-      console.error('Error persisting block to database:', error);
-      throw error;
-    }
   }
 
   public isChainValid(): {
@@ -276,7 +342,31 @@ class Blockchain {
     return true;
   }
 
-  public async loadChainFromDb(): Promise<SelectAttendance[]> {
+  private async loadChain(): Promise<void> {
+    // Try to load from Redis cache first
+    const cachedChain = await this.redis.get(BLOCKCHAIN_CACHE_KEY);
+
+    if (cachedChain) {
+      try {
+        this.chain = JSON.parse(cachedChain);
+        console.log(`Loaded ${this.chain.length} blocks from Redis cache`);
+        return;
+      } catch (error) {
+        console.error(
+          'Error parsing cached blockchain, loading from DB instead:',
+          error,
+        );
+      }
+    }
+
+    // If not in cache or error, load from database
+    await this.loadChainFromDb();
+
+    // Cache the loaded chain
+    await this.cacheChain();
+  }
+
+  private async loadChainFromDb(): Promise<void> {
     try {
       const blocks = await this.db.query.attendance.findMany({
         orderBy(fields, operators) {
@@ -297,15 +387,52 @@ class Blockchain {
       }));
 
       console.log(`Loaded ${this.chain.length} blocks from database`);
-      return this.chain;
     } catch (error) {
       console.error('Error loading blockchain from database:', error);
       throw new Error('Failed to load blockchain from database');
     }
   }
 
+  private async cacheChain(): Promise<void> {
+    try {
+      await this.redis.set(
+        BLOCKCHAIN_CACHE_KEY,
+        JSON.stringify(this.chain),
+        'EX',
+        86400, // Cache for 24 hours
+      );
+      console.log(`Cached ${this.chain.length} blocks in Redis`);
+    } catch (error) {
+      console.error('Error caching blockchain in Redis:', error);
+    }
+  }
+
+  private async syncChainWithCache(): Promise<void> {
+    // Get the latest state from cache if available
+    const cachedChain = await this.redis.get(BLOCKCHAIN_CACHE_KEY);
+
+    if (cachedChain) {
+      try {
+        this.chain = JSON.parse(cachedChain);
+      } catch (error) {
+        console.error(
+          'Error parsing cached blockchain during sync, using current chain:',
+          error,
+        );
+      }
+    }
+  }
+
   public getChain(): SelectAttendance[] {
     return [...this.chain];
+  }
+
+  // Clean up resources on shutdown
+  public shutdown(): void {
+    if (this.dbWriterInterval) {
+      clearInterval(this.dbWriterInterval);
+      this.dbWriterInterval = null;
+    }
   }
 }
 
@@ -343,7 +470,20 @@ export class BlockchainService {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }
-    return await this.blockchain.addBlock(attendanceData);
+    const newBlock = await this.blockchain.addBlock(attendanceData);
+
+    // Broadcast the new block to the P2P network if it's initialized
+    try {
+      const p2pService = P2PNetworkService.getInstance();
+      p2pService.broadcastNewBlock(newBlock);
+    } catch (error) {
+      console.log(
+        'P2P network not initialized or error broadcasting block:',
+        error,
+      );
+    }
+
+    return newBlock;
   }
 
   public verifyBlockchain(): {
@@ -354,5 +494,12 @@ export class BlockchainService {
       throw new Error('Blockchain not initialized');
     }
     return this.blockchain.isChainValid();
+  }
+
+  // Method to clean up resources on shutdown
+  public shutdown(): void {
+    if (this.blockchain) {
+      this.blockchain.shutdown();
+    }
   }
 }

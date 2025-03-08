@@ -27,13 +27,22 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
-  redis:
-    image: redis:7.4
+  # redis:
+  #   image: redis:7.4
+  #   ports:
+  #     - '6379:6379'
+  #   volumes:
+  #     - redis_data:/data
+
+  dragonfly:
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    ulimits:
+      memlock: -1
     ports:
       - '6379:6379'
+    network_mode: 'host'
     volumes:
-      - redis_data:/data
-
+      - dragonflydata:/data
 volumes:
   db_data:
-  redis_data:
+  dragonflydata:
