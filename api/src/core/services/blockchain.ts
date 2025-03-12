@@ -2,9 +2,9 @@ import { Database } from '@/core/services/db';
 import { BlockData, SelectAttendance } from '@/schemas/attendance';
 import { attendancesTable } from '@/tables/attendance';
 import { usersTable } from '@/tables/user';
+import { buildConflictUpdateColumns } from '@/utils';
 import { createHash } from 'crypto';
-import { getTableColumns, SQL, sql } from 'drizzle-orm';
-import { MySqlTable } from 'drizzle-orm/mysql-core';
+import { sql } from 'drizzle-orm';
 import { Redis } from 'ioredis';
 import { env } from '../config/env';
 import { P2PService } from './p2p';
@@ -27,23 +27,6 @@ const CONFIG = {
   DB_BATCH_SIZE: 10,
   JOB_TIMEOUT: 30000, // 30 seconds
   POLL_INTERVAL: 500,
-};
-
-const buildConflictUpdateColumns = <
-  T extends MySqlTable,
-  Q extends keyof T['_']['columns'],
->(
-  table: T,
-  columns: Q[],
-) => {
-  const cls = getTableColumns(table);
-  return columns.reduce(
-    (acc, column) => {
-      acc[column] = sql`values(${cls[column]})`;
-      return acc;
-    },
-    {} as Record<Q, SQL>,
-  );
 };
 
 class Blockchain {

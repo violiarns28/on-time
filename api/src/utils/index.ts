@@ -1,3 +1,5 @@
+import { getTableColumns, SQL, sql } from 'drizzle-orm';
+import { MySqlTable } from 'drizzle-orm/mysql-core';
 export const DEFAULT = Symbol();
 
 export class MapWithDefault<K, V> extends Map<K | typeof DEFAULT, V> {
@@ -31,3 +33,20 @@ export function normalizeMetaString(str: string) {
     .map((word) => word[0].toUpperCase() + word.slice(1))
     .join(' ');
 }
+
+export const buildConflictUpdateColumns = <
+  T extends MySqlTable,
+  Q extends keyof T['_']['columns'],
+>(
+  table: T,
+  columns: Q[],
+) => {
+  const cls = getTableColumns(table);
+  return columns.reduce(
+    (acc, column) => {
+      acc[column] = sql`values(${cls[column]})`;
+      return acc;
+    },
+    {} as Record<Q, SQL>,
+  );
+};

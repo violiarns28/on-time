@@ -2,6 +2,8 @@
 import { BlockchainService } from '@/core/services/blockchain';
 import { SelectAttendance } from '@/schemas/attendance';
 import { table } from '@/tables';
+import { usersTable } from '@/tables/user';
+import { buildConflictUpdateColumns } from '@/utils';
 import crypto from 'crypto';
 import ip from 'ip';
 import os from 'os';
@@ -258,11 +260,23 @@ export class P2PService {
   }
 
   private async handleNewUser(data: NewUserData) {
-    await this.db.insert(table.user).values({
-      ...data,
-      createdAt: new Date(data.createdAt),
-      updatedAt: new Date(data.updatedAt),
-    });
+    await this.db
+      .insert(table.user)
+      .values({
+        ...data,
+        createdAt: new Date(data.createdAt),
+        updatedAt: new Date(data.updatedAt),
+      })
+      .onDuplicateKeyUpdate({
+        set: buildConflictUpdateColumns(usersTable, [
+          'name',
+          'email',
+          'password',
+          'deviceId',
+          'createdAt',
+          'updatedAt',
+        ]),
+      });
   }
 
   private handleQueryLatest(ws: WebSocket): void {
