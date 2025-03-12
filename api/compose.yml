@@ -40,7 +40,7 @@ services:
       memlock: -1
     ports:
       - '6379:6379'
-    network_mode: 'host'
+    # network_mode: 'host'
     volumes:
       - dragonflydata:/data
 volumes:

@@ -1,3 +1,4 @@
+import { env } from '@/core/config/env';
 import { AuthWithUserMiddleware } from '@/core/middleware/auth';
 import { BlockchainService } from '@/core/services/blockchain';
 import { DatabaseService, drizzleClient } from '@/core/services/db';
@@ -11,6 +12,7 @@ export const blockchainService = BlockchainService.getInstance();
 export const p2pService = P2PNetworkService.getInstance();
 
 p2pService.initialize(blockchainService, redisClient, drizzleClient, 6001);
+if (env.IS_SLAVE_NODE) p2pService.addPeer(env.MASTER_NODE_URL_WS);
 
 export const P2PRouter = new Elysia({
   prefix: '/p2p',

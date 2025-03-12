@@ -100,7 +100,7 @@ export class P2PNetworkService extends EventEmitter {
     blockchain: BlockchainService,
     redis: Redis,
     database: Database,
-    port: number = 6001,
+    port: number = 6002,
   ): Promise<void> {
     if (this.initialized) return;
 

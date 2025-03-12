@@ -28,7 +28,7 @@ const EnvSchema = t.Object({
     .Transform(t.String())
     .Decode((v) => v === 'true')
     .Encode((v) => (v ? 'true' : 'false')),
-  MASTER_NODE_URL: t.String(),
+  MASTER_NODE_URL_WS: t.String(),
 });
 
 type Env = Static<typeof EnvSchema>;
