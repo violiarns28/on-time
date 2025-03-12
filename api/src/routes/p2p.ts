@@ -3,7 +3,7 @@ import { DatabaseService } from '@/core/services/db';
 import { NodeSchema } from '@/schemas/p2p';
 import { OkResponseSchema } from '@/schemas/response';
 import Elysia, { t } from 'elysia';
-import { p2pService } from '..';
+import { blockchain, p2pService } from '..';
 
 export const P2PRouter = new Elysia({
   prefix: '/p2p',
@@ -121,4 +121,18 @@ export const P2PRouter = new Elysia({
         },
       },
     },
-  );
+  )
+  .get('/user', async ({ db }) => {
+    const users = await db.query.user.findMany();
+    return {
+      message: 'Get user success',
+      data: users,
+    };
+  })
+  .get('/blockchain', async () => {
+    const chain = blockchain.getChain();
+    return {
+      message: 'Get blockchain success',
+      data: chain,
+    };
+  });

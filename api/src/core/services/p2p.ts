@@ -10,8 +10,6 @@ import WebSocket from 'ws';
 import { Database } from './db';
 
 enum MessageType {
-  SYNC_TO_MASTER = 'SYNC_TO_MASTER',
-  SYNC_TO_SLAVE = 'SYNC_TO_SLAVE',
   QUERY_LATEST = 'QUERY_LATEST',
   QUERY_ALL = 'QUERY_ALL',
   RESPONSE_BLOCKCHAIN = 'RESPONSE_BLOCKCHAIN',
@@ -113,11 +111,8 @@ export class P2PService {
     this.startPeriodicServices();
 
     if (env.IS_SLAVE_NODE) {
-      await this.syncToMasterNode();
-    } else {
-      await this.syncToSlaveNode();
+      await this.connectToPeers([env.MASTER_NODE_URL_WS]);
     }
-
     this.initialized = true;
     console.log(
       `P2P network initialized. Node ID: ${this.nodeId}, listening on port ${this.port}`,
@@ -213,31 +208,6 @@ export class P2PService {
     this.sendHandshake(ws);
   }
 
-  private async syncToSlaveNode(): Promise<void> {
-    const [user, genesis] = await Promise.all([
-      this.db.query.user.findMany(),
-      this.db.query.attendance.findMany({
-        where: (f, o) => o.eq(f.id, 1),
-        with: {
-          user: {
-            columns: {
-              name: true,
-            },
-          },
-        },
-      }),
-    ]);
-
-    this.createAndBroadcastMessage(MessageType.SYNC_TO_SLAVE, {
-      user,
-      genesis,
-    });
-  }
-
-  private async syncToMasterNode(): Promise<void> {
-    this.createAndBroadcastMessage(MessageType.SYNC_TO_MASTER, null);
-  }
-
   private async handleMessage(
     ws: WebSocket,
     message: PeerMessage,
@@ -250,8 +220,6 @@ export class P2PService {
     const handlers: {
       [key in MessageType]?: (ws: WebSocket, data: any) => Promise<void>;
     } = {
-      [MessageType.SYNC_TO_MASTER]: async () => this.handleSyncToMaster(data),
-      [MessageType.SYNC_TO_SLAVE]: async () => this.handleSyncToSlave(),
       [MessageType.HANDSHAKE]: async () =>
         this.handleHandshake(ws, data, nodeId),
       [MessageType.QUERY_LATEST]: async () => this.handleQueryLatest(ws),
@@ -273,34 +241,6 @@ export class P2PService {
     } else {
       console.log(`Unknown message type: ${type}`);
     }
-  }
-
-  private async handleSyncToMaster(data: any): Promise<void> {
-    if (env.IS_SLAVE_NODE) {
-      const { user, genesis } = data;
-
-      await Promise.all([
-        this.db.delete(table.user).execute(),
-        this.db.delete(table.attendance).execute(),
-      ]);
-
-      await Promise.all([
-        this.db.insert(table.user).values(user).execute(),
-        this.db.insert(table.attendance).values(genesis).execute(),
-      ]);
-
-      const blockchainInstance = this.blockchain.getBlockchain();
-      blockchainInstance.replaceChain(genesis);
-    } else {
-      await this.syncToSlaveNode();
-    }
-  }
-
-  private async handleSyncToSlave(): Promise<void> {
-    const blockchainInstance = this.blockchain.getBlockchain();
-    const chain = blockchainInstance.getChain();
-
-    this.createAndBroadcastMessage(MessageType.RESPONSE_BLOCKCHAIN, chain);
   }
 
   private async handleHandshake(

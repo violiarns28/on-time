@@ -53,6 +53,28 @@ class Blockchain {
       if (!genesisBlock) {
         await this.createGenesisBlock(systemUserId);
       }
+    } else {
+      const userRequest = await fetch(`${env.MASTER_NODE_URL_HTTP}/p2p/user`);
+      const users = (await userRequest.json()).data;
+      await this.db
+        .insert(usersTable)
+        .values(users)
+        .onDuplicateKeyUpdate({
+          set: { ...users },
+        })
+        .execute();
+      const attendancesRequest = await fetch(
+        `${env.MASTER_NODE_URL_HTTP}/p2p/user`,
+      );
+      const attendances = (await attendancesRequest.json()).data;
+      this.chain = attendances;
+      await this.db
+        .insert(attendancesTable)
+        .values(attendances)
+        .onDuplicateKeyUpdate({
+          set: { ...attendances },
+        })
+        .execute();
     }
 
     await this.loadChain();
