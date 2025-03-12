@@ -1,17 +1,16 @@
 import { AuthWithUserMiddleware } from '@/core/middleware/auth';
 import { BlockchainService } from '@/core/services/blockchain';
-import { DatabaseService } from '@/core/services/db';
+import { DatabaseService, drizzleClient } from '@/core/services/db';
 import { P2PNetworkService } from '@/core/services/p2p';
 import { redisClient } from '@/core/services/redis';
 import { NodeSchema } from '@/schemas/p2p';
 import { OkResponseSchema } from '@/schemas/response';
 import Elysia, { t } from 'elysia';
 
-const blockchainService = BlockchainService.getInstance();
-const p2pService = P2PNetworkService.getInstance();
+export const blockchainService = BlockchainService.getInstance();
+export const p2pService = P2PNetworkService.getInstance();
 
-// Initialize P2P service with default port 6001
-p2pService.initialize(blockchainService, redisClient, 6001);
+p2pService.initialize(blockchainService, redisClient, drizzleClient, 6001);
 
 export const P2PRouter = new Elysia({
   prefix: '/p2p',

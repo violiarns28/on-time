@@ -87,7 +87,7 @@ export const AttendanceRouter = new Elysia({
       console.log('user', user);
       const userId = user.id;
       const { type, deviceId } = body;
-      
+
       if (!type) {
         throw new BadRequestError('Type is required');
       }
@@ -105,7 +105,7 @@ export const AttendanceRouter = new Elysia({
         where(fields, operators) {
           return operators.and(
             operators.eq(fields.userId, userId),
-            operators.eq(fields.date, date), 
+            operators.eq(fields.date, date),
           );
         },
       });

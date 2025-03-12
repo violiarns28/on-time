@@ -1,11 +1,13 @@
 import { BlockchainService } from '@/core/services/blockchain';
 import { SelectAttendance } from '@/schemas/attendance';
+import { table } from '@/tables';
 import crypto from 'crypto';
 import { EventEmitter } from 'events';
 import { Redis } from 'ioredis';
 import ip from 'ip';
 import os from 'os';
 import WebSocket from 'ws';
+import { Database } from './db';
 
 enum MessageType {
   // eslint-disable-next-line no-unused-vars
@@ -16,6 +18,8 @@ enum MessageType {
   RESPONSE_BLOCKCHAIN = 'RESPONSE_BLOCKCHAIN',
   // eslint-disable-next-line no-unused-vars
   NEW_BLOCK = 'NEW_BLOCK',
+  // eslint-disable-next-line no-unused-vars
+  NEW_USER = 'NEW_USER',
   // eslint-disable-next-line no-unused-vars
   REGISTER_NODE = 'REGISTER_NODE',
   // eslint-disable-next-line no-unused-vars
@@ -59,6 +63,7 @@ export class P2PNetworkService extends EventEmitter {
   private peers: Map<string, Peer> = new Map();
   private blockchain!: BlockchainService;
   private redis!: Redis;
+  private db!: Database;
   private port!: number;
   private nodeId: string;
   private heartbeatInterval: Timer | null = null;
@@ -93,6 +98,7 @@ export class P2PNetworkService extends EventEmitter {
   public async initialize(
     blockchain: BlockchainService,
     redis: Redis,
+    database: Database,
     port: number = 6001,
   ): Promise<void> {
     if (this.initialized) return;
@@ -100,17 +106,44 @@ export class P2PNetworkService extends EventEmitter {
     this.blockchain = blockchain;
     this.redis = redis;
     this.port = port;
+    this.db = database;
 
     await this.startServer();
     await this.loadPeersFromRedis();
     this.startHeartbeat();
     this.startReconnectService();
     this.startBlockchainSync();
+    this.handleEvent();
 
     this.initialized = true;
     console.log(
       `P2P network initialized. Node ID: ${this.nodeId}, listening on port ${this.port}`,
     );
+  }
+
+  private handleEvent(): void {
+    this.on('newValidBlock', (block: SelectAttendance) => {
+      console.log(`Handling new valid block: ${block.id}`);
+      try {
+        const blockchainInstance = this.blockchain.getBlockchain();
+        blockchainInstance.addBlock(block);
+        console.log(`Successfully added block ${block.id} to the chain`);
+        this.broadcastNewBlock(block);
+      } catch (error) {
+        console.error('Error handling new valid block:', error);
+      }
+    });
+
+    this.on('chainReplacement', (blocks: SelectAttendance[]) => {
+      console.log(`Replacing chain with ${blocks.length} blocks`);
+      try {
+        const blockchainInstance = this.blockchain.getBlockchain();
+        blockchainInstance.replaceChain(blocks);
+        console.log('Chain successfully replaced');
+      } catch (error) {
+        console.error('Error replacing blockchain:', error);
+      }
+    });
   }
 
   private async startServer(): Promise<void> {
@@ -156,12 +189,9 @@ export class P2PNetworkService extends EventEmitter {
 
     ws.on('close', () => {
       console.log('Peer disconnected');
-      // We don't remove the peer here, just mark it as disconnected
-      // by removing the ws instance. The reconnect service will try to reconnect.
       this.removePeerBySocket(ws);
     });
 
-    // Send handshake message to the new peer
     this.sendHandshake(ws);
   }
 
@@ -183,7 +213,6 @@ export class P2PNetworkService extends EventEmitter {
   ): Promise<void> {
     const { type, data, nodeId } = message;
 
-    // Update the peer's lastSeen timestamp
     this.updatePeerLastSeen(nodeId);
 
     console.log(`Received ${type} message from node ${nodeId}`);
@@ -209,6 +238,10 @@ export class P2PNetworkService extends EventEmitter {
         await this.handleNewBlock(data);
         break;
 
+      case MessageType.NEW_USER:
+        await this.handleNewUser(data);
+        break;
+
       case MessageType.REGISTER_NODE:
         await this.handleRegisterNode(data);
         break;
@@ -222,7 +255,6 @@ export class P2PNetworkService extends EventEmitter {
         break;
 
       case MessageType.PONG:
-        // PONG messages are handled implicitly by updating lastSeen above
         break;
 
       default:
@@ -237,10 +269,8 @@ export class P2PNetworkService extends EventEmitter {
   ): Promise<void> {
     const { url } = data;
 
-    // Add the new peer to our list
     this.addPeer(url, ws, nodeId);
 
-    // Share our node list with the new peer
     const nodeList = this.getNodeList();
     this.sendMessage(ws, {
       type: MessageType.NODE_LIST,
@@ -249,12 +279,27 @@ export class P2PNetworkService extends EventEmitter {
       timestamp: Date.now(),
     });
 
-    // Query the peer's blockchain
     this.sendMessage(ws, {
       type: MessageType.QUERY_ALL,
       data: null,
       nodeId: this.nodeId,
       timestamp: Date.now(),
+    });
+  }
+
+  private async handleNewUser(data: {
+    id: number;
+    name: string;
+    email: string;
+    password: string;
+    deviceId: string;
+    createdAt: string;
+    updatedAt: string;
+  }) {
+    await this.db.insert(table.user).values({
+      ...data,
+      createdAt: new Date(data.createdAt),
+      updatedAt: new Date(data.updatedAt),
     });
   }
 
@@ -304,20 +349,13 @@ export class P2PNetworkService extends EventEmitter {
         );
 
         if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
-          // We can append the received block to our chain
           console.log('Appending received block to our chain');
-          // This would require a method in the Blockchain class to add a pre-mined block
-          // For now, we broadcast what we have and let consensus work
           this.broadcastLatest();
         } else if (blocks.length === 1) {
-          // We need the entire blockchain from this peer
           console.log('Querying for entire blockchain');
           this.broadcastQueryAll();
         } else {
-          // Received blockchain is longer than current blockchain
           console.log('Received blockchain is longer than current blockchain');
-          // This would require a method to replace the chain in the Blockchain class
-          // Consider implementing a consensus mechanism
           this.handleChainReplacement(blocks);
         }
       } else {
@@ -333,21 +371,14 @@ export class P2PNetworkService extends EventEmitter {
   private async handleChainReplacement(
     blocks: SelectAttendance[],
   ): Promise<void> {
-    // This is a simplified consensus mechanism
-    // A more robust implementation would validate the entire chain
-
-    // Check if the received chain is valid
     const isValidChain = this.validateChain(blocks);
 
     if (isValidChain) {
       console.log(
         'Received blockchain is valid. Replacing current blockchain.',
       );
-      // This would require adding a method to the Blockchain class to replace the chain
-      // For now, we'll just log it
       console.log(`Would replace chain with ${blocks.length} blocks`);
 
-      // Emit an event that could be handled elsewhere in the application
       this.emit('chainReplacement', blocks);
     } else {
       console.log(
@@ -357,12 +388,8 @@ export class P2PNetworkService extends EventEmitter {
   }
 
   private validateChain(blocks: SelectAttendance[]): boolean {
-    // Basic validation: check that each block points to the previous one correctly
-    // and that the hash difficulty is correct
-
     if (blocks.length === 0) return false;
 
-    // Check genesis block
     if (blocks[0].id !== 1 || blocks[0].previousHash !== '0') {
       console.log('Invalid genesis block');
       return false;
@@ -375,26 +402,20 @@ export class P2PNetworkService extends EventEmitter {
       const currentBlock = blocks[i];
       const previousBlock = blocks[i - 1];
 
-      // Check block sequence
       if (currentBlock.id !== previousBlock.id + 1) {
         console.log(`Invalid block sequence at block ${i}`);
         return false;
       }
 
-      // Check previous hash reference
       if (currentBlock.previousHash !== previousBlock.hash) {
         console.log(`Invalid previous hash reference at block ${i}`);
         return false;
       }
 
-      // Check hash difficulty
       if (currentBlock.hash.substring(0, difficulty) !== target) {
         console.log(`Invalid hash difficulty at block ${i}`);
         return false;
       }
-
-      // Here you would also verify the hash calculation itself
-      // by recalculating it based on the block's contents
     }
 
     return true;
@@ -411,9 +432,7 @@ export class P2PNetworkService extends EventEmitter {
       const latestBlockHeld = blockchainInstance.getLatestBlock();
 
       if (block.previousHash === latestBlockHeld.hash) {
-        // This would require a method in the Blockchain class to add a pre-mined block
         console.log(`Valid new block received: ${block.id}`);
-        // Emit an event that could be handled elsewhere
         this.emit('newValidBlock', block);
       } else {
         console.log('New block rejected: invalid previous hash');
@@ -437,9 +456,7 @@ export class P2PNetworkService extends EventEmitter {
     if (!Array.isArray(nodes)) return;
 
     for (const node of nodes) {
-      // Don't add ourselves
       if (node.nodeId !== this.nodeId) {
-        // Check if we already have this node
         if (!this.peers.has(node.url)) {
           this.addPeer(node.url, undefined, node.nodeId, node.lastSeen);
         }
@@ -487,7 +504,6 @@ export class P2PNetworkService extends EventEmitter {
       });
     }
 
-    // Add ourselves
     nodeList.push({
       url: `ws://${ip.address()}:${this.port}`,
       nodeId: this.nodeId,
@@ -506,12 +522,10 @@ export class P2PNetworkService extends EventEmitter {
     if (this.peers.has(url)) {
       const existingPeer = this.peers.get(url)!;
 
-      // Update the WebSocket connection if provided
       if (ws) {
         existingPeer.ws = ws;
       }
 
-      // Update the nodeId if provided
       if (nodeId) {
         existingPeer.nodeId = nodeId;
       }
@@ -536,7 +550,6 @@ export class P2PNetworkService extends EventEmitter {
     if (this.peers.has(url)) {
       const peer = this.peers.get(url)!;
 
-      // Close the WebSocket connection if it exists
       if (peer.ws) {
         try {
           peer.ws.close();
@@ -578,7 +591,6 @@ export class P2PNetworkService extends EventEmitter {
         const peers: NodeInfo[] = JSON.parse(peersJson);
 
         for (const peer of peers) {
-          // Don't add ourselves
           if (peer.url !== `ws://${ip.address()}:${this.port}`) {
             this.addPeer(peer.url, undefined, peer.nodeId, peer.lastSeen);
             this.connectToPeer(peer.url);
@@ -724,6 +736,22 @@ export class P2PNetworkService extends EventEmitter {
     }
   }
 
+  public broadcastNewUser(data: {
+    id: number;
+    name: string;
+    email: string;
+    password: string;
+    deviceId: string;
+    createdAt: string;
+  }) {
+    this.broadcastMessage({
+      type: MessageType.NEW_USER,
+      data: data,
+      nodeId: this.nodeId,
+      timestamp: Date.now(),
+    });
+  }
+
   public broadcastNewBlock(block: SelectAttendance): void {
     this.broadcastMessage({
       type: MessageType.NEW_BLOCK,
@@ -796,7 +824,6 @@ export class P2PNetworkService extends EventEmitter {
       this.syncInterval = null;
     }
 
-    // Close all WebSocket connections
     for (const [url, peer] of this.peers.entries()) {
       if (peer.ws) {
         try {
@@ -807,7 +834,6 @@ export class P2PNetworkService extends EventEmitter {
       }
     }
 
-    // Close the server
     if (this.server) {
       this.server.close((error) => {
         if (error) {

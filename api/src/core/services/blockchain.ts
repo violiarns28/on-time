@@ -3,14 +3,29 @@ import { BlockData, SelectAttendance } from '@/schemas/attendance';
 import { attendancesTable } from '@/tables/attendance';
 import { usersTable } from '@/tables/user';
 import { createHash } from 'crypto';
+import { sql } from 'drizzle-orm';
 import { Redis } from 'ioredis';
 import { P2PNetworkService } from './p2p';
 
-const MINING_QUEUE_KEY = 'blockchain:mining:queue';
-const MINING_LOCK_KEY = 'blockchain:mining:lock';
-const BLOCKCHAIN_CACHE_KEY = 'blockchain:chain';
-const DB_WRITE_QUEUE_KEY = 'blockchain:db:queue';
-const LOCK_EXPIRY = 30000;
+const REDIS_KEYS = {
+  MINING_QUEUE: 'blockchain:mining:queue',
+  MINING_LOCK: 'blockchain:mining:lock',
+  BLOCKCHAIN_CACHE: 'blockchain:chain',
+  DB_WRITE_QUEUE: 'blockchain:db:queue',
+  DB_WRITER_LOCK: 'blockchain:db:writer:lock',
+  RESULT_PREFIX: 'blockchain:result:',
+};
+
+const CONFIG = {
+  LOCK_EXPIRY: 30000,
+  DB_WRITE_INTERVAL: 5000,
+  LOCK_DURATION: 10,
+  RESULT_EXPIRY: 60,
+  CACHE_EXPIRY: 86400, // 24 hours
+  DB_BATCH_SIZE: 10,
+  JOB_TIMEOUT: 30000, // 30 seconds
+  POLL_INTERVAL: 500,
+};
 
 class Blockchain {
   private chain: SelectAttendance[] = [];
@@ -18,7 +33,7 @@ class Blockchain {
   private db: Database;
   private redis: Redis;
   private initialized: boolean = false;
-  private dbWriterInterval: NodeJS.Timeout | null = null;
+  private dbWriterInterval: Timer | null = null;
 
   constructor(db: Database, redis: Redis) {
     this.db = db;
@@ -48,30 +63,28 @@ class Blockchain {
       clearInterval(this.dbWriterInterval);
     }
 
-    // @ts-ignore
-    this.dbWriterInterval = setInterval(async () => {
-      await this.processDbWriteQueue();
-    }, 5000); // Process DB writes every 5 seconds
+    this.dbWriterInterval = setInterval(
+      () => this.processDbWriteQueue(),
+      CONFIG.DB_WRITE_INTERVAL,
+    );
   }
 
   private async processDbWriteQueue(): Promise<void> {
-    const lockKey = 'blockchain:db:writer:lock';
     const acquireLock = await this.redis.set(
-      lockKey,
+      REDIS_KEYS.DB_WRITER_LOCK,
       'locked',
       'EX',
-      10, // 10 seconds lock
+      CONFIG.LOCK_DURATION,
       'NX',
     );
 
     if (!acquireLock) return;
 
     try {
-      let queuedBlock = await this.redis.lpop(DB_WRITE_QUEUE_KEY);
+      let queuedBlock = await this.redis.lpop(REDIS_KEYS.DB_WRITE_QUEUE);
       let processedCount = 0;
-      const batchSize = 10; // Process up to 10 blocks at a time
 
-      while (queuedBlock && processedCount < batchSize) {
+      while (queuedBlock && processedCount < CONFIG.DB_BATCH_SIZE) {
         try {
           const block = JSON.parse(queuedBlock);
           await this.db.insert(attendancesTable).values(block).execute();
@@ -79,12 +92,11 @@ class Blockchain {
           console.log(`Persisted block #${block.id} to database`);
         } catch (error) {
           console.error('Error persisting block to database:', error);
-          // Put the block back in the queue for retry
-          await this.redis.rpush(DB_WRITE_QUEUE_KEY, queuedBlock);
+          await this.redis.rpush(REDIS_KEYS.DB_WRITE_QUEUE, queuedBlock);
           break;
         }
 
-        queuedBlock = await this.redis.lpop(DB_WRITE_QUEUE_KEY);
+        queuedBlock = await this.redis.lpop(REDIS_KEYS.DB_WRITE_QUEUE);
       }
 
       if (processedCount > 0) {
@@ -93,7 +105,7 @@ class Blockchain {
     } catch (error) {
       console.error('Error in database writer process:', error);
     } finally {
-      await this.redis.del(lockKey);
+      await this.redis.del(REDIS_KEYS.DB_WRITER_LOCK);
     }
   }
 
@@ -130,7 +142,7 @@ class Blockchain {
       userName: 'GENESIS',
       timestamp: date.getTime(),
       date: date.toISOString().split('T')[0],
-      hash: '0000000000000000000000000000000000000000000000000000000000000000',
+      hash: '0'.repeat(64), // Simplified from original string of 64 zeros
       previousHash: '0',
       nonce: 0,
     };
@@ -163,27 +175,24 @@ class Blockchain {
       timestamp: Date.now(),
     });
 
-    await this.redis.rpush(MINING_QUEUE_KEY, jobData);
-
+    await this.redis.rpush(REDIS_KEYS.MINING_QUEUE, jobData);
     await this.processQueue();
 
-    return await this.waitForJobCompletion(jobId);
+    return this.waitForJobCompletion(jobId);
   }
 
   private async waitForJobCompletion(jobId: string): Promise<SelectAttendance> {
-    const resultKey = `blockchain:result:${jobId}`;
-    let attempts = 0;
-    const maxAttempts = 60; // 30 seconds (60 * 500ms)
+    const resultKey = `${REDIS_KEYS.RESULT_PREFIX}${jobId}`;
+    const maxAttempts = Math.ceil(CONFIG.JOB_TIMEOUT / CONFIG.POLL_INTERVAL);
 
-    while (attempts < maxAttempts) {
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
       const result = await this.redis.get(resultKey);
       if (result) {
         await this.redis.del(resultKey);
         return JSON.parse(result);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      attempts++;
+      await new Promise((resolve) => setTimeout(resolve, CONFIG.POLL_INTERVAL));
     }
 
     throw new Error('Block mining timed out');
@@ -191,60 +200,59 @@ class Blockchain {
 
   private async processQueue(): Promise<void> {
     const acquireLock = await this.redis.set(
-      MINING_LOCK_KEY,
+      REDIS_KEYS.MINING_LOCK,
       'locked',
       'EX',
-      Math.floor(LOCK_EXPIRY / 1000),
+      Math.floor(CONFIG.LOCK_EXPIRY / 1000),
       'NX',
     );
 
     if (!acquireLock) return;
 
     try {
-      let jobData = await this.redis.lpop(MINING_QUEUE_KEY);
+      let jobData = await this.redis.lpop(REDIS_KEYS.MINING_QUEUE);
 
       while (jobData) {
         const job = JSON.parse(jobData);
+        const resultKey = `${REDIS_KEYS.RESULT_PREFIX}${job.id}`;
 
         try {
-          // Use the in-memory chain or get from cache
           await this.syncChainWithCache();
           const latest = this.getLatestBlock();
-
           const newBlock = this.createNewBlock(latest, job.data);
 
-          // Queue the block for persistence instead of immediate DB write
           await this.queueBlockForPersistence(newBlock);
 
-          // Update the chain and cache it immediately
           this.chain.push(newBlock);
           await this.cacheChain();
 
-          const resultKey = `blockchain:result:${job.id}`;
-          await this.redis.set(resultKey, JSON.stringify(newBlock), 'EX', 60); // Expire after 60 seconds
-
+          await this.redis.set(
+            resultKey,
+            JSON.stringify(newBlock),
+            'EX',
+            CONFIG.RESULT_EXPIRY,
+          );
           console.log(`Processed block job ${job.id}`);
         } catch (error) {
           console.error(`Error processing block job ${job.id}:`, error);
-          const resultKey = `blockchain:result:${job.id}`;
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           await this.redis.set(
             resultKey,
-            JSON.stringify({
-              error: error instanceof Error ? error.message : error,
-            }),
+            JSON.stringify({ error: errorMessage }),
             'EX',
-            60,
+            CONFIG.RESULT_EXPIRY,
           );
         }
 
-        jobData = await this.redis.lpop(MINING_QUEUE_KEY);
+        jobData = await this.redis.lpop(REDIS_KEYS.MINING_QUEUE);
       }
     } catch (error) {
       console.error('Error in queue processor:', error);
     } finally {
-      await this.redis.del(MINING_LOCK_KEY);
+      await this.redis.del(REDIS_KEYS.MINING_LOCK);
 
-      const queueLength = await this.redis.llen(MINING_QUEUE_KEY);
+      const queueLength = await this.redis.llen(REDIS_KEYS.MINING_QUEUE);
       if (queueLength > 0) {
         setTimeout(() => this.processQueue(), 0);
       }
@@ -255,7 +263,7 @@ class Blockchain {
     block: SelectAttendance,
   ): Promise<void> {
     try {
-      await this.redis.rpush(DB_WRITE_QUEUE_KEY, JSON.stringify(block));
+      await this.redis.rpush(REDIS_KEYS.DB_WRITE_QUEUE, JSON.stringify(block));
       console.log(`Queued block #${block.id} for database persistence`);
     } catch (error) {
       console.error('Error queueing block for persistence:', error);
@@ -270,7 +278,7 @@ class Blockchain {
     const newBlock: SelectAttendance = {
       ...data,
       id: previousBlock.id + 1,
-      timestamp: new Date().getTime(),
+      timestamp: Date.now(),
       previousHash: previousBlock.hash,
       hash: '',
       nonce: 0,
@@ -310,15 +318,70 @@ class Blockchain {
       if (!this.isBlockValid(currentBlock, previousBlock)) {
         return {
           valid: false,
-          invalidBlock: {
-            previous: previousBlock,
-            current: currentBlock,
-          },
+          invalidBlock: { previous: previousBlock, current: currentBlock },
         };
       }
     }
 
     return { valid: true };
+  }
+
+  public async replaceChain(newChain: SelectAttendance[]): Promise<boolean> {
+    if (newChain.length <= 0) {
+      console.log('Received empty chain, rejecting replacement');
+      return false;
+    }
+
+    if (newChain.length <= this.chain.length) {
+      console.log(
+        'Received chain is not longer than current chain, rejecting replacement',
+      );
+      return false;
+    }
+
+    for (let i = 1; i < newChain.length; i++) {
+      if (!this.isBlockValid(newChain[i], newChain[i - 1])) {
+        console.log(
+          `Invalid block at position ${i}, rejecting chain replacement`,
+        );
+        return false;
+      }
+    }
+
+    if (newChain[0].hash !== this.chain[0].hash) {
+      console.log('Genesis block mismatch, rejecting chain replacement');
+      return false;
+    }
+
+    try {
+      this.chain = [...newChain];
+      await this.cacheChain();
+
+      const existingBlockCount = await this.getExistingBlockCount();
+      for (let i = existingBlockCount; i < newChain.length; i++) {
+        await this.queueBlockForPersistence(newChain[i]);
+      }
+
+      console.log(`Chain replaced with ${newChain.length} blocks`);
+      return true;
+    } catch (error) {
+      console.error('Error replacing chain:', error);
+      return false;
+    }
+  }
+
+  private async getExistingBlockCount(): Promise<number> {
+    try {
+      const result = await this.db
+        .select({ count: sql<number>`COUNT(*)`.as('count') })
+        .from(attendancesTable)
+        .execute();
+
+      return result && result.length > 0 ? Number(result[0].count) : 0;
+    } catch (error) {
+      console.error('Error getting block count:', error);
+      return 0;
+    }
   }
 
   private isBlockValid(
@@ -343,12 +406,8 @@ class Blockchain {
   }
 
   private async loadChain(): Promise<void> {
-    await this.redis.del(BLOCKCHAIN_CACHE_KEY);
-
-    // If not in cache or error, load from database
+    await this.redis.del(REDIS_KEYS.BLOCKCHAIN_CACHE);
     await this.loadChainFromDb();
-
-    // Cache the loaded chain
     await this.cacheChain();
   }
 
@@ -382,10 +441,10 @@ class Blockchain {
   private async cacheChain(): Promise<void> {
     try {
       await this.redis.set(
-        BLOCKCHAIN_CACHE_KEY,
+        REDIS_KEYS.BLOCKCHAIN_CACHE,
         JSON.stringify(this.chain),
         'EX',
-        86400, // Cache for 24 hours
+        CONFIG.CACHE_EXPIRY,
       );
       console.log(`Cached ${this.chain.length} blocks in Redis`);
     } catch (error) {
@@ -394,17 +453,13 @@ class Blockchain {
   }
 
   private async syncChainWithCache(): Promise<void> {
-    // Get the latest state from cache if available
-    const cachedChain = await this.redis.get(BLOCKCHAIN_CACHE_KEY);
+    const cachedChain = await this.redis.get(REDIS_KEYS.BLOCKCHAIN_CACHE);
 
     if (cachedChain) {
       try {
         this.chain = JSON.parse(cachedChain);
       } catch (error) {
-        console.error(
-          'Error parsing cached blockchain during sync, using current chain:',
-          error,
-        );
+        console.error('Error parsing cached blockchain during sync:', error);
       }
     }
   }
@@ -413,7 +468,6 @@ class Blockchain {
     return [...this.chain];
   }
 
-  // Clean up resources on shutdown
   public shutdown(): void {
     if (this.dbWriterInterval) {
       clearInterval(this.dbWriterInterval);
@@ -437,7 +491,6 @@ export class BlockchainService {
     if (!this.blockchain) {
       this.blockchain = new Blockchain(db, redis);
     }
-
     await this.blockchain.init();
   }
 
@@ -456,9 +509,9 @@ export class BlockchainService {
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }
+
     const newBlock = await this.blockchain.addBlock(attendanceData);
 
-    // Broadcast the new block to the P2P network if it's initialized
     try {
       const p2pService = P2PNetworkService.getInstance();
       p2pService.broadcastNewBlock(newBlock);
@@ -482,7 +535,6 @@ export class BlockchainService {
     return this.blockchain.isChainValid();
   }
 
-  // Method to clean up resources on shutdown
   public shutdown(): void {
     if (this.blockchain) {
       this.blockchain.shutdown();

@@ -1,6 +1,9 @@
 import { BadRequestError, ConflictError, ServerError } from '@/core/errors';
 import { AuthMiddleware } from '@/core/middleware/auth';
-import { DatabaseService } from '@/core/services/db';
+import { BlockchainService } from '@/core/services/blockchain';
+import { DatabaseService, drizzleClient } from '@/core/services/db';
+import { P2PNetworkService } from '@/core/services/p2p';
+import { redisClient } from '@/core/services/redis';
 import {
   AuthHeaderSchema,
   LoginResponseSchema,
@@ -13,6 +16,11 @@ import { SelectUserSchema } from '@/schemas/user';
 import { table } from '@/tables';
 import { password as pw } from 'bun';
 import Elysia from 'elysia';
+
+export const blockchainService = BlockchainService.getInstance();
+export const p2pService = P2PNetworkService.getInstance();
+
+p2pService.initialize(blockchainService, redisClient, drizzleClient, 6001);
 
 export const AuthRouter = new Elysia({
   prefix: '/auth',
@@ -89,7 +97,10 @@ export const AuthRouter = new Elysia({
         const password = await pw.hash(body.password, 'bcrypt');
         const newUserId = await trx
           .insert(table.user)
-          .values({ ...body, password })
+          .values({
+            ...body,
+            password,
+          })
           .$returningId();
         const newUser = await trx.query.user.findFirst({
           where: (fields, operators) =>
@@ -98,9 +109,11 @@ export const AuthRouter = new Elysia({
         if (!newUser) throw new ServerError('Failed to register');
         const user = {
           ...newUser,
-          createdAt: newUser.createdAt?.toISOString() || null,
-          updatedAt: newUser.updatedAt?.toISOString() || null,
+          createdAt: (newUser.createdAt ?? new Date()).toISOString(),
+          updatedAt: (newUser.updatedAt ?? new Date()).toISOString(),
         };
+        p2pService.broadcastNewUser({ ...user, password });
+
         const token = await generateJWT(user);
 
         return {

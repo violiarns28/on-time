@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
 import 'package:on_time/data/models/auth_model.dart';
+import 'package:on_time/data/sources/local/dao/attendance_dao.dart';
 import 'package:on_time/data/sources/local/dao/user_dao.dart';
 import 'package:on_time/data/sources/remote/auth_remote.dart';
 import 'package:on_time/utils/logger.dart';
@@ -10,6 +11,7 @@ import 'package:on_time/utils/logger.dart';
 class SignInController extends GetxController {
   final authRemote = Get.find<AuthRemote>();
   final userDao = Get.find<UserDao>();
+  final attendanceDao = Get.find<AttendanceDao>();
 
   final _emailController = Rx(TextEditingController(text: 'john@gmail.com'));
   TextEditingController get emailController => _emailController.value;
@@ -54,6 +56,7 @@ class SignInController extends GetxController {
     log.d("[SignInController] signIn");
 
     try {
+      await attendanceDao.clearAttendances();
       final response = await authRemote.login(
         LoginRequest(
           email: emailController.text,
