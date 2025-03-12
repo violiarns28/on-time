@@ -102,7 +102,7 @@ class Blockchain {
         })
         .execute();
       const attendancesRequest = await fetch(
-        `${env.MASTER_NODE_URL_HTTP}/p2p/user`,
+        `${env.MASTER_NODE_URL_HTTP}/p2p/blockchain`,
       );
       const attendances: SelectAttendance[] = (await attendancesRequest.json())
         .data;
