@@ -6,6 +6,7 @@ import { EventEmitter } from 'events';
 import { Redis } from 'ioredis';
 import ip from 'ip';
 import os from 'os';
+import { env } from 'process';
 import WebSocket from 'ws';
 import { Database } from './db';
 
@@ -114,6 +115,34 @@ export class P2PNetworkService extends EventEmitter {
     this.startReconnectService();
     this.startBlockchainSync();
     this.handleEvent();
+    if (!env.IS_SLAVE_NODE) {
+      const masterUser = await this.db.query.user.findFirst({
+        where: (f, o) => o.eq(f.id, 1),
+      });
+      if (masterUser)
+        this.broadcastNewUser({
+          ...masterUser,
+          createdAt: (masterUser.createdAt ?? new Date()).toISOString(),
+          updatedAt: (masterUser.updatedAt ?? new Date()).toISOString(),
+        });
+      const genesisBlock = await this.db.query.attendance.findFirst({
+        where: (f, o) => o.eq(f.id, 1),
+        with: {
+          user: {
+            columns: {
+              name: true,
+            },
+          },
+        },
+      });
+      if (genesisBlock)
+        this.broadcastNewBlock({
+          ...genesisBlock,
+          userName: genesisBlock.user.name,
+        });
+
+      this.broadcastQueryAll();
+    }
 
     this.initialized = true;
     console.log(
@@ -743,6 +772,7 @@ export class P2PNetworkService extends EventEmitter {
     password: string;
     deviceId: string;
     createdAt: string;
+    updatedAt: string;
   }) {
     this.broadcastMessage({
       type: MessageType.NEW_USER,

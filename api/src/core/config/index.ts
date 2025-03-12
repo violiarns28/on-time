@@ -21,7 +21,7 @@ const LoggerOptions: Options = {
 
 export const Database = {
   URL: env.DB_URL || 'localhost',
-  PORT: env.DB_PORT || 5432,
+  PORT: parseInt(env.DB_PORT) || 5432,
   USER: env.DB_USER || 'postgres',
   PASSWORD: env.DB_PASSWORD || 'password',
   DATABASE: env.DB_NAME || 'myapp',
@@ -30,7 +30,7 @@ export const Database = {
 
 export const Redis = {
   HOST: env.REDIS_HOST || 'localhost',
-  PORT: env.REDIS_PORT || 6379,
+  PORT: parseInt(env.REDIS_PORT) || 6379,
 } as const;
 
 export const Config = {

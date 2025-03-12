@@ -4,18 +4,31 @@ import { Static, t } from 'elysia';
 const EnvSchema = t.Object({
   API_PORT: t.String(),
   JWT_SECRET: t.String(),
-  SALT_ROUNDS: t.Number(),
+  SALT_ROUNDS: t
+    .Transform(t.String())
+    .Decode((v) => Number(v))
+    .Encode((v) => v.toString()),
 
   DB_URL: t.String(),
-  DB_PORT: t.Number(),
+  DB_PORT: t
+    .Transform(t.String())
+    .Decode((v) => Number(v))
+    .Encode((v) => v.toString()),
   DB_USER: t.String(),
   DB_PASSWORD: t.String(),
   DB_NAME: t.String(),
 
   REDIS_HOST: t.String(),
-  REDIS_PORT: t.Number(),
+  REDIS_PORT: t
+    .Transform(t.String())
+    .Decode((v) => Number(v))
+    .Encode((v) => v.toString()),
 
-  MASTER_NODE: t.String(),
+  IS_SLAVE_NODE: t
+    .Transform(t.String())
+    .Decode((v) => v === 'true')
+    .Encode((v) => (v ? 'true' : 'false')),
+  MASTER_NODE_URL: t.String(),
 });
 
 type Env = Static<typeof EnvSchema>;

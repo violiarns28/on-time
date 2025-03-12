@@ -5,6 +5,7 @@ import { usersTable } from '@/tables/user';
 import { createHash } from 'crypto';
 import { sql } from 'drizzle-orm';
 import { Redis } from 'ioredis';
+import { env } from '../config/env';
 import { P2PNetworkService } from './p2p';
 
 const REDIS_KEYS = {
@@ -43,14 +44,15 @@ class Blockchain {
   public async init(): Promise<void> {
     if (this.initialized) return;
 
-    const systemUserId = await this.createSystemUser();
+    if (!env.IS_SLAVE_NODE) {
+      const systemUserId = await this.createSystemUser();
+      const genesisBlock = await this.db.query.attendance.findFirst({
+        where: (fields, operators) => operators.eq(fields.id, 1),
+      });
 
-    const genesisBlock = await this.db.query.attendance.findFirst({
-      where: (fields, operators) => operators.eq(fields.id, 1),
-    });
-
-    if (!genesisBlock) {
-      await this.createGenesisBlock(systemUserId);
+      if (!genesisBlock) {
+        await this.createGenesisBlock(systemUserId);
+      }
     }
 
     await this.loadChain();
