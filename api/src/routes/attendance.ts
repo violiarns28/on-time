@@ -1,8 +1,6 @@
 import { BadRequestError } from '@/core/errors';
 import { AuthWithUserMiddleware } from '@/core/middleware/auth';
-import { BlockchainService } from '@/core/services/blockchain';
-import { DatabaseService, drizzleClient } from '@/core/services/db';
-import { redisClient } from '@/core/services/redis';
+import { DatabaseService } from '@/core/services/db';
 import {
   CreateAttendanceSchema,
   SelectAttendanceSchema,
@@ -11,10 +9,7 @@ import { OkResponseSchema } from '@/schemas/response';
 import { table } from '@/tables';
 import { sql } from 'drizzle-orm';
 import Elysia, { t } from 'elysia';
-
-const blockchainService = BlockchainService.getInstance();
-blockchainService.initializeBlockchain(drizzleClient, redisClient);
-const blockchain = blockchainService.getBlockchain();
+import { blockchain, blockchainService } from '..';
 
 export const AttendanceRouter = new Elysia({
   prefix: '/attendances',

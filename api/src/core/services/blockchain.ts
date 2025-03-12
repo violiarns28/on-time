@@ -6,7 +6,7 @@ import { createHash } from 'crypto';
 import { sql } from 'drizzle-orm';
 import { Redis } from 'ioredis';
 import { env } from '../config/env';
-import { P2PNetworkService } from './p2p';
+import { P2PService } from './p2p';
 
 const REDIS_KEYS = {
   MINING_QUEUE: 'blockchain:mining:queue',
@@ -117,7 +117,7 @@ class Blockchain {
     });
 
     if (!user) {
-      const ops = await this.db
+      await this.db
         .insert(usersTable)
         .values({
           id: 1,
@@ -126,9 +126,15 @@ class Blockchain {
           password: await Bun.password.hash('genesis', 'bcrypt'),
           deviceId: 'genesis',
         })
-        .$returningId()
         .execute();
-      return ops[0].id;
+
+      const find = await this.db.query.user.findFirst({
+        where: (fields, operators) => operators.eq(fields.id, 1),
+        columns: {
+          id: true,
+        },
+      });
+      return find?.id || 1;
     }
     return user.id;
   }
@@ -515,7 +521,7 @@ export class BlockchainService {
     const newBlock = await this.blockchain.addBlock(attendanceData);
 
     try {
-      const p2pService = P2PNetworkService.getInstance();
+      const p2pService = P2PService.getInstance();
       p2pService.broadcastNewBlock(newBlock);
     } catch (error) {
       console.log(

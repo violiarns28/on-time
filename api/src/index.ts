@@ -13,13 +13,22 @@ import cors from '@elysiajs/cors';
 import { serverTiming } from '@elysiajs/server-timing';
 import { swagger } from '@elysiajs/swagger';
 import { Elysia, ValidationError } from 'elysia';
+import { env } from './core/config/env';
 import { BlockchainService } from './core/services/blockchain';
 import { drizzleClient } from './core/services/db';
-import { P2PNetworkService } from './core/services/p2p';
+import { P2PService } from './core/services/p2p';
 import { redisClient } from './core/services/redis';
 import { AppRouter } from './routes/_router';
 
 process.env.TZ = 'Asia/Jakarta';
+
+export const blockchainService = BlockchainService.getInstance();
+blockchainService.initializeBlockchain(drizzleClient, redisClient);
+export const blockchain = blockchainService.getBlockchain();
+
+export const p2pService = P2PService.getInstance();
+p2pService.initialize(blockchainService, drizzleClient, 6001);
+if (env.IS_SLAVE_NODE) p2pService.addPeer(env.MASTER_NODE_URL_WS);
 
 const app = new Elysia({
   name: Config.NAME,
@@ -117,11 +126,7 @@ const app = new Elysia({
   )
   .use(AppRouter)
   .onStop(() => {
-    const blockchainService = BlockchainService.getInstance();
-    blockchainService.initializeBlockchain(drizzleClient, redisClient);
-    const blockchain = blockchainService.getBlockchain();
     blockchain.shutdown();
-    const p2pService = P2PNetworkService.getInstance();
     p2pService.shutdown();
   });
 

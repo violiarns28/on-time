@@ -2,7 +2,7 @@ import { BadRequestError, ConflictError, ServerError } from '@/core/errors';
 import { AuthMiddleware } from '@/core/middleware/auth';
 import { BlockchainService } from '@/core/services/blockchain';
 import { DatabaseService } from '@/core/services/db';
-import { P2PNetworkService } from '@/core/services/p2p';
+import { P2PService } from '@/core/services/p2p';
 import {
   AuthHeaderSchema,
   LoginResponseSchema,
@@ -17,7 +17,7 @@ import { password as pw } from 'bun';
 import Elysia from 'elysia';
 
 export const blockchainService = BlockchainService.getInstance();
-export const p2pService = P2PNetworkService.getInstance();
+export const p2pService = P2PService.getInstance();
 
 export const AuthRouter = new Elysia({
   prefix: '/auth',

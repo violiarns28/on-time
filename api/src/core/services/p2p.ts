@@ -1,9 +1,8 @@
+/* eslint-disable no-unused-vars */
 import { BlockchainService } from '@/core/services/blockchain';
 import { SelectAttendance } from '@/schemas/attendance';
 import { table } from '@/tables';
 import crypto from 'crypto';
-import { EventEmitter } from 'events';
-import { Redis } from 'ioredis';
 import ip from 'ip';
 import os from 'os';
 import { env } from 'process';
@@ -11,25 +10,17 @@ import WebSocket from 'ws';
 import { Database } from './db';
 
 enum MessageType {
-  // eslint-disable-next-line no-unused-vars
+  SYNC_TO_MASTER = 'SYNC_TO_MASTER',
+  SYNC_TO_SLAVE = 'SYNC_TO_SLAVE',
   QUERY_LATEST = 'QUERY_LATEST',
-  // eslint-disable-next-line no-unused-vars
   QUERY_ALL = 'QUERY_ALL',
-  // eslint-disable-next-line no-unused-vars
   RESPONSE_BLOCKCHAIN = 'RESPONSE_BLOCKCHAIN',
-  // eslint-disable-next-line no-unused-vars
   NEW_BLOCK = 'NEW_BLOCK',
-  // eslint-disable-next-line no-unused-vars
   NEW_USER = 'NEW_USER',
-  // eslint-disable-next-line no-unused-vars
   REGISTER_NODE = 'REGISTER_NODE',
-  // eslint-disable-next-line no-unused-vars
   NODE_LIST = 'NODE_LIST',
-  // eslint-disable-next-line no-unused-vars
   HANDSHAKE = 'HANDSHAKE',
-  // eslint-disable-next-line no-unused-vars
   PING = 'PING',
-  // eslint-disable-next-line no-unused-vars
   PONG = 'PONG',
 }
 
@@ -53,42 +44,53 @@ interface NodeInfo {
   lastSeen: number;
 }
 
-const NODES_KEY = 'blockchain:p2p:nodes';
-const HEARTBEAT_INTERVAL = 30000; // 30 seconds
-const NODE_TIMEOUT = 300000; // 5 minutes
-const RECONNECT_INTERVAL = 10000; // 10 seconds
+interface NewUserData {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  deviceId: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export class P2PNetworkService extends EventEmitter {
-  private static instance: P2PNetworkService;
+// Configuration constants
+const CONFIG = {
+  HEARTBEAT_INTERVAL: 30000, // 30 seconds
+  NODE_TIMEOUT: 300000, // 5 minutes
+  RECONNECT_INTERVAL: 10000, // 10 seconds
+  BLOCKCHAIN_SYNC_INTERVAL: 60000, // 1 minute
+  MINING_DIFFICULTY: 2, // Should match blockchain difficulty
+};
+
+export class P2PService {
+  private static instance: P2PService;
   private server: WebSocket.Server | null = null;
   private peers: Map<string, Peer> = new Map();
   private blockchain!: BlockchainService;
-  private redis!: Redis;
   private db!: Database;
   private port!: number;
   private nodeId: string;
-  private heartbeatInterval: Timer | null = null;
-  private reconnectInterval: Timer | null = null;
-  private syncInterval: Timer | null = null;
+  private intervals: { [key: string]: Timer | null } = {
+    heartbeat: null,
+    reconnect: null,
+    sync: null,
+  };
   private initialized: boolean = false;
 
   private constructor() {
-    super();
     this.nodeId = this.generateNodeId();
   }
 
-  public static getInstance(): P2PNetworkService {
-    if (!P2PNetworkService.instance) {
-      P2PNetworkService.instance = new P2PNetworkService();
+  public static getInstance(): P2PService {
+    if (!P2PService.instance) {
+      P2PService.instance = new P2PService();
     }
-    return P2PNetworkService.instance;
+    return P2PService.instance;
   }
 
   private generateNodeId(): string {
-    const hostname = os.hostname();
-    const ipAddress = ip.address();
-    const timestamp = Date.now();
-    const uniqueString = `${hostname}-${ipAddress}-${timestamp}-${Math.random()}`;
+    const uniqueString = `${os.hostname()}-${ip.address()}-${Date.now()}-${Math.random()}`;
     return crypto
       .createHash('sha256')
       .update(uniqueString)
@@ -98,50 +100,22 @@ export class P2PNetworkService extends EventEmitter {
 
   public async initialize(
     blockchain: BlockchainService,
-    redis: Redis,
     database: Database,
     port: number = 6002,
   ): Promise<void> {
     if (this.initialized) return;
 
     this.blockchain = blockchain;
-    this.redis = redis;
     this.port = port;
     this.db = database;
 
     await this.startServer();
-    await this.loadPeersFromRedis();
-    this.startHeartbeat();
-    this.startReconnectService();
-    this.startBlockchainSync();
-    this.handleEvent();
-    if (!env.IS_SLAVE_NODE) {
-      const masterUser = await this.db.query.user.findFirst({
-        where: (f, o) => o.eq(f.id, 1),
-      });
-      if (masterUser)
-        this.broadcastNewUser({
-          ...masterUser,
-          createdAt: (masterUser.createdAt ?? new Date()).toISOString(),
-          updatedAt: (masterUser.updatedAt ?? new Date()).toISOString(),
-        });
-      const genesisBlock = await this.db.query.attendance.findFirst({
-        where: (f, o) => o.eq(f.id, 1),
-        with: {
-          user: {
-            columns: {
-              name: true,
-            },
-          },
-        },
-      });
-      if (genesisBlock)
-        this.broadcastNewBlock({
-          ...genesisBlock,
-          userName: genesisBlock.user.name,
-        });
+    this.startPeriodicServices();
 
-      this.broadcastQueryAll();
+    if (env.IS_SLAVE_NODE) {
+      await this.syncToMasterNode();
+    } else {
+      await this.syncToSlaveNode();
     }
 
     this.initialized = true;
@@ -150,29 +124,44 @@ export class P2PNetworkService extends EventEmitter {
     );
   }
 
-  private handleEvent(): void {
-    this.on('newValidBlock', (block: SelectAttendance) => {
-      console.log(`Handling new valid block: ${block.id}`);
-      try {
-        const blockchainInstance = this.blockchain.getBlockchain();
-        blockchainInstance.addBlock(block);
-        console.log(`Successfully added block ${block.id} to the chain`);
-        this.broadcastNewBlock(block);
-      } catch (error) {
-        console.error('Error handling new valid block:', error);
-      }
-    });
+  private startPeriodicServices(): void {
+    this.startIntervalService(
+      'heartbeat',
+      () => {
+        this.sendHeartbeat();
+        this.cleanupStaleNodes();
+      },
+      CONFIG.HEARTBEAT_INTERVAL,
+    );
 
-    this.on('chainReplacement', (blocks: SelectAttendance[]) => {
-      console.log(`Replacing chain with ${blocks.length} blocks`);
-      try {
-        const blockchainInstance = this.blockchain.getBlockchain();
-        blockchainInstance.replaceChain(blocks);
-        console.log('Chain successfully replaced');
-      } catch (error) {
-        console.error('Error replacing blockchain:', error);
-      }
-    });
+    this.startIntervalService(
+      'reconnect',
+      () => {
+        this.reconnectToPeers();
+      },
+      CONFIG.RECONNECT_INTERVAL,
+    );
+
+    this.startIntervalService(
+      'sync',
+      () => {
+        this.broadcastQueryLatest();
+      },
+      CONFIG.BLOCKCHAIN_SYNC_INTERVAL,
+    );
+  }
+
+  private startIntervalService(
+    name: string,
+    callback: () => void,
+    interval: number,
+  ): void {
+    if (this.intervals[name]) {
+      clearInterval(this.intervals[name] as NodeJS.Timeout);
+    }
+
+    this.intervals[name] = setInterval(callback, interval);
+    console.log(`${name} service started`);
   }
 
   private async startServer(): Promise<void> {
@@ -224,16 +213,29 @@ export class P2PNetworkService extends EventEmitter {
     this.sendHandshake(ws);
   }
 
-  private removePeerBySocket(ws: WebSocket): void {
-    for (const [url, peer] of this.peers.entries()) {
-      if (peer.ws === ws) {
-        const updatedPeer = { ...peer };
-        delete updatedPeer.ws;
-        this.peers.set(url, updatedPeer);
-        console.log(`Marked peer ${url} as disconnected`);
-        break;
-      }
-    }
+  private async syncToSlaveNode(): Promise<void> {
+    const [user, genesis] = await Promise.all([
+      this.db.query.user.findMany(),
+      this.db.query.attendance.findMany({
+        where: (f, o) => o.eq(f.id, 1),
+        with: {
+          user: {
+            columns: {
+              name: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    this.createAndBroadcastMessage(MessageType.SYNC_TO_SLAVE, {
+      user,
+      genesis,
+    });
+  }
+
+  private async syncToMasterNode(): Promise<void> {
+    this.createAndBroadcastMessage(MessageType.SYNC_TO_MASTER, null);
   }
 
   private async handleMessage(
@@ -243,52 +245,62 @@ export class P2PNetworkService extends EventEmitter {
     const { type, data, nodeId } = message;
 
     this.updatePeerLastSeen(nodeId);
-
     console.log(`Received ${type} message from node ${nodeId}`);
 
-    switch (type) {
-      case MessageType.HANDSHAKE:
-        await this.handleHandshake(ws, data, nodeId);
-        break;
+    const handlers: {
+      [key in MessageType]?: (ws: WebSocket, data: any) => Promise<void>;
+    } = {
+      [MessageType.SYNC_TO_MASTER]: async () => this.handleSyncToMaster(data),
+      [MessageType.SYNC_TO_SLAVE]: async () => this.handleSyncToSlave(),
+      [MessageType.HANDSHAKE]: async () =>
+        this.handleHandshake(ws, data, nodeId),
+      [MessageType.QUERY_LATEST]: async () => this.handleQueryLatest(ws),
+      [MessageType.QUERY_ALL]: async () => this.handleQueryAll(ws),
+      [MessageType.RESPONSE_BLOCKCHAIN]: async () =>
+        this.handleBlockchainResponse(data),
+      [MessageType.NEW_BLOCK]: async () => this.handleNewBlock(data),
+      [MessageType.NEW_USER]: async () => this.handleNewUser(data),
+      [MessageType.REGISTER_NODE]: async () => this.handleRegisterNode(data),
+      [MessageType.NODE_LIST]: async () => this.handleNodeList(data),
+      [MessageType.PING]: async () => this.handlePing(ws),
+      // eslint-disable-next-line prettier/prettier
+      [MessageType.PONG]: async () => { }, // No action needed
+    };
 
-      case MessageType.QUERY_LATEST:
-        this.handleQueryLatest(ws);
-        break;
-
-      case MessageType.QUERY_ALL:
-        this.handleQueryAll(ws);
-        break;
-
-      case MessageType.RESPONSE_BLOCKCHAIN:
-        await this.handleBlockchainResponse(data);
-        break;
-
-      case MessageType.NEW_BLOCK:
-        await this.handleNewBlock(data);
-        break;
-
-      case MessageType.NEW_USER:
-        await this.handleNewUser(data);
-        break;
-
-      case MessageType.REGISTER_NODE:
-        await this.handleRegisterNode(data);
-        break;
-
-      case MessageType.NODE_LIST:
-        await this.handleNodeList(data);
-        break;
-
-      case MessageType.PING:
-        this.handlePing(ws);
-        break;
-
-      case MessageType.PONG:
-        break;
-
-      default:
-        console.log(`Unknown message type: ${type}`);
+    const handler = handlers[type];
+    if (handler) {
+      await handler(ws, data);
+    } else {
+      console.log(`Unknown message type: ${type}`);
     }
+  }
+
+  private async handleSyncToMaster(data: any): Promise<void> {
+    if (env.IS_SLAVE_NODE) {
+      const { user, genesis } = data;
+
+      await Promise.all([
+        this.db.delete(table.user).execute(),
+        this.db.delete(table.attendance).execute(),
+      ]);
+
+      await Promise.all([
+        this.db.insert(table.user).values(user).execute(),
+        this.db.insert(table.attendance).values(genesis).execute(),
+      ]);
+
+      const blockchainInstance = this.blockchain.getBlockchain();
+      blockchainInstance.replaceChain(genesis);
+    } else {
+      await this.syncToSlaveNode();
+    }
+  }
+
+  private async handleSyncToSlave(): Promise<void> {
+    const blockchainInstance = this.blockchain.getBlockchain();
+    const chain = blockchainInstance.getChain();
+
+    this.createAndBroadcastMessage(MessageType.RESPONSE_BLOCKCHAIN, chain);
   }
 
   private async handleHandshake(
@@ -301,30 +313,11 @@ export class P2PNetworkService extends EventEmitter {
     this.addPeer(url, ws, nodeId);
 
     const nodeList = this.getNodeList();
-    this.sendMessage(ws, {
-      type: MessageType.NODE_LIST,
-      data: nodeList,
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
-
-    this.sendMessage(ws, {
-      type: MessageType.QUERY_ALL,
-      data: null,
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
+    this.sendMessage(ws, this.createMessage(MessageType.NODE_LIST, nodeList));
+    this.sendMessage(ws, this.createMessage(MessageType.QUERY_ALL, null));
   }
 
-  private async handleNewUser(data: {
-    id: number;
-    name: string;
-    email: string;
-    password: string;
-    deviceId: string;
-    createdAt: string;
-    updatedAt: string;
-  }) {
+  private async handleNewUser(data: NewUserData) {
     await this.db.insert(table.user).values({
       ...data,
       createdAt: new Date(data.createdAt),
@@ -333,15 +326,13 @@ export class P2PNetworkService extends EventEmitter {
   }
 
   private handleQueryLatest(ws: WebSocket): void {
-    const blockchainInstance = this.blockchain.getBlockchain();
     try {
+      const blockchainInstance = this.blockchain.getBlockchain();
       const latestBlock = blockchainInstance.getLatestBlock();
-      this.sendMessage(ws, {
-        type: MessageType.RESPONSE_BLOCKCHAIN,
-        data: [latestBlock],
-        nodeId: this.nodeId,
-        timestamp: Date.now(),
-      });
+      this.sendMessage(
+        ws,
+        this.createMessage(MessageType.RESPONSE_BLOCKCHAIN, [latestBlock]),
+      );
     } catch (error) {
       console.error('Error getting latest block:', error);
     }
@@ -350,12 +341,10 @@ export class P2PNetworkService extends EventEmitter {
   private handleQueryAll(ws: WebSocket): void {
     const blockchainInstance = this.blockchain.getBlockchain();
     const chain = blockchainInstance.getChain();
-    this.sendMessage(ws, {
-      type: MessageType.RESPONSE_BLOCKCHAIN,
-      data: chain,
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
+    this.sendMessage(
+      ws,
+      this.createMessage(MessageType.RESPONSE_BLOCKCHAIN, chain),
+    );
   }
 
   private async handleBlockchainResponse(
@@ -406,9 +395,15 @@ export class P2PNetworkService extends EventEmitter {
       console.log(
         'Received blockchain is valid. Replacing current blockchain.',
       );
-      console.log(`Would replace chain with ${blocks.length} blocks`);
+      console.log(`Replacing chain with ${blocks.length} blocks`);
 
-      this.emit('chainReplacement', blocks);
+      try {
+        const blockchainInstance = this.blockchain.getBlockchain();
+        blockchainInstance.replaceChain(blocks);
+        console.log('Chain successfully replaced');
+      } catch (error) {
+        console.error('Error replacing blockchain:', error);
+      }
     } else {
       console.log(
         'Received blockchain is invalid. Keeping current blockchain.',
@@ -424,7 +419,7 @@ export class P2PNetworkService extends EventEmitter {
       return false;
     }
 
-    const difficulty = 2; // Should match the difficulty in the Blockchain class
+    const difficulty = CONFIG.MINING_DIFFICULTY;
     const target = '0'.repeat(difficulty);
 
     for (let i = 1; i < blocks.length; i++) {
@@ -462,7 +457,14 @@ export class P2PNetworkService extends EventEmitter {
 
       if (block.previousHash === latestBlockHeld.hash) {
         console.log(`Valid new block received: ${block.id}`);
-        this.emit('newValidBlock', block);
+
+        try {
+          blockchainInstance.addBlock(block);
+          console.log(`Successfully added block ${block.id} to the chain`);
+          this.broadcastNewBlock(block);
+        } catch (error) {
+          console.error('Error handling new valid block:', error);
+        }
       } else {
         console.log('New block rejected: invalid previous hash');
       }
@@ -485,61 +487,14 @@ export class P2PNetworkService extends EventEmitter {
     if (!Array.isArray(nodes)) return;
 
     for (const node of nodes) {
-      if (node.nodeId !== this.nodeId) {
-        if (!this.peers.has(node.url)) {
-          this.addPeer(node.url, undefined, node.nodeId, node.lastSeen);
-        }
+      if (node.nodeId !== this.nodeId && !this.peers.has(node.url)) {
+        this.addPeer(node.url, undefined, node.nodeId, node.lastSeen);
       }
     }
   }
 
   private handlePing(ws: WebSocket): void {
-    this.sendMessage(ws, {
-      type: MessageType.PONG,
-      data: null,
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
-  }
-
-  private sendHandshake(ws: WebSocket): void {
-    const myUrl = `ws://${ip.address()}:${this.port}`;
-    this.sendMessage(ws, {
-      type: MessageType.HANDSHAKE,
-      data: { url: myUrl },
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
-  }
-
-  private updatePeerLastSeen(nodeId: string): void {
-    for (const [url, peer] of this.peers.entries()) {
-      if (peer.nodeId === nodeId) {
-        peer.lastSeen = Date.now();
-        this.peers.set(url, peer);
-        break;
-      }
-    }
-  }
-
-  private getNodeList(): NodeInfo[] {
-    const nodeList: NodeInfo[] = [];
-
-    for (const [url, peer] of this.peers.entries()) {
-      nodeList.push({
-        url,
-        nodeId: peer.nodeId,
-        lastSeen: peer.lastSeen,
-      });
-    }
-
-    nodeList.push({
-      url: `ws://${ip.address()}:${this.port}`,
-      nodeId: this.nodeId,
-      lastSeen: Date.now(),
-    });
-
-    return nodeList;
+    this.sendMessage(ws, this.createMessage(MessageType.PONG, null));
   }
 
   public async addPeer(
@@ -548,20 +503,20 @@ export class P2PNetworkService extends EventEmitter {
     nodeId?: string,
     lastSeen: number = Date.now(),
   ): Promise<void> {
+    console.log(`Adding peer: ${url}`);
+
     if (this.peers.has(url)) {
       const existingPeer = this.peers.get(url)!;
 
-      if (ws) {
-        existingPeer.ws = ws;
-      }
+      const updatedPeer = {
+        ...existingPeer,
+        ...(ws && { ws }),
+        ...(nodeId && { nodeId }),
+        lastSeen,
+      };
 
-      if (nodeId) {
-        existingPeer.nodeId = nodeId;
-      }
-
-      existingPeer.lastSeen = lastSeen;
-      this.peers.set(url, existingPeer);
-      console.log(`Updated peer: ${url}, nodeId: ${existingPeer.nodeId}`);
+      this.peers.set(url, updatedPeer);
+      console.log(`Updated peer: ${url}, nodeId: ${updatedPeer.nodeId}`);
     } else {
       this.peers.set(url, {
         url,
@@ -571,8 +526,18 @@ export class P2PNetworkService extends EventEmitter {
       });
       console.log(`Added new peer: ${url}, nodeId: ${nodeId || 'unknown'}`);
     }
+  }
 
-    await this.savePeersToRedis();
+  private removePeerBySocket(ws: WebSocket): void {
+    for (const [url, peer] of this.peers.entries()) {
+      if (peer.ws === ws) {
+        const updatedPeer = { ...peer };
+        delete updatedPeer.ws;
+        this.peers.set(url, updatedPeer);
+        console.log(`Marked peer ${url} as disconnected`);
+        break;
+      }
+    }
   }
 
   private removePeer(url: string): void {
@@ -589,72 +554,51 @@ export class P2PNetworkService extends EventEmitter {
 
       this.peers.delete(url);
       console.log(`Removed peer: ${url}`);
-
-      this.savePeersToRedis();
     }
   }
 
-  private async savePeersToRedis(): Promise<void> {
-    try {
-      const peerList: NodeInfo[] = [];
+  private sendHandshake(ws: WebSocket): void {
+    const myUrl = `ws://${ip.address()}:${this.port}`;
+    this.sendMessage(
+      ws,
+      this.createMessage(MessageType.HANDSHAKE, { url: myUrl }),
+    );
+  }
 
-      for (const [url, peer] of this.peers.entries()) {
-        peerList.push({
-          url,
-          nodeId: peer.nodeId,
-          lastSeen: peer.lastSeen,
-        });
+  private updatePeerLastSeen(nodeId: string): void {
+    for (const [url, peer] of this.peers.entries()) {
+      if (peer.nodeId === nodeId) {
+        peer.lastSeen = Date.now();
+        this.peers.set(url, peer);
+        break;
       }
-
-      await this.redis.set(NODES_KEY, JSON.stringify(peerList));
-    } catch (error) {
-      console.error('Error saving peers to Redis:', error);
     }
   }
 
-  private async loadPeersFromRedis(): Promise<void> {
-    try {
-      const peersJson = await this.redis.get(NODES_KEY);
+  private getNodeList(): NodeInfo[] {
+    const nodeList: NodeInfo[] = Array.from(this.peers.entries()).map(
+      ([url, peer]) => ({
+        url,
+        nodeId: peer.nodeId,
+        lastSeen: peer.lastSeen,
+      }),
+    );
 
-      if (peersJson) {
-        const peers: NodeInfo[] = JSON.parse(peersJson);
+    nodeList.push({
+      url: `ws://${ip.address()}:${this.port}`,
+      nodeId: this.nodeId,
+      lastSeen: Date.now(),
+    });
 
-        for (const peer of peers) {
-          if (peer.url !== `ws://${ip.address()}:${this.port}`) {
-            this.addPeer(peer.url, undefined, peer.nodeId, peer.lastSeen);
-            this.connectToPeer(peer.url);
-          }
-        }
-
-        console.log(`Loaded ${peers.length} peers from Redis`);
-      }
-    } catch (error) {
-      console.error('Error loading peers from Redis:', error);
-    }
-  }
-
-  private startHeartbeat(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-    }
-
-    this.heartbeatInterval = setInterval(() => {
-      this.sendHeartbeat();
-      this.cleanupStaleNodes();
-    }, HEARTBEAT_INTERVAL);
-
-    console.log('Heartbeat service started');
+    return nodeList;
   }
 
   private sendHeartbeat(): void {
+    const pingMessage = this.createMessage(MessageType.PING, null);
+
     for (const [, peer] of this.peers.entries()) {
       if (peer.ws && peer.ws.readyState === WebSocket.OPEN) {
-        this.sendMessage(peer.ws, {
-          type: MessageType.PING,
-          data: null,
-          nodeId: this.nodeId,
-          timestamp: Date.now(),
-        });
+        this.sendMessage(peer.ws, pingMessage);
       }
     }
   }
@@ -664,7 +608,7 @@ export class P2PNetworkService extends EventEmitter {
     const stalePeers: string[] = [];
 
     for (const [url, peer] of this.peers.entries()) {
-      if (now - peer.lastSeen > NODE_TIMEOUT) {
+      if (now - peer.lastSeen > CONFIG.NODE_TIMEOUT) {
         stalePeers.push(url);
       }
     }
@@ -675,36 +619,12 @@ export class P2PNetworkService extends EventEmitter {
     }
   }
 
-  private startReconnectService(): void {
-    if (this.reconnectInterval) {
-      clearInterval(this.reconnectInterval);
-    }
-
-    this.reconnectInterval = setInterval(() => {
-      this.reconnectToPeers();
-    }, RECONNECT_INTERVAL);
-
-    console.log('Reconnect service started');
-  }
-
   private reconnectToPeers(): void {
     for (const [url, peer] of this.peers.entries()) {
       if (!peer.ws || peer.ws.readyState !== WebSocket.OPEN) {
         this.connectToPeer(url);
       }
     }
-  }
-
-  private startBlockchainSync(): void {
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval);
-    }
-
-    this.syncInterval = setInterval(() => {
-      this.broadcastQueryLatest();
-    }, 60000); // Sync every minute
-
-    console.log('Blockchain sync service started');
   }
 
   private connectToPeer(url: string): void {
@@ -749,6 +669,15 @@ export class P2PNetworkService extends EventEmitter {
     }
   }
 
+  private createMessage(type: MessageType, data: any): PeerMessage {
+    return {
+      type,
+      data,
+      nodeId: this.nodeId,
+      timestamp: Date.now(),
+    };
+  }
+
   private sendMessage(ws: WebSocket, message: PeerMessage): void {
     try {
       ws.send(JSON.stringify(message));
@@ -765,48 +694,31 @@ export class P2PNetworkService extends EventEmitter {
     }
   }
 
-  public broadcastNewUser(data: {
-    id: number;
-    name: string;
-    email: string;
-    password: string;
-    deviceId: string;
-    createdAt: string;
-    updatedAt: string;
-  }) {
-    this.broadcastMessage({
-      type: MessageType.NEW_USER,
-      data: data,
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
+  private createAndBroadcastMessage(type: MessageType, data: any): void {
+    this.broadcastMessage(this.createMessage(type, data));
+  }
+
+  public broadcastNewUser(data: NewUserData) {
+    this.createAndBroadcastMessage(MessageType.NEW_USER, data);
   }
 
   public broadcastNewBlock(block: SelectAttendance): void {
-    this.broadcastMessage({
-      type: MessageType.NEW_BLOCK,
-      data: block,
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
+    this.createAndBroadcastMessage(MessageType.NEW_BLOCK, block);
   }
 
   public broadcastQueryLatest(): void {
-    this.broadcastMessage({
-      type: MessageType.QUERY_LATEST,
-      data: null,
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
+    this.createAndBroadcastMessage(MessageType.QUERY_LATEST, null);
   }
 
   public broadcastQueryAll(): void {
-    this.broadcastMessage({
-      type: MessageType.QUERY_ALL,
-      data: null,
-      nodeId: this.nodeId,
-      timestamp: Date.now(),
-    });
+    this.createAndBroadcastMessage(MessageType.QUERY_ALL, null);
+  }
+
+  public broadcastAllBlocks(): void {
+    const blockchainInstance = this.blockchain.getBlockchain();
+    const chain = blockchainInstance.getChain();
+
+    this.createAndBroadcastMessage(MessageType.RESPONSE_BLOCKCHAIN, chain);
   }
 
   public broadcastLatest(): void {
@@ -814,12 +726,9 @@ export class P2PNetworkService extends EventEmitter {
       const blockchainInstance = this.blockchain.getBlockchain();
       const latestBlock = blockchainInstance.getLatestBlock();
 
-      this.broadcastMessage({
-        type: MessageType.RESPONSE_BLOCKCHAIN,
-        data: [latestBlock],
-        nodeId: this.nodeId,
-        timestamp: Date.now(),
-      });
+      this.createAndBroadcastMessage(MessageType.RESPONSE_BLOCKCHAIN, [
+        latestBlock,
+      ]);
     } catch (error) {
       console.error('Error broadcasting latest block:', error);
     }
@@ -839,20 +748,12 @@ export class P2PNetworkService extends EventEmitter {
   }
 
   public shutdown(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
-
-    if (this.reconnectInterval) {
-      clearInterval(this.reconnectInterval);
-      this.reconnectInterval = null;
-    }
-
-    if (this.syncInterval) {
-      clearInterval(this.syncInterval);
-      this.syncInterval = null;
-    }
+    Object.entries(this.intervals).forEach(([name, timer]) => {
+      if (timer) {
+        clearInterval(timer as NodeJS.Timeout);
+        this.intervals[name] = null;
+      }
+    });
 
     for (const [url, peer] of this.peers.entries()) {
       if (peer.ws) {
