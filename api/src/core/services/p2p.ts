@@ -423,7 +423,10 @@ export class P2PNetworkService extends EventEmitter {
     }
   }
 
-  private async handleRegisterNode(data: any): Promise<void> {
+  private async handleRegisterNode(data: {
+    url: string;
+    nodeId: string;
+  }): Promise<void> {
     const { url, nodeId } = data;
     if (url && nodeId) {
       this.addPeer(url, undefined, nodeId);

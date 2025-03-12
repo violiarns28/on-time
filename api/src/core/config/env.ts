@@ -11,13 +11,19 @@ const EnvSchema = t.Object({
   DB_USER: t.String(),
   DB_PASSWORD: t.String(),
   DB_NAME: t.String(),
+
+  REDIS_HOST: t.String(),
+  REDIS_PORT: t.Number(),
+
+  MASTER_NODE: t.String(),
 });
 
 type Env = Static<typeof EnvSchema>;
 
 declare global {
   namespace NodeJS {
-    interface ProcessEnv extends Env {}
+    // eslint-disable-next-line prettier/prettier
+    interface ProcessEnv extends Env { }
   }
 }
 

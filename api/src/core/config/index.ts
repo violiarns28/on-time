@@ -30,7 +30,7 @@ export const Database = {
 
 export const Redis = {
   HOST: env.REDIS_HOST || 'localhost',
-  PORT: parseInt(env.REDIS_PORT || '6379'),
+  PORT: env.REDIS_PORT || 6379,
 } as const;
 
 export const Config = {
