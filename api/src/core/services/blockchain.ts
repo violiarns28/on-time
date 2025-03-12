@@ -3,7 +3,8 @@ import { BlockData, SelectAttendance } from '@/schemas/attendance';
 import { attendancesTable } from '@/tables/attendance';
 import { usersTable } from '@/tables/user';
 import { createHash } from 'crypto';
-import { sql } from 'drizzle-orm';
+import { getTableColumns, SQL, sql } from 'drizzle-orm';
+import { MySqlTable } from 'drizzle-orm/mysql-core';
 import { Redis } from 'ioredis';
 import { env } from '../config/env';
 import { P2PService } from './p2p';
@@ -26,6 +27,23 @@ const CONFIG = {
   DB_BATCH_SIZE: 10,
   JOB_TIMEOUT: 30000, // 30 seconds
   POLL_INTERVAL: 500,
+};
+
+const buildConflictUpdateColumns = <
+  T extends MySqlTable,
+  Q extends keyof T['_']['columns'],
+>(
+  table: T,
+  columns: Q[],
+) => {
+  const cls = getTableColumns(table);
+  return columns.reduce(
+    (acc, column) => {
+      acc[column] = sql`values(${cls[column]})`;
+      return acc;
+    },
+    {} as Record<Q, SQL>,
+  );
 };
 
 class Blockchain {
@@ -55,24 +73,55 @@ class Blockchain {
       }
     } else {
       const userRequest = await fetch(`${env.MASTER_NODE_URL_HTTP}/p2p/user`);
-      const users = (await userRequest.json()).data;
+      const users: {
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        deviceId: string;
+        createdAt: string;
+        updatedAt: string;
+      }[] = (await userRequest.json()).data;
+      const mapped = users.map((user) => ({
+        ...user,
+        createdAt: new Date(user.createdAt),
+        updatedAt: new Date(user.updatedAt),
+      }));
       await this.db
         .insert(usersTable)
-        .values(users)
+        .values(mapped)
         .onDuplicateKeyUpdate({
-          set: { ...users },
+          set: buildConflictUpdateColumns(usersTable, [
+            'name',
+            'email',
+            'password',
+            'deviceId',
+            'createdAt',
+            'updatedAt',
+          ]),
         })
         .execute();
       const attendancesRequest = await fetch(
         `${env.MASTER_NODE_URL_HTTP}/p2p/user`,
       );
-      const attendances = (await attendancesRequest.json()).data;
+      const attendances: SelectAttendance[] = (await attendancesRequest.json())
+        .data;
       this.chain = attendances;
       await this.db
         .insert(attendancesTable)
         .values(attendances)
         .onDuplicateKeyUpdate({
-          set: { ...attendances },
+          set: buildConflictUpdateColumns(attendancesTable, [
+            'userId',
+            'latitude',
+            'longitude',
+            'type',
+            'date',
+            'timestamp',
+            'hash',
+            'previousHash',
+            'nonce',
+          ]),
         })
         .execute();
     }
