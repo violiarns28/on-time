@@ -51,10 +51,13 @@ class HomeScreen extends GetView<HomeController> {
                           Obx(
                             () => Text(
                               "Hello, ${controller.user.name}",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.w600),
+                                color: Colors.black,
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           Row(
@@ -67,10 +70,13 @@ class HomeScreen extends GetView<HomeController> {
                               Obx(
                                 () => Text(
                                   controller.now,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.w500),
+                                    color: Colors.black,
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ],
@@ -292,17 +298,23 @@ class HomeScreen extends GetView<HomeController> {
                       children: [
                         Text(
                           "Location",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w600),
+                            color: Colors.white,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         Text(
                           "Ketintang, Surabaya",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.normal),
+                            color: Colors.white,
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.normal,
+                          ),
                         ),
                       ],
                     ),

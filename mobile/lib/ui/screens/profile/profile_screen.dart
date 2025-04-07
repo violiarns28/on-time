@@ -58,13 +58,16 @@ class ProfileScreen extends GetView<ProfileController> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Obx(
-                          () => Text(
-                            controller.user.deviceId,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 16.0,
+                          () => Expanded(
+                            child: Text(
+                              controller.user.deviceId.toString(),
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              fontWeight: FontWeight.w500,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ),

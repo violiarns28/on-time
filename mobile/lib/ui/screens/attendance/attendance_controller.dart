@@ -65,6 +65,8 @@ class AttendanceController extends GetxController {
   Future<void> onInit() async {
     super.onInit();
 
+    _handleLocationPermission(null);
+
     await Future.wait([
       _attendanceRemote.onInit(),
       _getMyLocation(),
@@ -156,18 +158,20 @@ class AttendanceController extends GetxController {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  Future<bool> _handleLocationPermission(BuildContext context) async {
+  Future<bool> _handleLocationPermission(BuildContext? context) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       // activate location service
       serviceEnabled = await Geolocator.openLocationSettings();
       if (!serviceEnabled) {
-        _showSnackBar(
-          context,
-          'Location Service Error',
-          'Location services are disabled',
-          ContentType.warning,
-        );
+        if (context != null && context.mounted) {
+          _showSnackBar(
+            context,
+            'Location Service Error',
+            'Location services are disabled',
+            ContentType.warning,
+          );
+        }
         return false;
       }
     }
@@ -176,23 +180,27 @@ class AttendanceController extends GetxController {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        _showSnackBar(
-          context,
-          'Permission Denied',
-          'Location permissions are denied',
-          ContentType.warning,
-        );
+        if (context != null && context.mounted) {
+          _showSnackBar(
+            context,
+            'Permission Denied',
+            'Location permissions are denied',
+            ContentType.warning,
+          );
+        }
         return false;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      _showSnackBar(
-        context,
-        'Permission Error',
-        'Location permissions are permanently denied',
-        ContentType.failure,
-      );
+      if (context != null && context.mounted) {
+        _showSnackBar(
+          context,
+          'Permission Error',
+          'Location permissions are permanently denied',
+          ContentType.failure,
+        );
+      }
       return false;
     }
     return true;
