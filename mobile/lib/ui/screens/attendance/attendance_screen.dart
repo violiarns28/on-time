@@ -19,10 +19,11 @@ class AttendanceScreen extends GetView<AttendanceController> {
       body: Stack(
         children: [
           GoogleMap(
+            mapType: MapType.normal,
             onMapCreated: controller.onMapCreated,
             initialCameraPosition: CameraPosition(
               target: controller.targetLocation,
-              zoom: 15.0,
+              zoom: 27.0,
             ),
             markers: {
               Marker(
@@ -36,7 +37,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
                 center: controller.targetLocation,
                 radius: 10,
                 fillColor: const Color(0xFF3C94A5).withOpacity(0.3),
-                strokeWidth: 0,
+                strokeWidth: 1,
               ),
             },
           ),
