@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:on_time/data/sources/local/db/app_database.dart';
 import 'package:on_time/ui/screens/change_password/change_password_screen.dart';
 import 'package:on_time/ui/screens/profile/profile_controller.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,16 +26,41 @@ class ProfileScreen extends GetView<ProfileController> {
       final dbLength = await dbFile.length();
       debugPrint("[handleDumpDB] - DB File Size: $dbLength bytes");
 
-      // final targetDir = await getDownloadsDirectory();
-      // if (targetDir == null) {
-      //   debugPrint("[handleDumpDB] - Could not get downloads directory.");
-      //   return;
-      // }
+      // Copy DB to Downloads
+      final backupFile = File("/storage/emulated/0/Download/ontime_backup.db");
+      await dbFile.copy(backupFile.path);
+      debugPrint("[handleDumpDB] - Database copied to: ${backupFile.path}");
 
-      final newFile = File("/storage/emulated/0/Download/ontime_backup.db");
-      await dbFile.copy(newFile.path);
+      // Export attendance table to CSV
+      final db =
+          AppDatabase(); // Ensure AppDatabase is your Drift database class
+      final rows = await db.select(db.attendanceTable).get();
 
-      debugPrint("[handleDumpDB] - Database copied to: ${newFile.path}");
+      final csvBuffer = StringBuffer();
+      csvBuffer.writeln(
+          "id,userId,latitude,longitude,type,date,timestamp,hash,previousHash,nonce,userName");
+
+      for (var row in rows) {
+        csvBuffer.writeln([
+          row.id,
+          row.userId,
+          row.latitude,
+          row.longitude,
+          row.type.index,
+          row.date,
+          row.timestamp,
+          row.hash,
+          row.previousHash,
+          row.nonce,
+          row.userName
+        ].join(","));
+      }
+
+      final csvFile =
+          File("/storage/emulated/0/Download/attendance_backup.csv");
+      await csvFile.writeAsString(csvBuffer.toString());
+
+      debugPrint("[handleDumpDB] - CSV exported to: ${csvFile.path}");
     } catch (e, stackTrace) {
       debugPrint("[handleDumpDB] - Error while dumping DB: $e");
       debugPrint("[handleDumpDB] - Stack Trace: $stackTrace");
