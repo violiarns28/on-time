@@ -12,7 +12,7 @@ import 'package:on_time/ui/screens/home/home_controller.dart';
 import 'package:on_time/ui/screens/profile/profile_controller.dart';
 import 'package:on_time/utils/logger.dart';
 
-class EditProfileController extends GetxController {
+class ChangePasswordController extends GetxController {
   final profileRemote = Get.find<ProfileRemote>();
   final userDao = Get.find<UserDao>();
 
@@ -97,7 +97,7 @@ class EditProfileController extends GetxController {
       Get.snackbar("Error", "Old password cannot be empty");
       return;
     }
-    log.d("[EditProfileController] updateProfile");
+    log.d("[ChangePasswordController] updateProfile");
     try {
       _isLoading.value = true;
       final response = await profileRemote.updateProfile(

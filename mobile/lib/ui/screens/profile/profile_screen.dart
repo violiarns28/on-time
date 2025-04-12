@@ -1,11 +1,45 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:on_time/ui/screens/edit_profile/edit_profile_screen.dart';
+import 'package:on_time/ui/screens/change_password/change_password_screen.dart';
 import 'package:on_time/ui/screens/profile/profile_controller.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:random_avatar/random_avatar.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
   const ProfileScreen({super.key});
+
+  Future<void> handleDumpDB() async {
+    try {
+      final dbDir = await getApplicationSupportDirectory();
+      final dbFile = File("${dbDir.path}/ontime.db");
+
+      debugPrint("[handleDumpDB] - Source DB Path: ${dbFile.path}");
+
+      if (!await dbFile.exists()) {
+        debugPrint("[handleDumpDB] - Database file does not exist.");
+        return;
+      }
+
+      final dbLength = await dbFile.length();
+      debugPrint("[handleDumpDB] - DB File Size: $dbLength bytes");
+
+      // final targetDir = await getDownloadsDirectory();
+      // if (targetDir == null) {
+      //   debugPrint("[handleDumpDB] - Could not get downloads directory.");
+      //   return;
+      // }
+
+      final newFile = File("/storage/emulated/0/Download/ontime_backup.db");
+      await dbFile.copy(newFile.path);
+
+      debugPrint("[handleDumpDB] - Database copied to: ${newFile.path}");
+    } catch (e, stackTrace) {
+      debugPrint("[handleDumpDB] - Error while dumping DB: $e");
+      debugPrint("[handleDumpDB] - Stack Trace: $stackTrace");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,14 +129,15 @@ class ProfileScreen extends GetView<ProfileController> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const EditProfileScreen()),
+                              builder: (context) =>
+                                  const ChangePasswordScreen()),
                         );
                       },
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Edit Profile",
+                            "Change Password",
                             style: TextStyle(
                               color: Color(0xFF4098AA),
                               fontSize: 16.0,
@@ -136,6 +171,39 @@ class ProfileScreen extends GetView<ProfileController> {
                         children: [
                           Text(
                             "Sign Out",
+                            style: TextStyle(
+                              color: Color(0xFF9A0C0C),
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(
+                            Icons.logout_rounded,
+                            size: 24,
+                            color: Color(0xFF9A0C0C),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEBCECE),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      onPressed: handleDumpDB,
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Dump",
                             style: TextStyle(
                               color: Color(0xFF9A0C0C),
                               fontSize: 16.0,

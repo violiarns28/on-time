@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:on_time/ui/screens/edit_profile/edit_profile_controller.dart';
+import 'package:on_time/ui/screens/change_password/change_password_controller.dart';
 import 'package:on_time/ui/widgets/text_input.dart';
 
-class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  late EditProfileController controller;
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  late ChangePasswordController controller;
 
   @override
   void initState() {
-    Get.put(EditProfileController());
-    controller = Get.find<EditProfileController>();
+    Get.put(ChangePasswordController());
+    controller = Get.find<ChangePasswordController>();
     super.initState();
   }
 
@@ -28,7 +28,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         title: const Text(
-          "Edit Profile",
+          "Change Password",
           style: TextStyle(
             color: Colors.black,
             fontSize: 18.0,

@@ -3,8 +3,8 @@ import 'package:on_time/ui/screens/attendance/attendance_binding.dart';
 import 'package:on_time/ui/screens/attendance/attendance_screen.dart';
 import 'package:on_time/ui/screens/bottom_nav_bar/bottom_nav_bar_binding.dart';
 import 'package:on_time/ui/screens/bottom_nav_bar/bottom_nav_bar_screen.dart';
-import 'package:on_time/ui/screens/edit_profile/edit_profile_binding.dart';
-import 'package:on_time/ui/screens/edit_profile/edit_profile_screen.dart';
+import 'package:on_time/ui/screens/change_password/change_password_binding.dart';
+import 'package:on_time/ui/screens/change_password/change_password_screen.dart';
 import 'package:on_time/ui/screens/greeting/greeting_binding.dart';
 import 'package:on_time/ui/screens/greeting/greeting_screen.dart';
 import 'package:on_time/ui/screens/history_detail/history_detail_binding.dart';
@@ -83,9 +83,9 @@ class AppPages {
           binding: ProfileBinding(),
         ),
         GetPage(
-          name: _Paths.EDIT_PROFILE,
-          page: () => const EditProfileScreen(),
-          binding: EditProfileBinding(),
+          name: _Paths.CHANGE_PASSWORD,
+          page: () => const ChangePasswordScreen(),
+          binding: ChangePasswordBinding(),
         ),
       ],
     )
