@@ -65,7 +65,8 @@ class AttendanceController extends GetxController {
   Future<void> onInit() async {
     super.onInit();
 
-    _handleLocationPermission(null);
+    final granted = await _handleLocationPermission(Get.context);
+    if (!granted) return;
 
     await Future.wait([
       _attendanceRemote.onInit(),
@@ -214,6 +215,8 @@ class AttendanceController extends GetxController {
       ),
     );
     currentLocation = LatLng(position.latitude, position.longitude);
+
+    debugPrint("code location ${currentLocation}");
   }
 
   Future<double> calculateDistance(double lat1, double lon1) async {

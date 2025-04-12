@@ -22,7 +22,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
             onMapCreated: controller.onMapCreated,
             initialCameraPosition: CameraPosition(
               target: controller.targetLocation,
-              zoom: 11.0,
+              zoom: 15.0,
             ),
             markers: {
               Marker(
@@ -34,7 +34,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
               Circle(
                 circleId: const CircleId('targetLocation'),
                 center: controller.targetLocation,
-                radius: 500,
+                radius: 10,
                 fillColor: const Color(0xFF3C94A5).withOpacity(0.3),
                 strokeWidth: 0,
               ),
