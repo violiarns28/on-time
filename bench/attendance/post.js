@@ -20,12 +20,12 @@ export default function () {
     const randomLongitude = Math.random() * 360 - 180;
     const randomType = Math.random() > 0.5 ? 'CLOCK_IN' : 'CLOCK_OUT';
 
-    const payload = JSON.stringify({
+    const payload = {
         latitude: randomLatitude,
         longitude: randomLongitude,
         type: randomType,
         deviceId: 'k6',
-    });
+    }
 
     const res = http.post(`${__ENV.BASE_URL}/attendances/simulate`, payload);
     totalRequests.add(1);

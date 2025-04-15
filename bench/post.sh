@@ -1,10 +1,10 @@
 # !/bin/bash
 
 # set environment variables for k6
-ACCESS_TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZW1haWwiOiJqb2huQGdtYWlsLmNvbSIsIm5hbWUiOiJKb2huIiwiZGV2aWNlSWQiOiIwMTk2MzI5Yi1iYTU5LTcyNTAtOGEzZC0yOGI2NjJhZDkwNWQiLCJpYXQiOjE3NDQ2OTc1NTh9.1kJQK-gBowIGBkER5XDKKubGQ2s7aZ4btvuIs_BWZnM"
+ACCESS_TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MjAwMDAzLCJlbWFpbCI6ImFzZGZAYXNkZi5jb20iLCJuYW1lIjoiYXNkZmFzIiwiZGV2aWNlSWQiOiJkZXZpY2VJZCIsImlhdCI6MTc0NDY5ODk1NX0.GFt5sms-KbR6nYiExXc7PZ0WzI5cHc09XA5yNE8qhA4"
 
-BASE_URL="https://attendance-api.zenta.dev"
-# BASE_URL="http://localhost:3000"
+# BASE_URL="https://attendance-api.zenta.dev"
+BASE_URL="http://localhost:3000"
 
 # run post attendance
 echo "Running post attendance"
