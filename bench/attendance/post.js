@@ -4,7 +4,7 @@ import { Counter, Rate } from 'k6/metrics';
 
 export let options = {
     vus: 20, // 20 virtual users
-    duration: '1m', // Test duration
+    duration: '30m', // Test duration
     thresholds: {
         http_req_duration: ['p(95)<500'], // 95% of requests should be below 500ms
     },
@@ -27,8 +27,7 @@ export default function () {
         deviceId: 'k6',
     });
 
-
-    const res = http.post('http://localhost:3000/attendances/simulate', payload);
+    const res = http.post(`${__ENV.BASE_URL}/attendances/simulate`, payload);
     totalRequests.add(1);
 
     const success = check(res, {
