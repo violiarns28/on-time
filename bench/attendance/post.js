@@ -3,11 +3,8 @@ import http from 'k6/http';
 import { Counter, Rate } from 'k6/metrics';
 
 export let options = {
-    vus: 20, // 20 virtual users
-    duration: '30s', // Test duration
-    // thresholds: {
-    //     http_req_duration: ['p(95)<500'], // 95% of requests should be below 500ms
-    // },
+    vus: 20,
+    duration: '10m',
 };
 
 const successRate = new Rate('successful_requests');
@@ -25,6 +22,7 @@ export default function () {
     }
 
     const res = http.post(`https://attendance-api.zenta.dev/attendances/simulate`, payload);
+
     totalRequests.add(1);
 
     const success = check(res, {
