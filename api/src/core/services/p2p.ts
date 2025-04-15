@@ -158,7 +158,7 @@ export class P2PService {
     }
 
     this.intervals[name] = setInterval(callback, interval);
-    console.log(`${name} service started`);
+    console.log(`[P2P Service] ${name} service started`);
   }
 
   private async startServer(): Promise<void> {
@@ -171,35 +171,39 @@ export class P2PService {
         });
 
         this.server.on('error', (error) => {
-          console.error('WebSocket server error:', error);
+          console.error('[P2P Service] WebSocket server error:', error);
           reject(error);
         });
 
         this.server.on('listening', () => {
-          console.log(`P2P server listening on port ${this.port}`);
+          console.log(
+            `[P2P Service] P2P server listening on port ${this.port}`,
+          );
           resolve();
         });
       } catch (error) {
-        console.error('Failed to start P2P server:', error);
+        console.error('[P2P Service] Failed to start P2P server:', error);
         reject(error);
       }
     });
   }
 
   private handleConnection(ws: WebSocket, req: any): void {
-    console.log(`New peer connection from ${req.socket.remoteAddress}`);
+    console.log(
+      `[P2P Service] New peer connection from ${req.socket.remoteAddress}`,
+    );
 
     ws.on('message', (data: WebSocket.Data) => {
       try {
         const message: PeerMessage = JSON.parse(data.toString());
         this.handleMessage(ws, message);
       } catch (error) {
-        console.error('Error handling message:', error);
+        console.error('[P2P Service] Error handling message:', error);
       }
     });
 
     ws.on('error', (error) => {
-      console.error('WebSocket connection error:', error);
+      console.error('[P2P Service] WebSocket connection error:', error);
     });
 
     ws.on('close', () => {
@@ -217,7 +221,7 @@ export class P2PService {
     const { type, data, nodeId } = message;
 
     this.updatePeerLastSeen(nodeId);
-    console.log(`Received ${type} message from node ${nodeId}`);
+    console.log(`[P2P Service] Received ${type} message from node ${nodeId}`);
 
     const handlers: {
       [key in MessageType]?: (ws: WebSocket, data: any) => Promise<void>;
@@ -241,7 +245,7 @@ export class P2PService {
     if (handler) {
       await handler(ws, data);
     } else {
-      console.log(`Unknown message type: ${type}`);
+      console.log(`[P2P Service] Unknown message type: ${type}`);
     }
   }
 
@@ -288,7 +292,7 @@ export class P2PService {
         this.createMessage(MessageType.RESPONSE_BLOCKCHAIN, [latestBlock]),
       );
     } catch (error) {
-      console.error('Error getting latest block:', error);
+      console.error('[P2P Service] Error getting latest block:', error);
     }
   }
 
@@ -336,7 +340,7 @@ export class P2PService {
         );
       }
     } catch (error) {
-      console.error('Error handling blockchain response:', error);
+      console.error('[P2P Service] Error handling blockchain response:', error);
     }
   }
 
@@ -347,20 +351,20 @@ export class P2PService {
 
     if (isValidChain) {
       console.log(
-        'Received blockchain is valid. Replacing current blockchain.',
+        '[P2P Service] Received blockchain is valid. Replacing current blockchain.',
       );
-      console.log(`Replacing chain with ${blocks.length} blocks`);
+      console.log(`[P2P Service] Replacing chain with ${blocks.length} blocks`);
 
       try {
         const blockchainInstance = this.blockchain.getBlockchain();
         blockchainInstance.replaceChain(blocks);
         console.log('Chain successfully replaced');
       } catch (error) {
-        console.error('Error replacing blockchain:', error);
+        console.error('[P2P Service] Error replacing blockchain:', error);
       }
     } else {
       console.log(
-        'Received blockchain is invalid. Keeping current blockchain.',
+        '[P2P Service] Received blockchain is invalid. Keeping current blockchain.',
       );
     }
   }
@@ -381,17 +385,19 @@ export class P2PService {
       const previousBlock = blocks[i - 1];
 
       if (currentBlock.id !== previousBlock.id + 1) {
-        console.log(`Invalid block sequence at block ${i}`);
+        console.log(`[P2P Service] Invalid block sequence at block ${i}`);
         return false;
       }
 
       if (currentBlock.previousHash !== previousBlock.hash) {
-        console.log(`Invalid previous hash reference at block ${i}`);
+        console.log(
+          `[P2P Service] Invalid previous hash reference at block ${i}`,
+        );
         return false;
       }
 
       if (currentBlock.hash.substring(0, difficulty) !== target) {
-        console.log(`Invalid hash difficulty at block ${i}`);
+        console.log(`[P2P Service] Invalid hash difficulty at block ${i}`);
         return false;
       }
     }
@@ -410,20 +416,22 @@ export class P2PService {
       const latestBlockHeld = blockchainInstance.getLatestBlock();
 
       if (block.previousHash === latestBlockHeld.hash) {
-        console.log(`Valid new block received: ${block.id}`);
+        console.log(`[P2P Service] Valid new block received: ${block.id}`);
 
         try {
           blockchainInstance.addBlock(block);
-          console.log(`Successfully added block ${block.id} to the chain`);
+          console.log(
+            `[P2P Service] Successfully added block ${block.id} to the chain`,
+          );
           this.broadcastNewBlock(block);
         } catch (error) {
-          console.error('Error handling new valid block:', error);
+          console.error('[P2P Service] Error handling new valid block:', error);
         }
       } else {
         console.log('New block rejected: invalid previous hash');
       }
     } catch (error) {
-      console.error('Error handling new block:', error);
+      console.error('[P2P Service] Error handling new block:', error);
     }
   }
 
@@ -457,7 +465,7 @@ export class P2PService {
     nodeId?: string,
     lastSeen: number = Date.now(),
   ): Promise<void> {
-    console.log(`Adding peer: ${url}`);
+    console.log(`[P2P Service] Adding peer: ${url}`);
 
     if (this.peers.has(url)) {
       const existingPeer = this.peers.get(url)!;
@@ -470,7 +478,9 @@ export class P2PService {
       };
 
       this.peers.set(url, updatedPeer);
-      console.log(`Updated peer: ${url}, nodeId: ${updatedPeer.nodeId}`);
+      console.log(
+        `[P2P Service] Updated peer: ${url}, nodeId: ${updatedPeer.nodeId}`,
+      );
     } else {
       this.peers.set(url, {
         url,
@@ -478,7 +488,9 @@ export class P2PService {
         nodeId: nodeId || 'unknown',
         lastSeen,
       });
-      console.log(`Added new peer: ${url}, nodeId: ${nodeId || 'unknown'}`);
+      console.log(
+        `[P2P Service] Added new peer: ${url}, nodeId: ${nodeId || 'unknown'}`,
+      );
     }
   }
 
@@ -488,7 +500,7 @@ export class P2PService {
         const updatedPeer = { ...peer };
         delete updatedPeer.ws;
         this.peers.set(url, updatedPeer);
-        console.log(`Marked peer ${url} as disconnected`);
+        console.log(`[P2P Service] Marked peer ${url} as disconnected`);
         break;
       }
     }
@@ -502,12 +514,15 @@ export class P2PService {
         try {
           peer.ws.close();
         } catch (error) {
-          console.error(`Error closing connection to peer ${url}:`, error);
+          console.error(
+            `[P2P Service] Error closing connection to peer ${url}:`,
+            error,
+          );
         }
       }
 
       this.peers.delete(url);
-      console.log(`Removed peer: ${url}`);
+      console.log(`[P2P Service] Removed peer: ${url}`);
     }
   }
 
@@ -568,7 +583,7 @@ export class P2PService {
     }
 
     for (const url of stalePeers) {
-      console.log(`Removing stale node: ${url}`);
+      console.log(`[P2P Service] Removing stale node: ${url}`);
       this.removePeer(url);
     }
   }
@@ -586,7 +601,7 @@ export class P2PService {
       const ws = new WebSocket(url);
 
       ws.on('open', () => {
-        console.log(`Connected to peer: ${url}`);
+        console.log(`[P2P Service] Connected to peer: ${url}`);
         const peer = this.peers.get(url);
 
         if (peer) {
@@ -601,16 +616,19 @@ export class P2PService {
           const message: PeerMessage = JSON.parse(data.toString());
           this.handleMessage(ws, message);
         } catch (error) {
-          console.error('Error handling message:', error);
+          console.error('[P2P Service] Error handling message:', error);
         }
       });
 
       ws.on('error', (error) => {
-        console.error(`WebSocket connection error to ${url}:`, error);
+        console.error(
+          `[P2P Service] WebSocket connection error to ${url}:`,
+          error,
+        );
       });
 
       ws.on('close', () => {
-        console.log(`Connection to peer ${url} closed`);
+        console.log(`[P2P Service] Connection to peer ${url} closed`);
         const peer = this.peers.get(url);
 
         if (peer) {
@@ -619,7 +637,7 @@ export class P2PService {
         }
       });
     } catch (error) {
-      console.error(`Failed to connect to peer ${url}:`, error);
+      console.error(`[P2P Service] Failed to connect to peer ${url}:`, error);
     }
   }
 
@@ -636,7 +654,7 @@ export class P2PService {
     try {
       ws.send(JSON.stringify(message));
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('[P2P Service] Error sending message:', error);
     }
   }
 
@@ -684,7 +702,7 @@ export class P2PService {
         latestBlock,
       ]);
     } catch (error) {
-      console.error('Error broadcasting latest block:', error);
+      console.error('[P2P Service] Error broadcasting latest block:', error);
     }
   }
 
@@ -714,7 +732,10 @@ export class P2PService {
         try {
           peer.ws.close();
         } catch (error) {
-          console.error(`Error closing connection to peer ${url}:`, error);
+          console.error(
+            `[P2P Service] Error closing connection to peer ${url}:`,
+            error,
+          );
         }
       }
     }
@@ -722,7 +743,7 @@ export class P2PService {
     if (this.server) {
       this.server.close((error) => {
         if (error) {
-          console.error('Error closing P2P server:', error);
+          console.error('[P2P Service] Error closing P2P server:', error);
         } else {
           console.log('P2P server closed');
         }

@@ -260,9 +260,13 @@ export const AttendanceRouter = new Elysia({
           'previousHash',
           'timestamp',
           'nonce',
+          'latitude',
+          'longitude',
         ]),
         t.Object({
           deviceId: t.String(),
+          latitude: t.String(),
+          longitude: t.String(),
         }),
       ]),
       response: {

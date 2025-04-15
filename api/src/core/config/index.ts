@@ -21,7 +21,7 @@ const LoggerOptions: Options = {
 
 export const Database = {
   URL: env.DB_URL || 'localhost',
-  PORT: parseInt(env.DB_PORT) || 5432,
+  PORT: parseInt(env.DB_PORT) || 3306,
   USER: env.DB_USER || 'postgres',
   PASSWORD: env.DB_PASSWORD || 'password',
   DATABASE: env.DB_NAME || 'myapp',

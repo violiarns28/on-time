@@ -20,19 +20,24 @@ export default function () {
     const randomLongitude = Math.random() * 360 - 180;
     const randomType = Math.random() > 0.5 ? 'CLOCK_IN' : 'CLOCK_OUT';
 
-    const payload = JSON.stringify({
+    const payload = {
         latitude: randomLatitude,
         longitude: randomLongitude,
         type: randomType,
         deviceId: 'k6',
-    });
+    }
 
-
-    const res = http.post('http://localhost:3000/attendances/simulate', payload);
+    const res = http.post(`${__ENV.BASE_URL}/attendances/simulate`, payload);
     totalRequests.add(1);
 
     const success = check(res, {
         'is status 200': (r) => r.status === 200,
+    });
+
+    const body = JSON.parse(res.body);
+    // check if body have hash
+    check(body, {
+        'has hash': (r) => r.hash !== undefined || r.hash !== null,
     });
 
     successRate.add(success);

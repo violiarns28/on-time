@@ -4,7 +4,7 @@ import { Counter, Rate } from 'k6/metrics';
 
 export let options = {
   vus: 20, // 20 virtual users
-  duration: '1m', // Test duration
+  duration: '30m', // Test duration
   thresholds: {
     http_req_duration: ['p(95)<500'], // 95% of requests should be below 500ms
   },
@@ -21,7 +21,8 @@ export default function () {
       'Authorization': 'Bearer ' + __ENV.ACCESS_TOKEN,
     },
   }
-  const res = http.get('http://localhost:3000/attendances', params);
+
+  const res = http.get(`${__ENV.BASE_URL}/attendances`, params);
   totalRequests.add(1);
 
   const success = check(res, {
