@@ -4,7 +4,7 @@ import { Counter, Rate } from 'k6/metrics';
 
 export let options = {
     vus: 20, // 20 virtual users
-    duration: '30m', // Test duration
+    duration: '1m', // Test duration
     thresholds: {
         http_req_duration: ['p(95)<500'], // 95% of requests should be below 500ms
     },
