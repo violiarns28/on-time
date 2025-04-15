@@ -22,7 +22,7 @@ async function seedUser() {
   // Pre-generate more users than needed to account for potential duplicates
   for (let i = 0; i < 120000 && emailSet.size < 100000; i++) {
     const username = `${faker.internet
-      .userName()
+      .username()
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '')}${faker.number.int(9999)}`;
     const domain = domains[faker.number.int(domains.length - 1)];
