@@ -20,7 +20,7 @@ async function seedUser() {
   const emailSet = new Set<string>();
 
   // Pre-generate more users than needed to account for potential duplicates
-  for (let i = 0; i < 120000 && emailSet.size < 100000; i++) {
+  for (let i = 0; i < 120000 && emailSet.size < 10_000; i++) {
     const username = `${faker.internet
       .username()
       .toLowerCase()
@@ -30,7 +30,7 @@ async function seedUser() {
     emailSet.add(email);
   }
 
-  const emails = Array.from(emailSet).slice(0, 100000);
+  const emails = Array.from(emailSet).slice(0, 10_000);
   console.log(`Generated ${emails.length} unique emails`);
 
   // Process in batches to avoid memory issues and improve performance
