@@ -34,6 +34,12 @@ export default function () {
         'is status 200': (r) => r.status === 200,
     });
 
+    const body = JSON.parse(res.body);
+    // check if body have hash
+    check(body, {
+        'has hash': (r) => r.hash !== undefined || r.hash !== null,
+    });
+
     successRate.add(success);
     if (!success) {
         failedRequests.add(1);

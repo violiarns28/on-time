@@ -145,9 +145,12 @@ class Blockchain {
           const block = JSON.parse(queuedBlock);
           await this.db.insert(attendancesTable).values(block).execute();
           processedCount++;
-          console.log(`Persisted block #${block.id} to database`);
+          console.log(`[BC Service] Persisted block #${block.id} to database`);
         } catch (error) {
-          console.error('Error persisting block to database:', error);
+          console.error(
+            '[BC Service] Error persisting block to database:',
+            error,
+          );
           await this.redis.rpush(REDIS_KEYS.DB_WRITE_QUEUE, queuedBlock);
           break;
         }
@@ -156,10 +159,10 @@ class Blockchain {
       }
 
       if (processedCount > 0) {
-        console.log(`Processed ${processedCount} database writes`);
+        console.log(`[BC Service] Processed ${processedCount} database writes`);
       }
     } catch (error) {
-      console.error('Error in database writer process:', error);
+      console.error('[BC Service] Error in database writer process:', error);
     } finally {
       await this.redis.del(REDIS_KEYS.DB_WRITER_LOCK);
     }
@@ -213,7 +216,7 @@ class Blockchain {
       await this.db.insert(attendancesTable).values(genesisBlock).execute();
       console.log('Genesis block created');
     } catch (error) {
-      console.error('Error creating genesis block:', error);
+      console.error('[BC Service] Error creating genesis block:', error);
       throw new Error('Failed to create genesis block');
     }
   }
@@ -294,9 +297,12 @@ class Blockchain {
             'EX',
             CONFIG.RESULT_EXPIRY,
           );
-          console.log(`Processed block job ${job.id}`);
+          console.log(`[BC Service] Processed block job ${job.id}`);
         } catch (error) {
-          console.error(`Error processing block job ${job.id}:`, error);
+          console.error(
+            `[BC Service] Error processing block job ${job.id}:`,
+            error,
+          );
           const errorMessage =
             error instanceof Error ? error.message : String(error);
           await this.redis.set(
@@ -310,7 +316,7 @@ class Blockchain {
         jobData = await this.redis.lpop(REDIS_KEYS.MINING_QUEUE);
       }
     } catch (error) {
-      console.error('Error in queue processor:', error);
+      console.error('[BC Service] Error in queue processor:', error);
     } finally {
       await this.redis.del(REDIS_KEYS.MINING_LOCK);
 
@@ -326,9 +332,14 @@ class Blockchain {
   ): Promise<void> {
     try {
       await this.redis.rpush(REDIS_KEYS.DB_WRITE_QUEUE, JSON.stringify(block));
-      console.log(`Queued block #${block.id} for database persistence`);
+      console.log(
+        `[BC Service] Queued block #${block.id} for database persistence`,
+      );
     } catch (error) {
-      console.error('Error queueing block for persistence:', error);
+      console.error(
+        '[BC Service] Error queueing block for persistence:',
+        error,
+      );
       throw error;
     }
   }
@@ -363,7 +374,7 @@ class Blockchain {
       block.hash = this.calculateHash(block);
     } while (block.hash.substring(0, this.difficulty) !== target);
 
-    console.log(`Block mined: ${block.hash}`);
+    console.log(`[BC Service] Block mined: ${block.hash}`);
     return block;
   }
 
@@ -396,7 +407,7 @@ class Blockchain {
 
     if (newChain.length <= this.chain.length) {
       console.log(
-        'Received chain is not longer than current chain, rejecting replacement',
+        '[BC Service] Received chain is not longer than current chain, rejecting replacement',
       );
       return false;
     }
@@ -424,10 +435,10 @@ class Blockchain {
         await this.queueBlockForPersistence(newChain[i]);
       }
 
-      console.log(`Chain replaced with ${newChain.length} blocks`);
+      console.log(`[BC Service] Chain replaced with ${newChain.length} blocks`);
       return true;
     } catch (error) {
-      console.error('Error replacing chain:', error);
+      console.error('[BC Service] Error replacing chain:', error);
       return false;
     }
   }
@@ -441,7 +452,7 @@ class Blockchain {
 
       return result && result.length > 0 ? Number(result[0].count) : 0;
     } catch (error) {
-      console.error('Error getting block count:', error);
+      console.error('[BC Service] Error getting block count:', error);
       return 0;
     }
   }
@@ -493,9 +504,14 @@ class Blockchain {
         userName: block.user.name,
       }));
 
-      console.log(`Loaded ${this.chain.length} blocks from database`);
+      console.log(
+        `[BC Service] Loaded ${this.chain.length} blocks from database`,
+      );
     } catch (error) {
-      console.error('Error loading blockchain from database:', error);
+      console.error(
+        '[BC Service] Error loading blockchain from database:',
+        error,
+      );
       throw new Error('Failed to load blockchain from database');
     }
   }
@@ -508,9 +524,9 @@ class Blockchain {
         'EX',
         CONFIG.CACHE_EXPIRY,
       );
-      console.log(`Cached ${this.chain.length} blocks in Redis`);
+      console.log(`[BC Service] Cached ${this.chain.length} blocks in Redis`);
     } catch (error) {
-      console.error('Error caching blockchain in Redis:', error);
+      console.error('[BC Service] Error caching blockchain in Redis:', error);
     }
   }
 
@@ -521,7 +537,10 @@ class Blockchain {
       try {
         this.chain = JSON.parse(cachedChain);
       } catch (error) {
-        console.error('Error parsing cached blockchain during sync:', error);
+        console.error(
+          '[BC Service] Error parsing cached blockchain during sync:',
+          error,
+        );
       }
     }
   }
@@ -579,7 +598,7 @@ export class BlockchainService {
       p2pService.broadcastNewBlock(newBlock);
     } catch (error) {
       console.log(
-        'P2P network not initialized or error broadcasting block:',
+        '[BC Service] P2P network not initialized or error broadcasting block:',
         error,
       );
     }
