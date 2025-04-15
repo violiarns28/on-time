@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:on_time/data/sources/local/db/app_database.dart';
 import 'package:on_time/ui/screens/change_password/change_password_screen.dart';
 import 'package:on_time/ui/screens/profile/profile_controller.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:random_avatar/random_avatar.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
@@ -13,23 +12,23 @@ class ProfileScreen extends GetView<ProfileController> {
 
   Future<void> handleDumpDB() async {
     try {
-      final dbDir = await getApplicationSupportDirectory();
-      final dbFile = File("${dbDir.path}/ontime.db");
+      // final dbDir = await getApplicationSupportDirectory();
+      // final dbFile = File("${dbDir.path}/ontime.db");
 
-      debugPrint("[handleDumpDB] - Source DB Path: ${dbFile.path}");
+      // debugPrint("[handleDumpDB] - Source DB Path: ${dbFile.path}");
 
-      if (!await dbFile.exists()) {
-        debugPrint("[handleDumpDB] - Database file does not exist.");
-        return;
-      }
+      // if (!await dbFile.exists()) {
+      //   debugPrint("[handleDumpDB] - Database file does not exist.");
+      //   return;
+      // }
 
-      final dbLength = await dbFile.length();
-      debugPrint("[handleDumpDB] - DB File Size: $dbLength bytes");
+      // final dbLength = await dbFile.length();
+      // debugPrint("[handleDumpDB] - DB File Size: $dbLength bytes");
 
-      // Copy DB to Downloads
-      final backupFile = File("/storage/emulated/0/Download/ontime_backup.db");
-      await dbFile.copy(backupFile.path);
-      debugPrint("[handleDumpDB] - Database copied to: ${backupFile.path}");
+      // // Copy DB to Downloads
+      // final backupFile = File("/storage/emulated/0/Download/ontime_backup.db");
+      // await dbFile.copy(backupFile.path);
+      // debugPrint("[handleDumpDB] - Database copied to: ${backupFile.path}");
 
       // Export attendance table to CSV
       final db =
