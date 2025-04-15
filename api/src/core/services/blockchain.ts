@@ -537,21 +537,10 @@ class Blockchain {
     }
   }
 }
-// Modified BlockchainService class in service/blockchain.ts
 
 export class BlockchainService {
   private static instance: BlockchainService;
   private blockchain: Blockchain | null = null;
-  private pendingTransactions: Map<
-    string,
-    {
-      // eslint-disable-next-line no-unused-vars
-      resolve: (value: SelectAttendance) => void;
-      // eslint-disable-next-line no-unused-vars
-      reject: (reason: any) => void;
-      data: BlockData;
-    }
-  > = new Map();
 
   public static getInstance(): BlockchainService {
     if (!BlockchainService.instance) {
@@ -565,48 +554,6 @@ export class BlockchainService {
       this.blockchain = new Blockchain(db, redis);
     }
     await this.blockchain.init();
-
-    // Start a background process to handle pending transactions
-    this.processPendingTransactionsLoop();
-  }
-
-  private async processPendingTransactionsLoop(): Promise<void> {
-    // Process pending transactions in the background
-    setInterval(async () => {
-      if (this.pendingTransactions.size > 0) {
-        // Take the oldest pending transaction
-        const [transactionId, transaction] = Array.from(
-          this.pendingTransactions.entries(),
-        )[0];
-        this.pendingTransactions.delete(transactionId);
-
-        try {
-          if (!this.blockchain) {
-            throw new Error('Blockchain not initialized');
-          }
-
-          // Mine the block
-          const newBlock = await this.blockchain.addBlock(transaction.data);
-
-          // Broadcast to P2P network
-          try {
-            const p2pService = P2PService.getInstance();
-            p2pService.broadcastNewBlock(newBlock);
-          } catch (error) {
-            console.log(
-              'P2P network not initialized or error broadcasting block:',
-              error,
-            );
-          }
-
-          // Resolve the pending promise
-          transaction.resolve(newBlock);
-        } catch (error) {
-          console.error('Error processing transaction:', error);
-          transaction.reject(error);
-        }
-      }
-    }, 100); // Check for new transactions every 100ms
   }
 
   public getBlockchain(): Blockchain {
@@ -621,52 +568,23 @@ export class BlockchainService {
   public async recordAttendanceAction(
     attendanceData: BlockData,
   ): Promise<SelectAttendance> {
-    // Create a temporary block to return immediately
-    const tempBlock = this.createTemporaryBlock(attendanceData);
-
-    // Queue the actual mining process
-    const miningPromise = new Promise<SelectAttendance>((resolve, reject) => {
-      const transactionId = `tx:${Date.now()}:${Math.random().toString(36).substring(2, 10)}`;
-      this.pendingTransactions.set(transactionId, {
-        resolve,
-        reject,
-        data: attendanceData,
-      });
-    });
-
-    // Start the mining process in the background
-    miningPromise.catch((err) => {
-      console.error('Background mining failed:', err);
-    });
-
-    // Return the temporary block immediately
-    return tempBlock;
-  }
-
-  private createTemporaryBlock(data: BlockData): SelectAttendance {
-    // Create a temporary block with placeholder values
-    // This will be immediately returned to the user while actual mining happens in background
     if (!this.blockchain) {
       throw new Error('Blockchain not initialized');
     }
 
-    try {
-      const chain = this.blockchain.getChain();
-      const latestBlock = chain[chain.length - 1];
+    const newBlock = await this.blockchain.addBlock(attendanceData);
 
-      return {
-        ...data,
-        id: latestBlock.id + 1,
-        timestamp: Date.now(),
-        previousHash: latestBlock.hash,
-        hash: 'pending-will-be-mined-asynchronously',
-        nonce: 0,
-        // Include any other required fields from BlockData
-      };
+    try {
+      const p2pService = P2PService.getInstance();
+      p2pService.broadcastNewBlock(newBlock);
     } catch (error) {
-      console.error('Error creating temporary block:', error);
-      throw error;
+      console.log(
+        'P2P network not initialized or error broadcasting block:',
+        error,
+      );
     }
+
+    return newBlock;
   }
 
   public verifyBlockchain(): {

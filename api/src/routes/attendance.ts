@@ -178,7 +178,6 @@ export const AttendanceRouter = new Elysia({
   )
   .post(
     '/simulate',
-    // Modified endpoint in router.ts
     async ({ body, db }) => {
       const user = (
         await db
@@ -196,6 +195,7 @@ export const AttendanceRouter = new Elysia({
       }
 
       const now = new Date();
+
       const date = now.toISOString().split('T')[0];
 
       const findAttendance = await db.query.attendance.findFirst({
@@ -209,23 +209,20 @@ export const AttendanceRouter = new Elysia({
 
       if (findAttendance) {
         if (findAttendance.type === 'CLOCK_IN' && type === 'CLOCK_OUT') {
-          // Get immediate response with placeholder block
-          const placeholderBlock =
-            await blockchainService.recordAttendanceAction({
-              ...body,
-              type: 'CLOCK_OUT',
-              date,
-              userId,
-              timestamp: now.getTime(),
-              userName: user.name,
-              latitude: body.latitude.toString(),
-              longitude: body.longitude.toString(),
-            });
+          const result = await blockchainService.recordAttendanceAction({
+            ...body,
+            type: 'CLOCK_OUT',
+            date,
+            userId,
+            timestamp: now.getTime(),
+            userName: user.name,
+            latitude: body.latitude.toString(),
+            longitude: body.longitude.toString(),
+          });
 
           return {
-            message: 'Clock out successfully queued for processing',
-            data: placeholderBlock,
-            status: 'pending', // Add a status to indicate it's being processed
+            message: 'Clock out successfully',
+            data: result,
           };
         }
 
@@ -235,8 +232,7 @@ export const AttendanceRouter = new Elysia({
         };
       }
 
-      // Get immediate response with placeholder block
-      const placeholderBlock = await blockchainService.recordAttendanceAction({
+      const result = await blockchainService.recordAttendanceAction({
         ...body,
         type: 'CLOCK_IN',
         date,
@@ -248,9 +244,8 @@ export const AttendanceRouter = new Elysia({
       });
 
       return {
-        message: 'Clock in successfully queued for processing',
-        data: placeholderBlock,
-        status: 'pending', // Add a status to indicate it's being processed
+        message: 'Clock in successfully',
+        data: result,
       };
     },
     {
@@ -274,15 +269,8 @@ export const AttendanceRouter = new Elysia({
       ]),
       response: {
         200: {
-          description: 'Attendance action processed',
-          ...OkResponseSchema(
-            t.Intersect([
-              SelectAttendanceSchema,
-              t.Object({
-                status: t.Optional(t.String()),
-              }),
-            ]),
-          ),
+          description: 'Clock in successfully',
+          ...OkResponseSchema(SelectAttendanceSchema),
         },
       },
     },
