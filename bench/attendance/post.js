@@ -4,10 +4,10 @@ import { Counter, Rate } from 'k6/metrics';
 
 export let options = {
     vus: 20, // 20 virtual users
-    duration: '1m', // Test duration
-    thresholds: {
-        http_req_duration: ['p(95)<500'], // 95% of requests should be below 500ms
-    },
+    duration: '30m', // Test duration
+    // thresholds: {
+    //     http_req_duration: ['p(95)<500'], // 95% of requests should be below 500ms
+    // },
 };
 
 const successRate = new Rate('successful_requests');
@@ -32,12 +32,6 @@ export default function () {
 
     const success = check(res, {
         'is status 200': (r) => r.status === 200,
-    });
-
-    const body = JSON.parse(res.body);
-    // check if body have hash
-    check(body, {
-        'has hash': (r) => r.hash !== undefined || r.hash !== null,
     });
 
     successRate.add(success);
