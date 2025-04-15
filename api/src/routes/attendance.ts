@@ -7,10 +7,12 @@ import {
 } from '@/schemas/attendance';
 import { OkResponseSchema } from '@/schemas/response';
 import { table } from '@/tables';
+import { attendancesTable } from '@/tables/attendance';
+import { format } from '@fast-csv/format';
 import { sql } from 'drizzle-orm';
 import Elysia, { t } from 'elysia';
+import { PassThrough } from 'stream';
 import { blockchain, blockchainService } from '..';
-
 export const AttendanceRouter = new Elysia({
   prefix: '/attendances',
   detail: {
@@ -270,4 +272,39 @@ export const AttendanceRouter = new Elysia({
         },
       },
     },
-  );
+  )
+  .get('/export', async ({ set, db }) => {
+    // 1. Get all data
+    const rows = await db.select().from(attendancesTable);
+
+    // 2. Create CSV stream
+    const csvStream = format({ headers: true });
+
+    // 3. Pipe the data into the stream
+    const passThrough = new PassThrough();
+    csvStream.pipe(passThrough);
+
+    for (const row of rows) {
+      csvStream.write({
+        id: row.id,
+        userId: row.userId,
+        latitude: row.latitude,
+        longitude: row.longitude,
+        type: row.type,
+        date: row.date,
+        timestamp: row.timestamp,
+        hash: row.hash,
+        previousHash: row.previousHash,
+        nonce: row.nonce,
+      });
+    }
+
+    csvStream.end();
+
+    // 4. Set headers to force download
+    set.headers['Content-Type'] = 'text/csv';
+    set.headers['Content-Disposition'] =
+      'attachment; filename="attendance_export.csv"';
+
+    return passThrough;
+  });

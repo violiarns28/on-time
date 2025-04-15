@@ -1,7 +1,7 @@
 # !/bin/bash
 
 # set environment variables for k6
-ACCESS_TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJpZCI6NiwiZW1haWwiOiJhc2RmQGFzZGYuY29tIiwibmFtZSI6ImFzZGYiLCJkZXZpY2VJZCI6ImFzZGZhYXNkZiIsImlhdCI6MTc0MTI3Njg1M30.-e_E17rjmw5C1HqPq23K0jLaDO8uFimxJ8NxRL7HsK4"
+ACCESS_TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJqb2huQGdtYWlsLmNvbSIsIm5hbWUiOiJKb2huIiwiZGV2aWNlSWQiOiIwMTk2MWZjMS05NWIwLTdmNzYtOTFjMi1iNWFhZmJlNmM5YmUiLCJpYXQiOjE3NDQ0NDA4NTd9.qGDfH_NwmgRVTKwAyb-Qw-Flpm63zKHQxocCT5LBWtI"
 
 # run post attendance
 echo "Running post attendance"
