@@ -13,14 +13,7 @@ export const SelectAttendanceSchema = t.Composite([
     userName: t.String(),
   }),
 ]);
-const InsertAttendanceSchema = createInsertSchema(
-  table.attendance,
-  // attendanceOverride,
-  {
-    latitude: t.Number(),
-    longitude: t.Number(),
-  },
-);
+const InsertAttendanceSchema = createInsertSchema(table.attendance);
 
 export const CreateAttendanceSchema = t.Omit(InsertAttendanceSchema, []);
 

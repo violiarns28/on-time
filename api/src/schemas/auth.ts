@@ -9,11 +9,7 @@ export const JWTSchema = t.Object({
   iat: t.Number(),
 });
 
-export const LoginSchema = t.Pick(CreateUserSchema, [
-  'email',
-  'password',
-  'deviceId',
-]);
+export const LoginSchema = t.Pick(CreateUserSchema, ['email', 'password']);
 export const LoginResponseSchema = t.Object({
   user: t.Omit(SelectUserSchema, ['password']),
   token: t.String(),

@@ -16,7 +16,6 @@ export const CreateUserSchema = createInsertSchema(table.user, userOverride);
 export const UpdateUserSchema = t.Omit(CreateUserSchema, [
   'id',
   'email',
-  'deviceId',
   'createdAt',
   'updatedAt',
 ]);

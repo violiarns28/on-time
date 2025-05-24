@@ -238,7 +238,7 @@ export class P2PService {
       [MessageType.NODE_LIST]: async () => this.handleNodeList(data),
       [MessageType.PING]: async () => this.handlePing(ws),
       // eslint-disable-next-line prettier/prettier
-      [MessageType.PONG]: async () => { }, // No action needed
+      [MessageType.PONG]: async () => {}, // No action needed
     };
 
     const handler = handlers[type];
@@ -246,6 +246,36 @@ export class P2PService {
       await handler(ws, data);
     } else {
       console.log(`[P2P Service] Unknown message type: ${type}`);
+    }
+  }
+
+  private async handleNewBlock(block: SelectAttendance): Promise<void> {
+    if (!block) {
+      console.log('Received invalid block');
+      return;
+    }
+
+    try {
+      const blockchainInstance = this.blockchain.getBlockchain();
+      const latestBlockHeld = blockchainInstance.getLatestBlock();
+
+      if (block.previousHash === latestBlockHeld.hash) {
+        console.log(`[P2P Service] Valid new block received: ${block.id}`);
+
+        try {
+          blockchainInstance.addBlock(block);
+          console.log(
+            `[P2P Service] Successfully added block ${block.id} to the chain`,
+          );
+          this.broadcastNewBlock(block);
+        } catch (error) {
+          console.error('[P2P Service] Error handling new valid block:', error);
+        }
+      } else {
+        console.log('New block rejected: invalid previous hash');
+      }
+    } catch (error) {
+      console.error('[P2P Service] Error handling new block:', error);
     }
   }
 
@@ -276,7 +306,6 @@ export class P2PService {
           'name',
           'email',
           'password',
-          'deviceId',
           'createdAt',
           'updatedAt',
         ]),
@@ -403,36 +432,6 @@ export class P2PService {
     }
 
     return true;
-  }
-
-  private async handleNewBlock(block: SelectAttendance): Promise<void> {
-    if (!block) {
-      console.log('Received invalid block');
-      return;
-    }
-
-    try {
-      const blockchainInstance = this.blockchain.getBlockchain();
-      const latestBlockHeld = blockchainInstance.getLatestBlock();
-
-      if (block.previousHash === latestBlockHeld.hash) {
-        console.log(`[P2P Service] Valid new block received: ${block.id}`);
-
-        try {
-          blockchainInstance.addBlock(block);
-          console.log(
-            `[P2P Service] Successfully added block ${block.id} to the chain`,
-          );
-          this.broadcastNewBlock(block);
-        } catch (error) {
-          console.error('[P2P Service] Error handling new valid block:', error);
-        }
-      } else {
-        console.log('New block rejected: invalid previous hash');
-      }
-    } catch (error) {
-      console.error('[P2P Service] Error handling new block:', error);
-    }
   }
 
   private async handleRegisterNode(data: {

@@ -2,7 +2,6 @@ import { relations } from 'drizzle-orm';
 import {
   bigint,
   date,
-  decimal,
   int,
   mysqlEnum,
   mysqlTable,
@@ -19,8 +18,6 @@ const attendanceType = mysqlEnum('attendance_type', [
 export const attendancesTable = mysqlTable('attendances', {
   id: int().primaryKey(),
   userId: int('user_id', {}).notNull(),
-  latitude: decimal('latitude', { precision: 12, scale: 5 }).notNull(),
-  longitude: decimal('longitude', { precision: 12, scale: 5 }).notNull(),
   type: attendanceType.notNull(),
   date: date({ mode: 'string' }).notNull(),
   timestamp: bigint({ mode: 'number' }).notNull(),

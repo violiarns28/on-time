@@ -6,6 +6,5 @@ export const usersTable = mysqlTable('users', {
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
-  deviceId: varchar('device_id', { length: 255 }).notNull(),
   ...CommonModifier,
 });
