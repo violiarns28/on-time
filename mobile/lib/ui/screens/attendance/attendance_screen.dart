@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:on_time/data/models/attendance_model.dart';
 import 'package:on_time/ui/screens/attendance/attendance_controller.dart';
 import 'package:on_time/ui/screens/history_detail/history_detail_binding.dart';
@@ -17,11 +18,6 @@ class AttendanceScreen extends GetView<AttendanceController> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [],
-          ),
           Container(
             alignment: Alignment.center,
             width: double.infinity,
@@ -253,8 +249,11 @@ class AttendanceScreen extends GetView<AttendanceController> {
     int timestamp = 0,
   }) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final formatter = DateFormat("dd-MM-yyyy HH:mm:ss");
+    final formattedDate = formatter.format(date);
+    final formattedDatePart = formattedDate.split(" ");
     final prettyDate =
-        "${date.day}-${date.month}-${date.year} at ${date.hour}:${date.minute} WIB";
+        "${formattedDatePart.first} at ${formattedDatePart.last} WIB";
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
