@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:on_time/data/models/attendance_model.dart';
 import 'package:on_time/ui/screens/attendance/attendance_controller.dart';
 import 'package:on_time/ui/screens/history_detail/history_detail_binding.dart';
@@ -18,29 +17,6 @@ class AttendanceScreen extends GetView<AttendanceController> {
       backgroundColor: const Color(0xFF96D4E1),
       body: Stack(
         children: [
-          GoogleMap(
-            mapType: MapType.normal,
-            onMapCreated: controller.onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: controller.targetLocation,
-              zoom: 27.0,
-            ),
-            markers: {
-              Marker(
-                markerId: const MarkerId('currentLocation'),
-                position: controller.currentLocation,
-              ),
-            },
-            circles: {
-              Circle(
-                circleId: const CircleId('targetLocation'),
-                center: controller.targetLocation,
-                radius: 10,
-                fillColor: const Color(0xFF3C94A5).withOpacity(0.3),
-                strokeWidth: 1,
-              ),
-            },
-          ),
           Column(
             children: [
               const Padding(

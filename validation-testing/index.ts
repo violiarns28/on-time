@@ -17,8 +17,6 @@ const typeMap: Record<string, string> = {
 function normalize(row: Row): Row {
   return {
     ...row,
-    latitude: parseFloat(row.latitude).toFixed(5),
-    longitude: parseFloat(row.longitude).toFixed(5),
     type: typeMap[row.type] || row.type,
     id: row.id,
     userId: row.userId,

@@ -42,7 +42,6 @@ async function seedUser() {
       name: faker.person.fullName(),
       email,
       password: pw,
-      deviceId: faker.string.uuid(),
     }));
 
     const resIds = await drizzleClient

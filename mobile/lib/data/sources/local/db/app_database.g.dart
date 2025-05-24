@@ -23,18 +23,6 @@ class $AttendanceTableTable extends AttendanceTable
   late final GeneratedColumn<int> userId = GeneratedColumn<int>(
       'user_id', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _latitudeMeta =
-      const VerificationMeta('latitude');
-  @override
-  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
-      'latitude', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _longitudeMeta =
-      const VerificationMeta('longitude');
-  @override
-  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
-      'longitude', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumnWithTypeConverter<AttendanceType, int> type =
@@ -75,19 +63,8 @@ class $AttendanceTableTable extends AttendanceTable
       'user_name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        id,
-        userId,
-        latitude,
-        longitude,
-        type,
-        date,
-        timestamp,
-        hash,
-        previousHash,
-        nonce,
-        userName
-      ];
+  List<GeneratedColumn> get $columns =>
+      [id, userId, type, date, timestamp, hash, previousHash, nonce, userName];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -107,18 +84,6 @@ class $AttendanceTableTable extends AttendanceTable
           userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
-    }
-    if (data.containsKey('latitude')) {
-      context.handle(_latitudeMeta,
-          latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta));
-    } else if (isInserting) {
-      context.missing(_latitudeMeta);
-    }
-    if (data.containsKey('longitude')) {
-      context.handle(_longitudeMeta,
-          longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta));
-    } else if (isInserting) {
-      context.missing(_longitudeMeta);
     }
     context.handle(_typeMeta, const VerificationResult.success());
     if (data.containsKey('date')) {
@@ -172,10 +137,6 @@ class $AttendanceTableTable extends AttendanceTable
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       userId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}user_id'])!,
-      latitude: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}latitude'])!,
-      longitude: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}longitude'])!,
       type: $AttendanceTableTable.$convertertype.fromSql(attachedDatabase
           .typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}type'])!),
@@ -207,8 +168,6 @@ class AttendanceTableData extends DataClass
     implements Insertable<AttendanceTableData> {
   final int id;
   final int userId;
-  final double latitude;
-  final double longitude;
   final AttendanceType type;
   final String date;
   final BigInt timestamp;
@@ -219,8 +178,6 @@ class AttendanceTableData extends DataClass
   const AttendanceTableData(
       {required this.id,
       required this.userId,
-      required this.latitude,
-      required this.longitude,
       required this.type,
       required this.date,
       required this.timestamp,
@@ -233,8 +190,6 @@ class AttendanceTableData extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['user_id'] = Variable<int>(userId);
-    map['latitude'] = Variable<double>(latitude);
-    map['longitude'] = Variable<double>(longitude);
     {
       map['type'] =
           Variable<int>($AttendanceTableTable.$convertertype.toSql(type));
@@ -252,8 +207,6 @@ class AttendanceTableData extends DataClass
     return AttendanceTableCompanion(
       id: Value(id),
       userId: Value(userId),
-      latitude: Value(latitude),
-      longitude: Value(longitude),
       type: Value(type),
       date: Value(date),
       timestamp: Value(timestamp),
@@ -270,8 +223,6 @@ class AttendanceTableData extends DataClass
     return AttendanceTableData(
       id: serializer.fromJson<int>(json['id']),
       userId: serializer.fromJson<int>(json['userId']),
-      latitude: serializer.fromJson<double>(json['latitude']),
-      longitude: serializer.fromJson<double>(json['longitude']),
       type: $AttendanceTableTable.$convertertype
           .fromJson(serializer.fromJson<int>(json['type'])),
       date: serializer.fromJson<String>(json['date']),
@@ -288,8 +239,6 @@ class AttendanceTableData extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'userId': serializer.toJson<int>(userId),
-      'latitude': serializer.toJson<double>(latitude),
-      'longitude': serializer.toJson<double>(longitude),
       'type': serializer
           .toJson<int>($AttendanceTableTable.$convertertype.toJson(type)),
       'date': serializer.toJson<String>(date),
@@ -304,8 +253,6 @@ class AttendanceTableData extends DataClass
   AttendanceTableData copyWith(
           {int? id,
           int? userId,
-          double? latitude,
-          double? longitude,
           AttendanceType? type,
           String? date,
           BigInt? timestamp,
@@ -316,8 +263,6 @@ class AttendanceTableData extends DataClass
       AttendanceTableData(
         id: id ?? this.id,
         userId: userId ?? this.userId,
-        latitude: latitude ?? this.latitude,
-        longitude: longitude ?? this.longitude,
         type: type ?? this.type,
         date: date ?? this.date,
         timestamp: timestamp ?? this.timestamp,
@@ -330,8 +275,6 @@ class AttendanceTableData extends DataClass
     return AttendanceTableData(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
-      latitude: data.latitude.present ? data.latitude.value : this.latitude,
-      longitude: data.longitude.present ? data.longitude.value : this.longitude,
       type: data.type.present ? data.type.value : this.type,
       date: data.date.present ? data.date.value : this.date,
       timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
@@ -349,8 +292,6 @@ class AttendanceTableData extends DataClass
     return (StringBuffer('AttendanceTableData(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
-          ..write('latitude: $latitude, ')
-          ..write('longitude: $longitude, ')
           ..write('type: $type, ')
           ..write('date: $date, ')
           ..write('timestamp: $timestamp, ')
@@ -363,16 +304,14 @@ class AttendanceTableData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, userId, latitude, longitude, type, date,
-      timestamp, hash, previousHash, nonce, userName);
+  int get hashCode => Object.hash(
+      id, userId, type, date, timestamp, hash, previousHash, nonce, userName);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is AttendanceTableData &&
           other.id == this.id &&
           other.userId == this.userId &&
-          other.latitude == this.latitude &&
-          other.longitude == this.longitude &&
           other.type == this.type &&
           other.date == this.date &&
           other.timestamp == this.timestamp &&
@@ -385,8 +324,6 @@ class AttendanceTableData extends DataClass
 class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
   final Value<int> id;
   final Value<int> userId;
-  final Value<double> latitude;
-  final Value<double> longitude;
   final Value<AttendanceType> type;
   final Value<String> date;
   final Value<BigInt> timestamp;
@@ -397,8 +334,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
   const AttendanceTableCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
-    this.latitude = const Value.absent(),
-    this.longitude = const Value.absent(),
     this.type = const Value.absent(),
     this.date = const Value.absent(),
     this.timestamp = const Value.absent(),
@@ -410,8 +345,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
   AttendanceTableCompanion.insert({
     this.id = const Value.absent(),
     required int userId,
-    required double latitude,
-    required double longitude,
     required AttendanceType type,
     required String date,
     required BigInt timestamp,
@@ -420,8 +353,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     required int nonce,
     required String userName,
   })  : userId = Value(userId),
-        latitude = Value(latitude),
-        longitude = Value(longitude),
         type = Value(type),
         date = Value(date),
         timestamp = Value(timestamp),
@@ -432,8 +363,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
   static Insertable<AttendanceTableData> custom({
     Expression<int>? id,
     Expression<int>? userId,
-    Expression<double>? latitude,
-    Expression<double>? longitude,
     Expression<int>? type,
     Expression<String>? date,
     Expression<BigInt>? timestamp,
@@ -445,8 +374,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
-      if (latitude != null) 'latitude': latitude,
-      if (longitude != null) 'longitude': longitude,
       if (type != null) 'type': type,
       if (date != null) 'date': date,
       if (timestamp != null) 'timestamp': timestamp,
@@ -460,8 +387,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
   AttendanceTableCompanion copyWith(
       {Value<int>? id,
       Value<int>? userId,
-      Value<double>? latitude,
-      Value<double>? longitude,
       Value<AttendanceType>? type,
       Value<String>? date,
       Value<BigInt>? timestamp,
@@ -472,8 +397,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     return AttendanceTableCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
       type: type ?? this.type,
       date: date ?? this.date,
       timestamp: timestamp ?? this.timestamp,
@@ -492,12 +415,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     }
     if (userId.present) {
       map['user_id'] = Variable<int>(userId.value);
-    }
-    if (latitude.present) {
-      map['latitude'] = Variable<double>(latitude.value);
-    }
-    if (longitude.present) {
-      map['longitude'] = Variable<double>(longitude.value);
     }
     if (type.present) {
       map['type'] =
@@ -529,8 +446,6 @@ class AttendanceTableCompanion extends UpdateCompanion<AttendanceTableData> {
     return (StringBuffer('AttendanceTableCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
-          ..write('latitude: $latitude, ')
-          ..write('longitude: $longitude, ')
           ..write('type: $type, ')
           ..write('date: $date, ')
           ..write('timestamp: $timestamp, ')
@@ -560,8 +475,6 @@ typedef $$AttendanceTableTableCreateCompanionBuilder = AttendanceTableCompanion
     Function({
   Value<int> id,
   required int userId,
-  required double latitude,
-  required double longitude,
   required AttendanceType type,
   required String date,
   required BigInt timestamp,
@@ -574,8 +487,6 @@ typedef $$AttendanceTableTableUpdateCompanionBuilder = AttendanceTableCompanion
     Function({
   Value<int> id,
   Value<int> userId,
-  Value<double> latitude,
-  Value<double> longitude,
   Value<AttendanceType> type,
   Value<String> date,
   Value<BigInt> timestamp,
@@ -599,12 +510,6 @@ class $$AttendanceTableTableFilterComposer
 
   ColumnFilters<int> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get latitude => $composableBuilder(
-      column: $table.latitude, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get longitude => $composableBuilder(
-      column: $table.longitude, builder: (column) => ColumnFilters(column));
 
   ColumnWithTypeConverterFilters<AttendanceType, AttendanceType, int>
       get type => $composableBuilder(
@@ -645,12 +550,6 @@ class $$AttendanceTableTableOrderingComposer
   ColumnOrderings<int> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get latitude => $composableBuilder(
-      column: $table.latitude, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get longitude => $composableBuilder(
-      column: $table.longitude, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<int> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
@@ -688,12 +587,6 @@ class $$AttendanceTableTableAnnotationComposer
 
   GeneratedColumn<int> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
-
-  GeneratedColumn<double> get latitude =>
-      $composableBuilder(column: $table.latitude, builder: (column) => column);
-
-  GeneratedColumn<double> get longitude =>
-      $composableBuilder(column: $table.longitude, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<AttendanceType, int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
@@ -746,8 +639,6 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<int> userId = const Value.absent(),
-            Value<double> latitude = const Value.absent(),
-            Value<double> longitude = const Value.absent(),
             Value<AttendanceType> type = const Value.absent(),
             Value<String> date = const Value.absent(),
             Value<BigInt> timestamp = const Value.absent(),
@@ -759,8 +650,6 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
               AttendanceTableCompanion(
             id: id,
             userId: userId,
-            latitude: latitude,
-            longitude: longitude,
             type: type,
             date: date,
             timestamp: timestamp,
@@ -772,8 +661,6 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required int userId,
-            required double latitude,
-            required double longitude,
             required AttendanceType type,
             required String date,
             required BigInt timestamp,
@@ -785,8 +672,6 @@ class $$AttendanceTableTableTableManager extends RootTableManager<
               AttendanceTableCompanion.insert(
             id: id,
             userId: userId,
-            latitude: latitude,
-            longitude: longitude,
             type: type,
             date: date,
             timestamp: timestamp,

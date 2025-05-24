@@ -27,7 +27,7 @@ export const AuthRouter = new Elysia({
   .post(
     '/login',
     async ({ body, db, generateJWT }) => {
-      const { email, password, deviceId } = body;
+      const { email, password } = body;
       const findUser = await db.query.user.findFirst({
         where: (fields, operators) => operators.eq(fields.email, email),
       });
@@ -42,10 +42,6 @@ export const AuthRouter = new Elysia({
       const valid = await pw.verify(password, findUser.password, 'bcrypt');
       if (!valid) {
         throw new BadRequestError('Invalid credentials');
-      }
-
-      if (findUser.deviceId !== deviceId) {
-        throw new BadRequestError('Invalid device');
       }
 
       const user = {
@@ -109,7 +105,7 @@ export const AuthRouter = new Elysia({
           createdAt: (newUser.createdAt ?? new Date()).toISOString(),
           updatedAt: (newUser.updatedAt ?? new Date()).toISOString(),
         };
-        p2pService.broadcastNewUser({ ...user, password });
+        p2pService.broadcastNewUser({ ...user, password});
 
         const token = await generateJWT(user);
 

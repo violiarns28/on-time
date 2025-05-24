@@ -105,7 +105,6 @@ class ChangePasswordController extends GetxController {
           id: user.id,
           name: un,
           email: user.email,
-          deviceId: user.deviceId,
           password: np,
         ),
       );

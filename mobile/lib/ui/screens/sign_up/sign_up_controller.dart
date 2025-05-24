@@ -64,7 +64,6 @@ class SignUpController extends GetxController {
           name: nameController.text,
           email: emailController.text,
           password: passwordController.text,
-          deviceId: (await userDao.getDeviceId() ?? ''),
         ),
       );
       if (response.createdAt != null) {

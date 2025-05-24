@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:on_time/core/routes/app_pages.dart';
 import 'package:on_time/data/models/user_model.dart';
@@ -27,25 +26,6 @@ class ProfileController extends GetxController {
       return;
     }
     super.onInit();
-  }
-
-  void copyDeviceId() {
-    Clipboard.setData(ClipboardData(text: user.deviceId));
-
-    const snackBar = SnackBar(
-      elevation: 0,
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.transparent,
-      content: AwesomeSnackbarContent(
-        title: 'Device ID Copied',
-        message: 'Device ID has been copied to clipboard',
-        contentType: ContentType.success,
-      ),
-    );
-
-    ScaffoldMessenger.of(Get.context!)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);
   }
 
   Future<void> signOut() async {

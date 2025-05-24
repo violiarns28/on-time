@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:on_time/data/models/attendance_model.dart';
 import 'package:on_time/data/sources/local/dao/attendance_dao.dart';
 import 'package:on_time/data/sources/local/db/attendance_table.dart';

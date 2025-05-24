@@ -61,7 +61,6 @@ class Blockchain {
         name: string;
         email: string;
         password: string;
-        deviceId: string;
         createdAt: string;
         updatedAt: string;
       }[] = (await userRequest.json()).data;
@@ -78,7 +77,6 @@ class Blockchain {
             'name',
             'email',
             'password',
-            'deviceId',
             'createdAt',
             'updatedAt',
           ]),
@@ -96,8 +94,6 @@ class Blockchain {
         .onDuplicateKeyUpdate({
           set: buildConflictUpdateColumns(attendancesTable, [
             'userId',
-            'latitude',
-            'longitude',
             'type',
             'date',
             'timestamp',
@@ -181,7 +177,6 @@ class Blockchain {
           name: 'GENESIS',
           email: 'genesis@ontime.com',
           password: await Bun.password.hash('genesis', 'bcrypt'),
-          deviceId: 'genesis',
         })
         .execute();
 
@@ -201,8 +196,6 @@ class Blockchain {
     const genesisBlock: SelectAttendance = {
       id: 1,
       userId,
-      latitude: '0',
-      longitude: '0',
       type: 'GENESIS',
       userName: 'GENESIS',
       timestamp: date.getTime(),

@@ -83,16 +83,12 @@ export const AttendanceRouter = new Elysia({
       const user = await getUser();
       console.log('user', user);
       const userId = user.id;
-      const { type, deviceId } = body;
+      const { type } = body;
 
       if (!type) {
         throw new BadRequestError('Type is required');
       }
       console.log('Type', type);
-
-      if (deviceId !== user.deviceId) {
-        throw new BadRequestError('Invalid device');
-      }
 
       const now = new Date();
 
@@ -123,8 +119,6 @@ export const AttendanceRouter = new Elysia({
             userId,
             timestamp: now.getTime(),
             userName: user.name,
-            latitude: body.latitude.toString(),
-            longitude: body.longitude.toString(),
           });
 
           return {
@@ -146,8 +140,6 @@ export const AttendanceRouter = new Elysia({
         userId,
         userName: user.name,
         timestamp: now.getTime(),
-        latitude: body.latitude.toString(),
-        longitude: body.longitude.toString(),
       });
 
       return {
@@ -166,9 +158,6 @@ export const AttendanceRouter = new Elysia({
           'timestamp',
           'nonce',
         ]),
-        t.Object({
-          deviceId: t.String(),
-        }),
       ]),
       response: {
         200: {
@@ -218,8 +207,6 @@ export const AttendanceRouter = new Elysia({
             userId,
             timestamp: now.getTime(),
             userName: user.name,
-            latitude: body.latitude.toString(),
-            longitude: body.longitude.toString(),
           });
 
           return {
@@ -241,8 +228,6 @@ export const AttendanceRouter = new Elysia({
         userId,
         userName: user.name,
         timestamp: now.getTime(),
-        latitude: body.latitude.toString(),
-        longitude: body.longitude.toString(),
       });
 
       return {
@@ -260,14 +245,7 @@ export const AttendanceRouter = new Elysia({
           'previousHash',
           'timestamp',
           'nonce',
-          'latitude',
-          'longitude',
         ]),
-        t.Object({
-          deviceId: t.String(),
-          latitude: t.String(),
-          longitude: t.String(),
-        }),
       ]),
       response: {
         200: {
@@ -292,8 +270,6 @@ export const AttendanceRouter = new Elysia({
       csvStream.write({
         id: row.id,
         userId: row.userId,
-        latitude: row.latitude,
-        longitude: row.longitude,
         type: row.type,
         date: row.date,
         timestamp: row.timestamp,

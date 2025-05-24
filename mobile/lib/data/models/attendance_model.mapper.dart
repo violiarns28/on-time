@@ -76,12 +76,6 @@ class AttendanceModelMapper extends ClassMapperBase<AttendanceModel> {
   static int _$userId(AttendanceModel v) => v.userId;
   static const Field<AttendanceModel, int> _f$userId =
       Field('userId', _$userId);
-  static double _$latitude(AttendanceModel v) => v.latitude;
-  static const Field<AttendanceModel, double> _f$latitude =
-      Field('latitude', _$latitude);
-  static double _$longitude(AttendanceModel v) => v.longitude;
-  static const Field<AttendanceModel, double> _f$longitude =
-      Field('longitude', _$longitude);
   static AttendanceType _$type(AttendanceModel v) => v.type;
   static const Field<AttendanceModel, AttendanceType> _f$type =
       Field('type', _$type);
@@ -105,8 +99,6 @@ class AttendanceModelMapper extends ClassMapperBase<AttendanceModel> {
   final MappableFields<AttendanceModel> fields = const {
     #id: _f$id,
     #userId: _f$userId,
-    #latitude: _f$latitude,
-    #longitude: _f$longitude,
     #type: _f$type,
     #date: _f$date,
     #timestamp: _f$timestamp,
@@ -120,8 +112,6 @@ class AttendanceModelMapper extends ClassMapperBase<AttendanceModel> {
     return AttendanceModel(
         id: data.dec(_f$id),
         userId: data.dec(_f$userId),
-        latitude: data.dec(_f$latitude),
-        longitude: data.dec(_f$longitude),
         type: data.dec(_f$type),
         date: data.dec(_f$date),
         timestamp: data.dec(_f$timestamp),
@@ -187,8 +177,6 @@ abstract class AttendanceModelCopyWith<$R, $In extends AttendanceModel, $Out>
   $R call(
       {int? id,
       int? userId,
-      double? latitude,
-      double? longitude,
       AttendanceType? type,
       String? date,
       int? timestamp,
@@ -212,8 +200,6 @@ class _AttendanceModelCopyWithImpl<$R, $Out>
   $R call(
           {int? id,
           int? userId,
-          double? latitude,
-          double? longitude,
           AttendanceType? type,
           String? date,
           int? timestamp,
@@ -224,8 +210,6 @@ class _AttendanceModelCopyWithImpl<$R, $Out>
       $apply(FieldCopyWithData({
         if (id != null) #id: id,
         if (userId != null) #userId: userId,
-        if (latitude != null) #latitude: latitude,
-        if (longitude != null) #longitude: longitude,
         if (type != null) #type: type,
         if (date != null) #date: date,
         if (timestamp != null) #timestamp: timestamp,
@@ -238,8 +222,6 @@ class _AttendanceModelCopyWithImpl<$R, $Out>
   AttendanceModel $make(CopyWithData data) => AttendanceModel(
       id: data.get(#id, or: $value.id),
       userId: data.get(#userId, or: $value.userId),
-      latitude: data.get(#latitude, or: $value.latitude),
-      longitude: data.get(#longitude, or: $value.longitude),
       type: data.get(#type, or: $value.type),
       date: data.get(#date, or: $value.date),
       timestamp: data.get(#timestamp, or: $value.timestamp),
@@ -270,33 +252,17 @@ class MarkAttendanceRequestMapper
   @override
   final String id = 'MarkAttendanceRequest';
 
-  static double _$latitude(MarkAttendanceRequest v) => v.latitude;
-  static const Field<MarkAttendanceRequest, double> _f$latitude =
-      Field('latitude', _$latitude);
-  static double _$longitude(MarkAttendanceRequest v) => v.longitude;
-  static const Field<MarkAttendanceRequest, double> _f$longitude =
-      Field('longitude', _$longitude);
   static AttendanceType _$type(MarkAttendanceRequest v) => v.type;
   static const Field<MarkAttendanceRequest, AttendanceType> _f$type =
       Field('type', _$type);
-  static String _$deviceId(MarkAttendanceRequest v) => v.deviceId;
-  static const Field<MarkAttendanceRequest, String> _f$deviceId =
-      Field('deviceId', _$deviceId);
 
   @override
   final MappableFields<MarkAttendanceRequest> fields = const {
-    #latitude: _f$latitude,
-    #longitude: _f$longitude,
     #type: _f$type,
-    #deviceId: _f$deviceId,
   };
 
   static MarkAttendanceRequest _instantiate(DecodingData data) {
-    return MarkAttendanceRequest(
-        latitude: data.dec(_f$latitude),
-        longitude: data.dec(_f$longitude),
-        type: data.dec(_f$type),
-        deviceId: data.dec(_f$deviceId));
+    return MarkAttendanceRequest(type: data.dec(_f$type));
   }
 
   @override
@@ -356,11 +322,7 @@ abstract class MarkAttendanceRequestCopyWith<
     $R,
     $In extends MarkAttendanceRequest,
     $Out> implements ClassCopyWith<$R, $In, $Out> {
-  $R call(
-      {double? latitude,
-      double? longitude,
-      AttendanceType? type,
-      String? deviceId});
+  $R call({AttendanceType? type});
   MarkAttendanceRequestCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -374,23 +336,11 @@ class _MarkAttendanceRequestCopyWithImpl<$R, $Out>
   late final ClassMapperBase<MarkAttendanceRequest> $mapper =
       MarkAttendanceRequestMapper.ensureInitialized();
   @override
-  $R call(
-          {double? latitude,
-          double? longitude,
-          AttendanceType? type,
-          String? deviceId}) =>
-      $apply(FieldCopyWithData({
-        if (latitude != null) #latitude: latitude,
-        if (longitude != null) #longitude: longitude,
-        if (type != null) #type: type,
-        if (deviceId != null) #deviceId: deviceId
-      }));
+  $R call({AttendanceType? type}) =>
+      $apply(FieldCopyWithData({if (type != null) #type: type}));
   @override
-  MarkAttendanceRequest $make(CopyWithData data) => MarkAttendanceRequest(
-      latitude: data.get(#latitude, or: $value.latitude),
-      longitude: data.get(#longitude, or: $value.longitude),
-      type: data.get(#type, or: $value.type),
-      deviceId: data.get(#deviceId, or: $value.deviceId));
+  MarkAttendanceRequest $make(CopyWithData data) =>
+      MarkAttendanceRequest(type: data.get(#type, or: $value.type));
 
   @override
   MarkAttendanceRequestCopyWith<$R2, MarkAttendanceRequest, $Out2>

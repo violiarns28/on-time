@@ -27,7 +27,6 @@ export const AuthMiddleware = new Elysia()
         id: user.id,
         email: user.email,
         name: user.name,
-        deviceId: user.deviceId,
         exp: Config.JWT_EXPIRES_IN, // 30 days
         iat: Math.floor(Date.now() / 1000),
       });

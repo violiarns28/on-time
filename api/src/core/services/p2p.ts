@@ -49,7 +49,6 @@ interface NewUserData {
   name: string;
   email: string;
   password: string;
-  deviceId: string;
   createdAt: string;
   updatedAt: string;
 }

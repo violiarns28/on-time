@@ -61,7 +61,6 @@ class SignInController extends GetxController {
         LoginRequest(
           email: emailController.text,
           password: passwordController.text,
-          deviceId: (await userDao.getDeviceId() ?? ''),
         ),
       );
 

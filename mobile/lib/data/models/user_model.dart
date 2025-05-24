@@ -7,7 +7,6 @@ class UserModel with UserModelMappable {
   final int id;
   final String name;
   final String email;
-  final String deviceId;
   final String? createdAt;
   final String? updatedAt;
 
@@ -15,7 +14,6 @@ class UserModel with UserModelMappable {
     required this.id,
     required this.name,
     required this.email,
-    required this.deviceId,
     this.createdAt,
     this.updatedAt,
   });
@@ -27,7 +25,6 @@ class UserModel with UserModelMappable {
         id: 1,
         name: 'John Doe',
         email: 'john@gmail.com',
-        deviceId: '0000-1111-2222-3333',
       );
 }
 
@@ -36,14 +33,12 @@ class UpdateProfileRequest with UpdateProfileRequestMappable {
   final int? id;
   final String? name;
   final String? email;
-  final String? deviceId;
   final String? password;
 
   const UpdateProfileRequest({
     this.id,
     this.name,
     this.email,
-    this.deviceId,
     this.password,
   });
 

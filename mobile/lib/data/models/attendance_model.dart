@@ -10,8 +10,6 @@ enum AttendanceType { GENESIS, CLOCK_IN, CLOCK_OUT }
 class AttendanceModel with AttendanceModelMappable {
   final int id;
   final int userId;
-  final double latitude;
-  final double longitude;
   final AttendanceType type;
   final String date;
   final int timestamp;
@@ -23,8 +21,6 @@ class AttendanceModel with AttendanceModelMappable {
   const AttendanceModel({
     required this.id,
     required this.userId,
-    required this.latitude,
-    required this.longitude,
     required this.type,
     required this.date,
     required this.timestamp,
@@ -41,8 +37,6 @@ class AttendanceModel with AttendanceModelMappable {
       AttendanceModel(
         id: data.id,
         userId: data.userId,
-        latitude: data.latitude,
-        longitude: data.longitude,
         type: data.type,
         date: data.date,
         timestamp: data.timestamp.toInt(),
@@ -55,8 +49,6 @@ class AttendanceModel with AttendanceModelMappable {
   AttendanceTableData toLocal() => AttendanceTableData(
         id: id,
         userId: userId,
-        latitude: latitude,
-        longitude: longitude,
         type: type,
         date: date,
         timestamp: BigInt.from(timestamp),
@@ -72,16 +64,10 @@ class AttendanceModel with AttendanceModelMappable {
 
 @MappableClass()
 class MarkAttendanceRequest with MarkAttendanceRequestMappable {
-  final double latitude;
-  final double longitude;
   final AttendanceType type;
-  final String deviceId;
 
   const MarkAttendanceRequest({
-    required this.latitude,
-    required this.longitude,
     required this.type,
-    required this.deviceId,
   });
 
   static const fromMap = MarkAttendanceRequestMapper.fromMap;

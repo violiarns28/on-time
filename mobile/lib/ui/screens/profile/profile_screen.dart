@@ -25,7 +25,7 @@ class ProfileScreen extends GetView<ProfileController> {
 
       final csvBuffer = StringBuffer();
       csvBuffer.writeln(
-        "id,userId,latitude,longitude,type,date,timestamp,hash,previousHash,nonce,userName",
+        "id,userId,type,date,timestamp,hash,previousHash,nonce,userName",
       );
 
       for (var row in rows) {
@@ -33,8 +33,6 @@ class ProfileScreen extends GetView<ProfileController> {
           [
             row.id,
             row.userId,
-            row.latitude,
-            row.longitude,
             row.type.index,
             row.date,
             row.timestamp,
@@ -92,42 +90,6 @@ class ProfileScreen extends GetView<ProfileController> {
                         fontSize: 18.0,
                         fontWeight: FontWeight.w600,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  Container(
-                    width: double.infinity,
-                    height: 48,
-                    padding: const EdgeInsets.fromLTRB(24, 0, 8, 0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.0),
-                      color: const Color(0xFFE8F2F4),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Obx(
-                          () => Expanded(
-                            child: Text(
-                              controller.user.deviceId.toString(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: controller.copyDeviceId,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.copy_rounded),
-                        ),
-                      ],
                     ),
                   ),
                   const SizedBox(height: 24),

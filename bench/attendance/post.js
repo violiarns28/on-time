@@ -15,10 +15,7 @@ export default function () {
     const randomType = Math.random() > 0.5 ? 'CLOCK_IN' : 'CLOCK_OUT';
 
     const payload = {
-        latitude: -7.316345651960165,
-        longitude: 112.72535138895527,
         type: randomType,
-        deviceId: 'k6',
     }
 
     const res = http.post(`https://attendance-api.zenta.dev/attendances/simulate`, payload);

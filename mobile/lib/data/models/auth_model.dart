@@ -7,12 +7,10 @@ part 'auth_model.mapper.dart';
 class LoginRequest with LoginRequestMappable {
   final String email;
   final String password;
-  final String deviceId;
 
   const LoginRequest({
     required this.email,
     required this.password,
-    required this.deviceId,
   });
 
   static const fromMap = LoginRequestMapper.fromMap;
@@ -37,12 +35,10 @@ class RegisterRequest with RegisterRequestMappable {
   final String email;
   final String password;
   final String name;
-  final String deviceId;
   const RegisterRequest({
     required this.email,
     required this.password,
     required this.name,
-    required this.deviceId,
   });
 
   static const fromMap = RegisterRequestMapper.fromMap;

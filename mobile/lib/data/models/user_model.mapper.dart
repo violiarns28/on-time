@@ -26,9 +26,6 @@ class UserModelMapper extends ClassMapperBase<UserModel> {
   static const Field<UserModel, String> _f$name = Field('name', _$name);
   static String _$email(UserModel v) => v.email;
   static const Field<UserModel, String> _f$email = Field('email', _$email);
-  static String _$deviceId(UserModel v) => v.deviceId;
-  static const Field<UserModel, String> _f$deviceId =
-      Field('deviceId', _$deviceId);
   static String? _$createdAt(UserModel v) => v.createdAt;
   static const Field<UserModel, String> _f$createdAt =
       Field('createdAt', _$createdAt, opt: true);
@@ -41,7 +38,6 @@ class UserModelMapper extends ClassMapperBase<UserModel> {
     #id: _f$id,
     #name: _f$name,
     #email: _f$email,
-    #deviceId: _f$deviceId,
     #createdAt: _f$createdAt,
     #updatedAt: _f$updatedAt,
   };
@@ -51,7 +47,6 @@ class UserModelMapper extends ClassMapperBase<UserModel> {
         id: data.dec(_f$id),
         name: data.dec(_f$name),
         email: data.dec(_f$email),
-        deviceId: data.dec(_f$deviceId),
         createdAt: data.dec(_f$createdAt),
         updatedAt: data.dec(_f$updatedAt));
   }
@@ -110,7 +105,6 @@ abstract class UserModelCopyWith<$R, $In extends UserModel, $Out>
       {int? id,
       String? name,
       String? email,
-      String? deviceId,
       String? createdAt,
       String? updatedAt});
   UserModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -129,14 +123,12 @@ class _UserModelCopyWithImpl<$R, $Out>
           {int? id,
           String? name,
           String? email,
-          String? deviceId,
           Object? createdAt = $none,
           Object? updatedAt = $none}) =>
       $apply(FieldCopyWithData({
         if (id != null) #id: id,
         if (name != null) #name: name,
         if (email != null) #email: email,
-        if (deviceId != null) #deviceId: deviceId,
         if (createdAt != $none) #createdAt: createdAt,
         if (updatedAt != $none) #updatedAt: updatedAt
       }));
@@ -145,7 +137,6 @@ class _UserModelCopyWithImpl<$R, $Out>
       id: data.get(#id, or: $value.id),
       name: data.get(#name, or: $value.name),
       email: data.get(#email, or: $value.email),
-      deviceId: data.get(#deviceId, or: $value.deviceId),
       createdAt: data.get(#createdAt, or: $value.createdAt),
       updatedAt: data.get(#updatedAt, or: $value.updatedAt));
 
@@ -178,9 +169,6 @@ class UpdateProfileRequestMapper extends ClassMapperBase<UpdateProfileRequest> {
   static String? _$email(UpdateProfileRequest v) => v.email;
   static const Field<UpdateProfileRequest, String> _f$email =
       Field('email', _$email, opt: true);
-  static String? _$deviceId(UpdateProfileRequest v) => v.deviceId;
-  static const Field<UpdateProfileRequest, String> _f$deviceId =
-      Field('deviceId', _$deviceId, opt: true);
   static String? _$password(UpdateProfileRequest v) => v.password;
   static const Field<UpdateProfileRequest, String> _f$password =
       Field('password', _$password, opt: true);
@@ -190,7 +178,6 @@ class UpdateProfileRequestMapper extends ClassMapperBase<UpdateProfileRequest> {
     #id: _f$id,
     #name: _f$name,
     #email: _f$email,
-    #deviceId: _f$deviceId,
     #password: _f$password,
   };
 
@@ -199,7 +186,6 @@ class UpdateProfileRequestMapper extends ClassMapperBase<UpdateProfileRequest> {
         id: data.dec(_f$id),
         name: data.dec(_f$name),
         email: data.dec(_f$email),
-        deviceId: data.dec(_f$deviceId),
         password: data.dec(_f$password));
   }
 
@@ -260,12 +246,7 @@ abstract class UpdateProfileRequestCopyWith<
     $R,
     $In extends UpdateProfileRequest,
     $Out> implements ClassCopyWith<$R, $In, $Out> {
-  $R call(
-      {int? id,
-      String? name,
-      String? email,
-      String? deviceId,
-      String? password});
+  $R call({int? id, String? name, String? email, String? password});
   UpdateProfileRequestCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -283,13 +264,11 @@ class _UpdateProfileRequestCopyWithImpl<$R, $Out>
           {Object? id = $none,
           Object? name = $none,
           Object? email = $none,
-          Object? deviceId = $none,
           Object? password = $none}) =>
       $apply(FieldCopyWithData({
         if (id != $none) #id: id,
         if (name != $none) #name: name,
         if (email != $none) #email: email,
-        if (deviceId != $none) #deviceId: deviceId,
         if (password != $none) #password: password
       }));
   @override
@@ -297,7 +276,6 @@ class _UpdateProfileRequestCopyWithImpl<$R, $Out>
       id: data.get(#id, or: $value.id),
       name: data.get(#name, or: $value.name),
       email: data.get(#email, or: $value.email),
-      deviceId: data.get(#deviceId, or: $value.deviceId),
       password: data.get(#password, or: $value.password));
 
   @override
