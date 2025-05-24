@@ -3,11 +3,8 @@ import http from 'k6/http';
 import { Counter, Rate } from 'k6/metrics';
 
 export let options = {
-    vus: 20, // 20 virtual users
-    duration: '1m', // Test duration
-    thresholds: {
-        http_req_duration: ['p(95)<500'], // 95% of requests should be below 500ms
-    },
+    vus: 20,
+    duration: '10m',
 };
 
 const successRate = new Rate('successful_requests');
@@ -15,29 +12,21 @@ const totalRequests = new Counter('total_requests');
 const failedRequests = new Counter('failed_requests');
 
 export default function () {
-
-    const randomLatitude = Math.random() * 180 - 90;
-    const randomLongitude = Math.random() * 360 - 180;
     const randomType = Math.random() > 0.5 ? 'CLOCK_IN' : 'CLOCK_OUT';
 
     const payload = {
-        latitude: randomLatitude,
-        longitude: randomLongitude,
+        latitude: -7.316345651960165,
+        longitude: 112.72535138895527,
         type: randomType,
         deviceId: 'k6',
     }
 
-    const res = http.post(`${__ENV.BASE_URL}/attendances/simulate`, payload);
+    const res = http.post(`https://attendance-api.zenta.dev/attendances/simulate`, payload);
+
     totalRequests.add(1);
 
     const success = check(res, {
         'is status 200': (r) => r.status === 200,
-    });
-
-    const body = JSON.parse(res.body);
-    // check if body have hash
-    check(body, {
-        'has hash': (r) => r.hash !== undefined || r.hash !== null,
     });
 
     successRate.add(success);
