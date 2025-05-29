@@ -1,24 +1,26 @@
 import { Config } from '@/core/config';
+import { env } from '@/core/config/env';
 import {
   AuthenticationError,
   AuthorizationError,
   BadRequestError,
+  BaseError,
   ConflictError,
   ServerError,
   StorageError,
   UnsupportedMediaTypeError,
 } from '@/core/errors';
 import { LoggerMiddleware } from '@/core/middleware/logger';
+import { BlockchainService } from '@/core/services/blockchain';
+import { drizzleClient } from '@/core/services/db';
+import { P2PService } from '@/core/services/p2p';
+import { redisClient } from '@/core/services/redis';
+import { AppRouter } from '@/routes/_router';
+import { logger } from '@/utils/logger';
 import cors from '@elysiajs/cors';
 import { serverTiming } from '@elysiajs/server-timing';
 import { swagger } from '@elysiajs/swagger';
 import { Elysia, ValidationError } from 'elysia';
-import { env } from './core/config/env';
-import { BlockchainService } from './core/services/blockchain';
-import { drizzleClient } from './core/services/db';
-import { P2PService } from './core/services/p2p';
-import { redisClient } from './core/services/redis';
-import { AppRouter } from './routes/_router';
 
 process.env.TZ = 'Asia/Jakarta';
 
@@ -30,7 +32,7 @@ export const p2pService = P2PService.getInstance();
 p2pService.initialize(blockchainService, drizzleClient, 6001);
 if (env.IS_SLAVE_NODE) p2pService.addPeer(env.MASTER_NODE_URL_WS);
 
-const app = new Elysia({
+export const app = new Elysia({
   name: Config.NAME,
 })
   .error({
@@ -47,42 +49,17 @@ const app = new Elysia({
   })
   .onError(({ error, code, set, route, path }) => {
     try {
-      console.error('<=============== ERROR ===============>');
-      console.log('[ROUTE] : ', route);
-      console.log('[PATH] : ', path);
-      console.log('[ERROR] : ', error);
-      console.error('<=============== ERROR ===============>');
+      logger.error('<=============== ERROR ===============>');
+      logger.info('[ROUTE] : ', route);
+      logger.info('[PATH] : ', path);
+      logger.info('[ERROR] : ', error);
+      logger.info('[CODE] : ', code);
+      logger.error('<=============== ERROR ===============>');
 
       let httpCode;
-      switch (code) {
-        case 'PARSE':
-        case 'BAD_REQUEST':
-          httpCode = 400;
-          break;
-        case 'CONFLICT':
-          httpCode = 409;
-          break;
-        case 'UNSUPPORTED_MEDIA_TYPE':
-          httpCode = 415;
-          break;
-        case 'VALIDATION':
-          httpCode = 422;
-          break;
-        case 'NOT_FOUND':
-          httpCode = 404;
-          break;
-        case 'INVALID_COOKIE_SIGNATURE':
-        case 'AUTHENTICATION':
-        case 'AUTHORIZATION':
-          httpCode = 401;
-          break;
-        case 'INTERNAL_SERVER_ERROR':
-        case 'UNKNOWN':
-          httpCode = 500;
-          break;
-        default:
-          httpCode = 500;
-          break;
+      if (error instanceof BaseError) {
+        httpCode = error.status;
+        logger.info('[HTTP CODE] : ', httpCode);
       }
       set.status = httpCode;
       const errorType = 'type' in error ? error.type : 'internal';
@@ -97,7 +74,7 @@ const app = new Elysia({
         { status: httpCode },
       );
     } catch (error) {
-      console.log(error);
+      logger.info(error);
 
       return { errors: 'Internal server error', type: 'internal' };
     }
@@ -131,5 +108,5 @@ const app = new Elysia({
   });
 
 app.listen(Config.PORT, () => {
-  console.log(`Server listening on port ${Config.PORT}`);
+  logger.info(`Server listening on port ${Config.PORT}`);
 });

@@ -79,17 +79,14 @@ export const AttendanceRouter = new Elysia({
   )
   .post(
     '/',
-    async ({ body, db, getUser }) => {
+    async ({ body, db, getUser, set }) => {
       const user = await getUser();
-      console.log('user', user);
       const userId = user.id;
       const { type } = body;
 
       if (!type) {
         throw new BadRequestError('Type is required');
       }
-      console.log('Type', type);
-
       const now = new Date();
 
       const date = now.toISOString().split('T')[0];
@@ -102,9 +99,6 @@ export const AttendanceRouter = new Elysia({
           );
         },
       });
-
-      console.log('findAttendance', findAttendance);
-
       if (findAttendance) {
         if (findAttendance.type === type) {
           throw new BadRequestError(
@@ -121,6 +115,7 @@ export const AttendanceRouter = new Elysia({
             userName: user.name,
           });
 
+          set.status = 201;
           return {
             message: 'Clock out successfully',
             data: result,
@@ -138,10 +133,11 @@ export const AttendanceRouter = new Elysia({
         type: 'CLOCK_IN',
         date,
         userId,
-        userName: user.name,
         timestamp: now.getTime(),
+        userName: user.name,
       });
 
+      set.status = 201;
       return {
         message: 'Clock in successfully',
         data: result,
@@ -160,7 +156,7 @@ export const AttendanceRouter = new Elysia({
         ]),
       ]),
       response: {
-        200: {
+        201: {
           description: 'Clock in successfully',
           ...OkResponseSchema(SelectAttendanceSchema),
         },

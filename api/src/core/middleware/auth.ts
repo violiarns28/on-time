@@ -4,7 +4,7 @@ import { bearer } from '@elysiajs/bearer';
 import jwt, { JWTPayloadSpec } from '@elysiajs/jwt';
 import Elysia from 'elysia';
 import { Config } from '../config';
-import { AuthenticationError } from '../errors';
+import { AuthenticationError, AuthorizationError } from '../errors';
 import { DatabaseService } from '../services/db';
 
 export const AuthMiddleware = new Elysia()
@@ -17,7 +17,7 @@ export const AuthMiddleware = new Elysia()
   )
   .derive({ as: 'global' }, ({ jwt, bearer, cookie: { auth } }) => ({
     async verifyJWT() {
-      if (!bearer) throw new AuthenticationError('Unauthorized');
+      if (!bearer) throw new AuthorizationError('Unauthorized');
       const verify = await jwt.verify(bearer);
       if (!verify) throw new AuthenticationError('Invalid token');
       return verify as JWT & Record<string, string | number> & JWTPayloadSpec;

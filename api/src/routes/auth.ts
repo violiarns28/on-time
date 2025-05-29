@@ -1,4 +1,9 @@
-import { BadRequestError, ConflictError, ServerError } from '@/core/errors';
+import {
+  AuthenticationError,
+  BadRequestError,
+  ConflictError,
+  ServerError,
+} from '@/core/errors';
 import { AuthMiddleware } from '@/core/middleware/auth';
 import { BlockchainService } from '@/core/services/blockchain';
 import { DatabaseService } from '@/core/services/db';
@@ -73,14 +78,14 @@ export const AuthRouter = new Elysia({
   )
   .post(
     '/register',
-    async ({ body, db, generateJWT }) =>
+    async ({ body, db, generateJWT, set }) =>
       await db.transaction(async (trx) => {
         const findUser = await trx.query.user.findFirst({
           where: (fields, operators) => operators.eq(fields.email, body.email),
         });
 
         if (findUser) {
-          throw new ConflictError('Email already registered');
+          throw new ConflictError('Email already exists');
         }
 
         if (!body.password || body.password.length < 8) {
@@ -105,12 +110,13 @@ export const AuthRouter = new Elysia({
           createdAt: (newUser.createdAt ?? new Date()).toISOString(),
           updatedAt: (newUser.updatedAt ?? new Date()).toISOString(),
         };
-        p2pService.broadcastNewUser({ ...user, password});
+        p2pService.broadcastNewUser({ ...user, password });
 
         const token = await generateJWT(user);
 
+        set.status = 201;
         return {
-          message: 'Register success',
+          message: 'Registration success',
           data: {
             user,
             token,
@@ -122,7 +128,7 @@ export const AuthRouter = new Elysia({
       detail: 'This endpoint is used to register new user',
       body: RegisterSchema,
       response: {
-        200: {
+        201: {
           description: 'Register success',
           ...OkResponseSchema(RegisterResponseSchema),
         },
@@ -132,9 +138,12 @@ export const AuthRouter = new Elysia({
   .get(
     '/authenticate',
     async ({ bearer, jwt, db }) => {
+      if (!bearer) {
+        throw new AuthenticationError('No token provided');
+      }
       const claims = await jwt.verify(bearer);
       if (!claims) {
-        throw new BadRequestError('Invalid token');
+        throw new AuthenticationError('Invalid token');
       }
       const findUser = await db.query.user.findFirst({
         where: (fields, operators) =>

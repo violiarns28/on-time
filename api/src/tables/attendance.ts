@@ -1,10 +1,10 @@
 import { relations } from 'drizzle-orm';
 import {
   bigint,
-  date,
   int,
   mysqlEnum,
   mysqlTable,
+  text,
   varchar,
 } from 'drizzle-orm/mysql-core';
 import { usersTable } from './user';
@@ -19,7 +19,7 @@ export const attendancesTable = mysqlTable('attendances', {
   id: int().primaryKey(),
   userId: int('user_id', {}).notNull(),
   type: attendanceType.notNull(),
-  date: date({ mode: 'string' }).notNull(),
+  date: text().notNull(),
   timestamp: bigint({ mode: 'number' }).notNull(),
   hash: varchar({ length: 64 }).notNull(),
   previousHash: varchar('previous_hash', { length: 64 }).notNull(),

@@ -45,7 +45,6 @@ export const ProfileRouter = new Elysia({
     '/me',
     async ({ body, db, getUser }) =>
       await db.transaction(async (trx) => {
-        console.log('body', body);
         const user = await getUser();
         if (body.name) user.name = body.name;
         if (body.password) {

@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logger';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { Static, t } from 'elysia';
 
 const EnvSchema = t.Object({
+  ENV: t.String(),
   API_PORT: t.String(),
   JWT_SECRET: t.String(),
   SALT_ROUNDS: t
@@ -47,7 +49,7 @@ const parseEnv = () => {
   const errs = [...err];
   if (errs.length > 0) {
     errs.forEach((err) => {
-      console.error({
+      logger.error({
         path: err.path,
         message: err.message,
         actualValue: err.value,

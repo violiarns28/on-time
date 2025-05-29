@@ -74,7 +74,7 @@ async function compareAndExportCSV() {
   });
 
   await csvWriter.writeRecords(comparison);
-  console.log('✅ Comparison saved to comparison_result.csv');
+  logger.info('✅ Comparison saved to comparison_result.csv');
 }
 
-compareAndExportCSV().catch(console.error);
+compareAndExportCSV().catch(logger.error);

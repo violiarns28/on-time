@@ -1,6 +1,23 @@
-import { DEFAULT, MapWithDefault } from '@/utils';
+export abstract class BaseError extends Error {
+  public abstract status: number;
+  public abstract type: string;
+  constructor(message: string) {
+    super(message);
+    this.name = this.constructor.name;
+    // Ensure the correct prototype chain
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+  toJSON() {
+    return {
+      message: this.message,
+      status: this.status,
+      type: this.type,
+      name: this.name,
+    };
+  }
+}
 
-export class AuthenticationError extends Error {
+export class AuthenticationError extends BaseError {
   public status = 401;
   public type = 'authentication';
   constructor(public message: string) {
@@ -8,7 +25,7 @@ export class AuthenticationError extends Error {
   }
 }
 
-export class AuthorizationError extends Error {
+export class AuthorizationError extends BaseError {
   public status = 403;
   public type = 'authorization';
   constructor(public message: string) {
@@ -16,21 +33,21 @@ export class AuthorizationError extends Error {
   }
 }
 
-export class BadRequestError extends Error {
+export class BadRequestError extends BaseError {
   public status = 400;
   public type = 'bad_request';
   constructor(public message: string) {
     super(message);
   }
 }
-export class NotFoundError extends Error {
+export class NotFoundError extends BaseError {
   public status = 404;
   public type = 'not_found';
   constructor(public message: string) {
     super(message);
   }
 }
-export class ConflictError extends Error {
+export class ConflictError extends BaseError {
   public status = 409;
   public type = 'conflict';
   constructor(public message: string) {
@@ -38,7 +55,7 @@ export class ConflictError extends Error {
   }
 }
 
-export class StorageError extends Error {
+export class StorageError extends BaseError {
   public status = 500;
   public type = 'storage';
   constructor(public message: string) {
@@ -46,7 +63,7 @@ export class StorageError extends Error {
   }
 }
 
-export class ServerError extends Error {
+export class ServerError extends BaseError {
   public status = 500;
   public type = 'internal';
   constructor(public message: string) {
@@ -54,26 +71,10 @@ export class ServerError extends Error {
   }
 }
 
-export class UnsupportedMediaTypeError extends Error {
+export class UnsupportedMediaTypeError extends BaseError {
   public status = 415;
   public type = 'unsupported_media_type';
   constructor(public message: string) {
     super(message);
   }
 }
-
-export const ERROR_CODE_STATUS_MAP = new MapWithDefault<string, number>([
-  ['PARSE', 400],
-  ['BAD_REQUEST', 400],
-  ['CONFLICT', 409],
-  ['UNSUPPORTED_MEDIA_TYPE', 415],
-  ['VALIDATION', 422],
-  ['NOT_FOUND', 404],
-  ['INVALID_COOKIE_SIGNATURE', 401],
-  ['AUTHENTICATION', 401],
-  ['AUTHORIZATION', 403],
-  ['INTERNAL_SERVER_ERROR', 500],
-  ['INVALID_OPERATION', 400],
-  ['UNKNOWN', 500],
-  [DEFAULT, 500],
-]);
